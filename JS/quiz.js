@@ -212,6 +212,9 @@ function showQuestion() {
     container.appendChild(questionText);
 
     // Antwortbuttons erzeugen
+    const answersWrapper = document.createElement("div");
+    answersWrapper.className = "quiz-answers";
+
     q.answers.forEach(function (answer) {
 
         const button = document.createElement("button");
@@ -241,9 +244,11 @@ function showQuestion() {
 
         };
 
-        container.appendChild(button);
+        answersWrapper.appendChild(button);
 
     });
+
+    container.appendChild(answersWrapper);
 
 }
 
@@ -324,10 +329,56 @@ function nextQuestion() {
 
 
 /* =====================================================
+   QUIZ VERLASSEN
+   Wird sowohl vom "Quiz verlassen"-Button während des
+   Spiels als auch vom Ergebnis-Bildschirm benutzt.
+   ===================================================== */
+
+function exitQuiz() {
+
+    document.getElementById("quiz-select").style.display = "block";
+
+    document.getElementById("quiz-status").style.display = "none";
+    document.getElementById("quiz-game-panel").style.display = "none";
+
+    document.getElementById("score-display").style.display = "none";
+    document.getElementById("progress-display").style.display = "none";
+
+    document.getElementById("quiz-container").innerHTML = "";
+
+    /*
+       Zurück zur Quizliste der aktuellen Kategorie,
+       damit man leicht ein weiteres Quiz aus dem
+       gleichen Thema probieren kann.
+    */
+
+    if (currentCategoryId) {
+        showQuizList(currentCategoryId);
+    }
+
+}
+
+
+const quizExitButton = document.getElementById("quiz-exit-button");
+
+if (quizExitButton) {
+
+    quizExitButton.addEventListener("click", exitQuiz);
+
+}
+
+
+/* =====================================================
    ERGEBNIS ANZEIGEN
    ===================================================== */
 
 function showResults() {
+
+    if (typeof registerQuizCompletion === "function") {
+
+        registerQuizCompletion();
+
+    }
 
     const container =
         document.getElementById("quiz-container");
@@ -355,32 +406,13 @@ function showResults() {
     const backButton =
         document.createElement("button");
 
+    backButton.type = "button";
+    backButton.className = "yj-button yj-button--compact";
+
     backButton.textContent =
         "Zurück zur Auswahl";
 
-    backButton.onclick = function () {
-
-        document.getElementById("quiz-select").style.display = "block";
-
-        document.getElementById("quiz-status").style.display = "none";
-        document.getElementById("quiz-game-panel").style.display = "none";
-
-        document.getElementById("score-display").style.display = "none";
-        document.getElementById("progress-display").style.display = "none";
-
-        container.innerHTML = "";
-
-        /*
-           Zurück zur Quizliste der aktuellen Kategorie,
-           damit man leicht ein weiteres Quiz aus dem
-           gleichen Thema probieren kann.
-        */
-
-        if (currentCategoryId) {
-            showQuizList(currentCategoryId);
-        }
-
-    };
+    backButton.onclick = exitQuiz;
 
     container.appendChild(backButton);
 

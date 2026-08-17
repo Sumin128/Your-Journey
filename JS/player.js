@@ -38,6 +38,8 @@ let player = {
 
     achievements: [],
 
+    quizzesCompleted: 0,
+
     berries: 0,
 
     activeCursor: "default",
@@ -505,6 +507,87 @@ function addAchievement(achievementName) {
     window.dispatchEvent(
         new CustomEvent("player-updated")
     );
+
+    showAchievementToast(achievementName);
+
+}
+
+
+/* =====================================================
+   ERFOLGS-BENACHRICHTIGUNG
+   ===================================================== */
+
+function showAchievementToast(achievementName) {
+
+    const toast =
+        document.createElement("div");
+
+    toast.className = "achievement-toast";
+
+    toast.textContent =
+        "🏆 Neuer Erfolg: " + achievementName + "!";
+
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+
+        toast.classList.add("achievement-toast--show");
+
+    }, 10);
+
+    setTimeout(function () {
+
+        toast.classList.remove("achievement-toast--show");
+
+        setTimeout(function () {
+
+            toast.remove();
+
+        }, 400);
+
+    }, 3500);
+
+}
+
+
+/* =====================================================
+   QUIZ-ERFOLGE BEI KURO
+   Wird von JS/quiz.js aufgerufen, wenn ein Quiz
+   zu Ende gespielt wurde.
+   ===================================================== */
+
+const quizCompletionAchievements = [
+    { count: 1, name: "Erstes Quiz gemeistert" },
+    { count: 3, name: "3 Quizze gemeistert" },
+    { count: 5, name: "5 Quizze gemeistert" },
+    { count: 10, name: "10 Quizze gemeistert" }
+];
+
+function registerQuizCompletion() {
+
+    if (typeof player.quizzesCompleted !== "number") {
+
+        player.quizzesCompleted = 0;
+
+    }
+
+    player.quizzesCompleted++;
+
+    savePlayer();
+
+    const unlockedAchievement = quizCompletionAchievements.find(
+        function (achievement) {
+
+            return achievement.count === player.quizzesCompleted;
+
+        }
+    );
+
+    if (unlockedAchievement) {
+
+        addAchievement(unlockedAchievement.name);
+
+    }
 
 }
 
