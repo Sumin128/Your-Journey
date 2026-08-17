@@ -1,0 +1,107 @@
+@media (max-width: 760px) {
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: clip;
+    }
+
+    .yj-page {
+        padding-right: 16px;
+        padding-left: 86px;
+    }
+
+    .yj-panel,
+    .yj-card {
+        border-width: 3px;
+        border-radius: var(--yj-radius-md);
+    }
+
+    .yj-button {
+        min-height: 44px;
+        max-width: 100%;
+        padding: 10px 16px;
+    }
+
+    #owl-school-main,
+    #faro-main,
+    #bear-main {
+        padding: 24px 16px 40px 86px;
+    }
+
+    #owl-school-main .character-panel,
+    #faro-main .character-panel,
+    #bear-main > .bear-game-layout {
+        min-width: 0;
+    }
+
+    #owl-school-main .character-panel,
+    #faro-main .character-panel {
+        flex-direction: column;
+    }
+
+    #olivia-dialog,
+    #faro-dialog,
+    .bear-character,
+    .bear-intro {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #olivia-image,
+    #faro-image {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 470px) {
+    .yj-page {
+        padding-right: 10px;
+        padding-left: 80px;
+    }
+
+    .yj-button--wide {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #owl-school-main,
+    #faro-main,
+    #bear-main {
+        padding-right: 10px;
+        padding-left: 80px;
+    }
+
+    #school-player-bar,
+    #faro-player-bar,
+    #bear-player-bar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .bear-status {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .bear-stat-box {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    #word-display {
+        gap: 6px;
+    }
+
+    .letter-slot {
+        width: 28px;
+        height: 38px;
+        font-size: 1.4rem;
+    }
+
+    .letter-button {
+        width: 36px;
+        height: 42px;
+        font-size: 0.95rem;
+    }
+}
+

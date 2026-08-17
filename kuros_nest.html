@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <link
+        rel="stylesheet"
+        href="CSS/style.css">
+
+    <link
+        rel="stylesheet"
+        href="CSS/components/index.css?v=4">
+
+    <title>Kuros Nest – Your Journey</title>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <nav id="sidebar">
+
+        <div class="sidebar-header">
+
+            <button
+                id="sidebar-toggle"
+                type="button"
+                aria-label="Menü öffnen">
+                ☰
+            </button>
+
+            <span class="sidebar-title">
+                Your Journey
+            </span>
+
+        </div>
+
+
+        <div class="sidebar-player">
+
+            <div class="sidebar-avatar-wrap">
+
+                <img
+                    id="sidebar-player-avatar"
+                    src=""
+                    alt="Spieler">
+
+                <button
+                    id="inventory-button"
+                    type="button">
+                    🎒
+                </button>
+
+            </div>
+
+            <div class="sidebar-player-info">
+
+                <strong id="sidebar-player-name">
+                    Abenteurer
+                </strong>
+
+                <span id="sidebar-feathers">
+                    🪶 0 Federn
+                </span>
+
+                <span id="sidebar-achievements">
+                    ⭐ 0 Erfolge
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <div class="sidebar-nav">
+
+            <a
+                href="index.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🏠</span>
+                <span class="sidebar-label">Start</span>
+
+            </a>
+
+
+            <a
+                href="galerie.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🖼️</span>
+                <span class="sidebar-label">Galerie</span>
+
+            </a>
+
+
+            <a
+                href="kuros_nest.html"
+                class="sidebar-link"
+                aria-current="page">
+
+                <span class="sidebar-icon">🐦</span>
+                <span class="sidebar-label">Kuros Nest</span>
+
+            </a>
+
+
+            <a
+                href="eulenschule.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🦉</span>
+                <span class="sidebar-label">Olivias Eulenschule</span>
+
+            </a>
+
+
+            <a
+                href="fuchs.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🦊</span>
+                <span class="sidebar-label">Faros Fuchsbau</span>
+
+            </a>
+
+            <a
+                href="baerental.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🐻</span>
+                <span class="sidebar-label">Bärental</span>
+
+            </a>
+
+            <a
+                href="shop_seite.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🛒</span>
+                <span class="sidebar-label">Kuros Laden</span>
+
+            </a>
+
+
+            <button
+                class="sidebar-link"
+                type="button"
+                disabled>
+
+                <span class="sidebar-icon">📚</span>
+                <span class="sidebar-label">Wissenswertes</span>
+
+            </button>
+
+
+            <a
+                href="#"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🏆</span>
+                <span class="sidebar-label">Erfolge</span>
+
+            </a>
+
+
+            <a
+                href="einstellungen.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">⚙️</span>
+                <span class="sidebar-label">Einstellungen</span>
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         KUROS NEST
+         ===================================================== -->
+
+    <main id="kuro-main" class="yj-page">
+
+
+        <header
+            id="kuro-player-bar"
+            class="panel player-panel"
+            aria-label="Spielerprofil">
+
+            <div class="kuro-player-info">
+
+                <img
+                    id="player-avatar"
+                    src=""
+                    alt="Spieler">
+
+                <span id="player-name-display"></span>
+
+            </div>
+
+            <div class="kuro-player-stats">
+
+                <span
+                    id="feather-count"
+                    aria-live="polite">
+                    🪶 0 Federn
+                </span>
+
+                <span id="achievement-count">
+                    ⭐ 0 Erfolge
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <section
+            id="kuro-box"
+            class="panel character-panel yj-panel yj-panel--paper yj-enter">
+
+            <img
+                src="images/Kuro_close.png"
+                id="kuro-image"
+                alt="Kuro">
+
+            <div id="kuro-text">
+
+                <h1 id="welcome-title">
+                    Hallo!
+                </h1>
+
+                <p id="welcome-message">
+                    Ich bin Kuro.
+                    Schön, dass du wieder da bist.
+                </p>
+
+                <div id="kuro-name-area">
+
+                    <input
+                        id="player-name"
+                        type="text"
+                        placeholder="Wie heißt du?"
+                        autocomplete="off">
+
+                    <button
+                        id="save-name"
+                        type="button"
+                        class="yj-button yj-button--compact">
+                        Los geht's
+                    </button>
+
+                </div>
+
+                <div id="avatar-selection">
+                    <!-- Avatare werden per JavaScript eingefügt -->
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="quiz-select"
+            class="panel quiz-panel yj-panel yj-panel--paper">
+
+            <h2>
+                Teste dein Wissen
+            </h2>
+
+            <div id="quiz-select-buttons">
+
+                <button
+                    type="button"
+                    class="yj-button"
+                    onclick="startQuiz('allgemeinwissen')">
+                    🧠 Allgemeinwissen
+                </button>
+
+                <button
+                    type="button"
+                    class="yj-button"
+                    onclick="startQuiz('tiere')">
+                    🦁 Tiere
+                </button>
+
+                <button
+                    type="button"
+                    class="yj-button"
+                    onclick="startQuiz('filmcharaktere')">
+                    🎬 Film-Charaktere
+                </button>
+
+                <button
+                    type="button"
+                    class="yj-button"
+                    onclick="startQuiz('buchstaben')">
+                    🔤 Buchstaben & Wörter-Detektive
+                </button>
+
+                <button
+                    type="button"
+                    class="yj-button"
+                    onclick="startQuiz('berufe')">
+                    🧰 Berufe
+                </button>
+
+                <button
+                    type="button"
+                    class="yj-button"
+                    onclick="startQuiz('Mathe1Klasse')">
+                    ➕ Mathe
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <div
+            id="quiz-status"
+            class="panel quiz-panel yj-panel yj-panel--paper"
+            style="display:none;">
+
+            <p
+                id="score-display"
+                style="display:none;">
+                Punkte: 0
+            </p>
+
+            <p
+                id="progress-display"
+                style="display:none;">
+                Frage 1 von 9
+            </p>
+
+        </div>
+
+
+        <section
+            id="quiz-game-panel"
+            class="panel quiz-panel"
+            style="display:none;">
+
+            <div id="quiz-container">
+                <!-- Quiz wird per JavaScript erzeugt -->
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="JS/player.js?v=3"></script>
+
+    <script src="JS/sidebar.js"></script>
+
+    <script src="JS/data.js"></script>
+
+    <script src="JS/index.js"></script>
+
+    <script src="JS/sounds.js"></script>
+
+    <script src="JS/quiz.js"></script>
+
+
+</body>
+
+</html>
+

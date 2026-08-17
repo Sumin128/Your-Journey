@@ -1,0 +1,174 @@
+Eulenschule
+
+❤️ Ich würde das Spiel nicht um Level bauen.
+Sondern um Freundschaften.
+Zum Beispiel:
+🐦 Kuro
+
+🙂 Kennengelernt
+
+↓
+
+😊 Bekannter
+
+↓
+
+😄 Freund
+
+↓
+
+🥰 Bester Freund
+Nicht:
+Level 1
+
+Level 2
+
+Level 3
+Und jedes Tier bekommt seine eigene Lieblingssache
+Tier	Liebt
+🐦 Kuro	🍓 Beeren
+🦉 Olivia	🪱 Würmer
+🐸 Frido	🪰 Fliegen
+🦔 Hugo	🍄 Pilze
+🐿️ Fips	🌰 Nüsse
+
+Dann hat jedes Sammelobjekt einen Sinn.
+Stell dir vor...
+Hannah kommt nach dem Quiz zurück.
+Kuro sagt:
+🐦
+
+Du hast heute 5 Federn gesammelt!
+
+Sollen wir sie gegen Beeren tauschen?
+↓
+🪶 10
+
+↓
+
+🍓 1
+↓
+🍓 Beere geben?
+↓
+Kuro:
+🐦
+
+Mmmh!
+
+Meine Lieblingsbeere!
+
+Vielen Dank!
+↓
+Freundschaft
+
+❤❤🤍🤍🤍
+❤️ Das ist doch tausendmal schöner als:
++10 XP
+
+Und jetzt kommt die beste Idee überhaupt.
+Nicht alle Tiere sind sofort da.
+Zum Beispiel:
+Anfang
+🌲 Federwald
+
+🐦 Kuro
+Mehr gibt es gar nicht.
+Nach einiger Zeit:
+🐦
+
+Weißt du...
+
+Meine Freundin Olivia wohnt in der Eulenschule.
+
+Vielleicht sollten wir sie mal besuchen.
+↓
+🦉 wird freigeschaltet.
+Später:
+🦉
+
+Frido kennt sich mit seltenen Beeren aus.
+
+Er lebt am Waldteich.
+↓
+🐸 wird freigeschaltet.
+Das fühlt sich an wie eine kleine Geschichte.
+🌳 Ich würde sogar die Navigation verändern.
+Nicht sofort alles zeigen.
+Am Anfang:
+🌲 Federwald
+
+🐦 Kuro
+Mehr nicht.
+Nach einigen Tagen:
+🌲 Federwald
+
+🦉 Eulenschule
+
+🐦 Kuro
+Später:
+🌲 Federwald
+
+🦉 Eulenschule
+
+🍄 Waldmarkt
+
+🐦 Kuro
+
+🎒 Rucksack
+Der Spieler entdeckt die Welt nach und nach.
+📜 Freundschaft
+Jedes Tier bekommt eine kleine Anzeige.
+🐦 Kuro
+
+❤❤❤🤍🤍
+
+Noch 2 Beeren
+bis zur nächsten Stufe.
+Oder
+🦉 Olivia
+
+❤🤍🤍🤍🤍
+
+Noch unbekannt.
+🎁 Geschenke
+Später könnte jedes Tier kleine Belohnungen geben.
+Zum Beispiel:
+🐦 Kuro
+Danke!
+
+Hier hast du eine goldene Feder.
+🦉 Olivia
+Ich habe heute
+eine neue Wissenskarte
+für dich.
+🐿️ Fips
+Ich habe Platz
+für noch mehr Beeren.
+So hat jede Freundschaft einen kleinen spielerischen Nutzen, ohne dass es sich wie eine Pflicht anfühlt.
+🌟 Und jetzt kommt mein Lieblingsgedanke
+Du hast dein Projekt "Your Journey" genannt.
+Ich glaube, wir sollten diesen Namen ernst nehmen.
+Es geht nicht darum, möglichst viele Quizfragen richtig zu beantworten.
+Es geht darum, eine Reise zu machen.
+🌱 Am Anfang kennst du nur Kuro.
+🌲 Dann lernst du Olivia kennen.
+🌊 Später triffst du Frido am Teich.
+🦔 Danach Hugo im Wald.
+🐿️ Schließlich Fips auf der Lichtung.
+Jede neue Figur ist ein kleiner Meilenstein.
+
+===== Spätere Ideen =====
+
+☐ Cursor freischalten
+
+☐ Cursor-Spuren
+
+☐ Entrollanimation
+
+☐ Soundeffekte
+
+☐ Wetter
+
+☐ Tag/Nacht
+
+☐ Jahreszeiten

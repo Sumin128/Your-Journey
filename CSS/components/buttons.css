@@ -1,0 +1,102 @@
+.yj-button {
+    min-height: 46px;
+    padding: 11px 20px;
+    border: 3px solid var(--yj-color-wood-dark);
+    border-radius: var(--yj-radius-sm);
+    background:
+        repeating-linear-gradient(2deg, transparent 0 8px, rgba(60, 25, 5, 0.1) 9px, transparent 11px),
+        linear-gradient(180deg, var(--yj-color-wood-light), var(--yj-color-wood) 50%, #713511);
+    box-shadow: var(--yj-shadow-raised), inset 0 2px 2px rgba(255, 232, 177, 0.3);
+    color: var(--yj-color-gold);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 0 2px 2px rgba(55, 24, 5, 0.85);
+    transition: transform var(--yj-transition), filter var(--yj-transition), box-shadow var(--yj-transition);
+}
+
+.yj-button:hover:not(:disabled) {
+    filter: brightness(1.12);
+    transform: translateY(-2px);
+}
+
+.yj-button:active:not(:disabled) {
+    box-shadow: 0 2px 0 #3f1e0b, 0 4px 8px rgba(0, 0, 0, 0.25);
+    transform: translateY(3px);
+}
+
+.yj-button:focus-visible {
+    outline: 3px solid #fff3bd;
+    outline-offset: 3px;
+}
+
+.yj-button:disabled,
+.yj-button.is-disabled {
+    border-color: #45382b;
+    background: linear-gradient(#76634e, #594938);
+    box-shadow: 0 4px 0 #352a20, 0 8px 14px rgba(0, 0, 0, 0.22);
+    color: #c7b8a5;
+    cursor: not-allowed;
+    filter: none;
+}
+
+.yj-button--compact {
+    min-height: 38px;
+    padding: 8px 15px;
+    font-size: 0.92rem;
+}
+
+.yj-button--wide {
+    min-width: min(300px, 100%);
+}
+
+.yj-button--secondary {
+    background:
+        repeating-linear-gradient(2deg, transparent 0 8px, rgba(60, 25, 5, 0.08) 9px, transparent 11px),
+        linear-gradient(180deg, #9a7850, #715236 55%, #51351f);
+}
+
+/*
+ * Übergangsselektoren für ältere Seitenregeln mit höherer Spezifität.
+ * Abstände und Breiten bleiben bei den Seiten, nur die Designsprache ist gemeinsam.
+ */
+#play-sound-button.yj-button,
+#faro-quiz-select .yj-button,
+#quiz-select-buttons .yj-button,
+#save-name.yj-button,
+#next-word-button.yj-button,
+.shop-item .yj-button {
+    border: 3px solid var(--yj-color-wood-dark);
+    border-radius: var(--yj-radius-sm);
+    background:
+        repeating-linear-gradient(2deg, transparent 0 8px, rgba(60, 25, 5, 0.1) 9px, transparent 11px),
+        linear-gradient(180deg, var(--yj-color-wood-light), var(--yj-color-wood) 50%, #713511);
+    box-shadow: var(--yj-shadow-raised), inset 0 2px 2px rgba(255, 232, 177, 0.3);
+    color: var(--yj-color-gold);
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    text-shadow: 0 2px 2px rgba(55, 24, 5, 0.85);
+}
+
+#play-sound-button.yj-button:hover:not(:disabled),
+#faro-quiz-select .yj-button:hover:not(:disabled),
+#quiz-select-buttons .yj-button:hover:not(:disabled),
+#save-name.yj-button:hover:not(:disabled),
+#next-word-button.yj-button:hover:not(:disabled),
+.shop-item .yj-button:hover:not(:disabled) {
+    background:
+        repeating-linear-gradient(2deg, transparent 0 8px, rgba(60, 25, 5, 0.1) 9px, transparent 11px),
+        linear-gradient(180deg, var(--yj-color-wood-light), var(--yj-color-wood) 50%, #713511);
+    filter: brightness(1.12);
+    transform: translateY(-2px);
+}
+
+.shop-item .yj-button:disabled {
+    border-color: #45382b;
+    background: linear-gradient(#76634e, #594938);
+    color: #c7b8a5;
+}
+

@@ -1,0 +1,21 @@
+:root {
+    --yj-color-ink: #3b2416;
+    --yj-color-ink-soft: #6b4a34;
+    --yj-color-wood-dark: #4b260f;
+    --yj-color-wood: #96501e;
+    --yj-color-wood-light: #bc702d;
+    --yj-color-gold: #ffe2a5;
+    --yj-color-paper: #f8edd7;
+    --yj-color-paper-soft: rgba(255, 247, 234, 0.78);
+    --yj-color-border: #8a6339;
+    --yj-color-success: #4caf50;
+    --yj-color-danger: #e53935;
+    --yj-radius-sm: 10px;
+    --yj-radius-md: 18px;
+    --yj-radius-lg: 24px;
+    --yj-shadow-card: 0 10px 26px rgba(0, 0, 0, 0.2);
+    --yj-shadow-raised: 0 5px 0 #3f1e0b, 0 9px 15px rgba(0, 0, 0, 0.28);
+    --yj-transition: 160ms ease;
+    --yj-content-width: 920px;
+}
+

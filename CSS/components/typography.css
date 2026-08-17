@@ -1,0 +1,21 @@
+:where(.yj-page, .yj-panel, .yj-card) {
+    color: var(--yj-color-ink);
+}
+
+:where(.yj-page, .yj-panel, .yj-card) h1,
+:where(.yj-page, .yj-panel, .yj-card) h2,
+:where(.yj-page, .yj-panel, .yj-card) h3 {
+    color: var(--yj-color-ink);
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing: 0.015em;
+    text-wrap: balance;
+}
+
+.yj-kicker {
+    color: var(--yj-color-ink-soft);
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+

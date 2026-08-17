@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <link
+        rel="stylesheet"
+        href="CSS/style.css">
+
+    <link
+        rel="stylesheet"
+        href="CSS/components/index.css?v=4">
+
+    <title>Faros Fuchsbau – Your Journey</title>
+
+</head>
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <nav id="sidebar">
+
+        <div class="sidebar-header">
+
+            <button
+                id="sidebar-toggle"
+                type="button"
+                aria-label="Menü öffnen">
+                ☰
+            </button>
+
+            <span class="sidebar-title">
+                Your Journey
+            </span>
+
+        </div>
+
+
+        <div class="sidebar-player">
+
+            <div class="sidebar-avatar-wrap">
+
+                <img
+                    id="sidebar-player-avatar"
+                    src=""
+                    alt="Spieler">
+
+                <button
+                    id="inventory-button"
+                    type="button">
+                    🎒
+                </button>
+
+            </div>
+
+            <div class="sidebar-player-info">
+
+                <strong id="sidebar-player-name">
+                    Abenteurer
+                </strong>
+
+                <span id="sidebar-feathers">
+                    🪶 0 Federn
+                </span>
+
+                <span id="sidebar-achievements">
+                    ⭐ 0 Erfolge
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <div class="sidebar-nav">
+
+            <a
+                href="index.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🏠</span>
+                <span class="sidebar-label">Start</span>
+
+            </a>
+
+
+            <a
+                href="galerie.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🖼️</span>
+                <span class="sidebar-label">Galerie</span>
+
+            </a>
+
+
+            <a
+                href="kuros_nest.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🐦</span>
+                <span class="sidebar-label">Kuros Nest</span>
+
+            </a>
+
+
+            <a
+                href="eulenschule.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🦉</span>
+                <span class="sidebar-label">Olivias Eulenschule</span>
+
+            </a>
+
+
+            <a
+                href="fuchs.html"
+                class="sidebar-link"
+                aria-current="page">
+
+                <span class="sidebar-icon">🦊</span>
+                <span class="sidebar-label">Faros Fuchsbau</span>
+
+            </a>
+
+            <a
+                href="baerental.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🐻</span>
+                <span class="sidebar-label">Bärental</span>
+
+            </a>
+
+            <a
+                href="shop_seite.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🛒</span>
+                <span class="sidebar-label">Kuros Laden</span>
+
+            </a>
+
+
+            <button
+                class="sidebar-link"
+                type="button"
+                disabled>
+
+                <span class="sidebar-icon">📚</span>
+                <span class="sidebar-label">Wissenswertes</span>
+
+            </button>
+
+
+            <a
+                href="#"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🏆</span>
+                <span class="sidebar-label">Erfolge</span>
+
+            </a>
+
+
+            <a
+                href="einstellungen.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">⚙️</span>
+                <span class="sidebar-label">Einstellungen</span>
+
+            </a>
+
+        </div>
+
+    </nav>
+
+    <!-- =====================================================
+         FAROS FUCHSBAU
+         ===================================================== -->
+
+    <main id="faro-main" class="yj-page">
+
+        <header
+            id="faro-player-bar"
+            class="panel player-panel yj-panel"
+            aria-label="Spielerprofil">
+
+            <div class="faro-player-info">
+
+                <img
+                    id="player-avatar"
+                    src=""
+                    alt="Avatar des Spielers">
+
+                <span id="player-name-display">
+                    Abenteurer
+                </span>
+
+            </div>
+
+            <span id="feather-count" aria-live="polite">
+                🪶 0 Federn
+            </span>
+
+        </header>
+
+
+        <section
+            id="faro-intro"
+            class="panel character-panel yj-panel yj-panel--paper yj-enter">
+
+            <div id="faro-left">
+
+                <img
+                    id="faro-image"
+                    src="images/faro1.png"
+                    alt="Faro, der Fuchs">
+
+                <div id="flinkfunk-box">
+
+                    <img
+                        id="flinkfunk-radio"
+                        src="Icons/faro/faros_radio96x96.png"
+                        alt="Flinkfunk Radio">
+
+                    <p id="flinkfunk-text">
+                        Flinkfunk
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div id="faro-dialog">
+
+                <h1>Faros Fuchsbau</h1>
+
+                <p id="faro-text">
+                    Pssst … hör genau hin!
+                    Meine Ohren haben ein Geräusch entdeckt.
+                    Kannst du mir sagen, was das für ein Geräusch ist?
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="faro-quiz-select"
+            class="panel quiz-panel yj-panel yj-panel--paper">
+
+            <h2>Wähle ein Geräuschequiz</h2>
+
+            <button
+                type="button"
+                id="animal-sounds-button"
+                class="yj-button">
+                🐾 Tiergeräusche
+            </button>
+
+            <button
+                type="button"
+                id="everyday-sounds-button"
+                class="yj-button">
+                🏡 Alltagsgeräusche
+            </button>
+
+            <button
+                type="button"
+                id="household-sounds-button"
+                class="yj-button">
+                🫖 Haushaltsgeräusche
+            </button>
+
+            <button
+                type="button"
+                id="nature-sounds-button"
+                class="yj-button">
+                🍃 Naturgeräusche
+            </button>
+
+        </section>
+
+
+        <button
+            id="back-to-quizzes"
+            type="button"
+            class="yj-button yj-button--secondary yj-button--wide"
+            hidden>
+            ⬅️ Zur Quizauswahl
+        </button>
+
+
+        <section id="sound-quiz" class="quiz-panel yj-panel yj-panel--paper" hidden>
+
+            <h2 id="sound-question">
+                Welches Tier macht dieses Geräusch?
+            </h2>
+
+            <button
+                type="button"
+                id="play-sound-button"
+                class="yj-button">
+                🔊 Geräusch abspielen
+            </button>
+
+            <div id="sound-answers">
+                <!-- Antwortbuttons werden später mit JavaScript erzeugt -->
+            </div>
+
+            <p id="sound-message" aria-live="polite"></p>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="JS/player.js?v=3"></script>
+
+    <script src="JS/sidebar.js"></script>
+    <script src="JS/sounds.js"></script>
+    <script src="JS/fuchs.js?v=3"></script>
+
+</body>
+
+</html>
+

@@ -1,0 +1,16 @@
+.yj-panel {
+    width: min(100%, var(--yj-content-width));
+    border: 4px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-lg);
+    background: var(--yj-color-paper-soft);
+    box-shadow: var(--yj-shadow-card);
+    color: var(--yj-color-ink);
+    backdrop-filter: blur(6px);
+}
+
+.yj-panel--paper {
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.5), transparent 42%),
+        rgba(248, 237, 215, 0.9);
+}
+
