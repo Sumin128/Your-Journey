@@ -5,45 +5,147 @@
 let currentQuestion = 0;
 let score = 0;
 let activeQuiz = [];
+let currentCategoryId = null;
 
 
+/* =====================================================
+   KATEGORIEN ANZEIGEN
+   ===================================================== */
+
+function renderQuizCategories() {
+
+    const container = document.getElementById("quiz-category-buttons");
+
+    if (!container || typeof quizCategories === "undefined") {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    quizCategories.forEach(function (category) {
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "yj-button";
+        button.textContent = category.icon + " " + category.label;
+
+        button.addEventListener("click", function () {
+            showQuizList(category.id);
+        });
+
+        container.appendChild(button);
+
+    });
+
+}
 
 
+/* =====================================================
+   QUIZLISTE EINER KATEGORIE ANZEIGEN
+   ===================================================== */
+
+function showQuizList(categoryId) {
+
+    const category = quizCategories.find(function (item) {
+        return item.id === categoryId;
+    });
+
+    if (!category) {
+        return;
+    }
+
+    currentCategoryId = categoryId;
+
+    document.getElementById("quiz-category-select").hidden = true;
+    document.getElementById("quiz-list-select").hidden = false;
+
+    document.getElementById("quiz-category-title").textContent =
+        category.icon + " " + category.label;
+
+    const listContainer = document.getElementById("quiz-select-buttons");
+    listContainer.innerHTML = "";
+
+    category.quizzes.forEach(function (quizEntry) {
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "yj-button";
+        button.textContent = quizEntry.icon + " " + quizEntry.label;
+
+        button.addEventListener("click", function () {
+            startQuiz(quizEntry.id);
+        });
+
+        listContainer.appendChild(button);
+
+    });
+
+}
+
+
+/* =====================================================
+   ZURÜCK ZU DEN KATEGORIEN
+   ===================================================== */
+
+const quizBackToCategoriesButton =
+    document.getElementById("quiz-back-to-categories");
+
+if (quizBackToCategoriesButton) {
+
+    quizBackToCategoriesButton.addEventListener("click", function () {
+
+        currentCategoryId = null;
+
+        document.getElementById("quiz-list-select").hidden = true;
+        document.getElementById("quiz-category-select").hidden = false;
+
+    });
+
+}
+
+
+/* =====================================================
+   QUIZ ANHAND SEINER ID FINDEN
+   ===================================================== */
+
+function findQuizById(quizId) {
+
+    if (typeof quizCategories === "undefined") {
+        return null;
+    }
+
+    for (let i = 0; i < quizCategories.length; i++) {
+
+        const match = quizCategories[i].quizzes.find(function (quizEntry) {
+            return quizEntry.id === quizId;
+        });
+
+        if (match) {
+            return match;
+        }
+
+    }
+
+    return null;
+
+}
 
 
 /* =====================================================
    QUIZ STARTEN
    ===================================================== */
 
-function startQuiz(quizName) {
+function startQuiz(quizId) {
 
-    // Das ausgewählte Quiz laden
+    const quizEntry = findQuizById(quizId);
 
-    if (quizName === "allgemeinwissen") {
-
-        activeQuiz = quizAllgemeinwissen;
-
-    } else if (quizName === "tiere") {
-
-        activeQuiz = quizTiere;
-
-    } else if (quizName === "filmcharaktere") {
-
-        activeQuiz = quizFilmCharaktere;
-
-    } else if (quizName === "buchstaben") {
-
-        activeQuiz = quizBuchstaben;
-
-    } else if (quizName === "berufe") {
-
-        activeQuiz = quizBerufe;
-
-    } else if (quizName === "Mathe1Klasse") {
-
-        activeQuiz = Mathe1Klasse;
-
+    if (!quizEntry) {
+        return;
     }
+
+    activeQuiz = quizEntry.quiz;
 
     // Neues Spiel beginnen
     currentQuestion = 0;
@@ -145,10 +247,6 @@ function showQuestion() {
 
 }
 
-
-/* =====================================================
-   ANTWORT PRÜFEN
-   ===================================================== */
 
 /* =====================================================
    ANTWORT PRÜFEN
@@ -262,18 +360,31 @@ function showResults() {
 
     backButton.onclick = function () {
 
-    document.getElementById("quiz-select").style.display = "block";
+        document.getElementById("quiz-select").style.display = "block";
 
-    document.getElementById("quiz-status").style.display = "none";
-    document.getElementById("quiz-game-panel").style.display = "none";
+        document.getElementById("quiz-status").style.display = "none";
+        document.getElementById("quiz-game-panel").style.display = "none";
 
-    document.getElementById("score-display").style.display = "none";
-    document.getElementById("progress-display").style.display = "none";
+        document.getElementById("score-display").style.display = "none";
+        document.getElementById("progress-display").style.display = "none";
 
-    container.innerHTML = "";
+        container.innerHTML = "";
 
-};
+        /*
+           Zurück zur Quizliste der aktuellen Kategorie,
+           damit man leicht ein weiteres Quiz aus dem
+           gleichen Thema probieren kann.
+        */
+
+        if (currentCategoryId) {
+            showQuizList(currentCategoryId);
+        }
+
+    };
 
     container.appendChild(backButton);
 
 }
+
+
+renderQuizCategories();

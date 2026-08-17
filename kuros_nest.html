@@ -252,27 +252,6 @@
                     Schön, dass du wieder da bist.
                 </p>
 
-                <div id="kuro-name-area">
-
-                    <input
-                        id="player-name"
-                        type="text"
-                        placeholder="Wie heißt du?"
-                        autocomplete="off">
-
-                    <button
-                        id="save-name"
-                        type="button"
-                        class="yj-button yj-button--compact">
-                        Los geht's
-                    </button>
-
-                </div>
-
-                <div id="avatar-selection">
-                    <!-- Avatare werden per JavaScript eingefügt -->
-                </div>
-
             </div>
 
         </section>
@@ -286,49 +265,28 @@
                 Teste dein Wissen
             </h2>
 
-            <div id="quiz-select-buttons">
+            <div id="quiz-category-select">
+
+                <div id="quiz-category-buttons">
+                    <!-- Kategorien werden per JavaScript erzeugt -->
+                </div>
+
+            </div>
+
+            <div id="quiz-list-select" hidden>
 
                 <button
+                    id="quiz-back-to-categories"
                     type="button"
-                    class="yj-button"
-                    onclick="startQuiz('allgemeinwissen')">
-                    🧠 Allgemeinwissen
+                    class="yj-button yj-button--secondary yj-button--compact">
+                    ⬅️ Zurück zu Kategorien
                 </button>
 
-                <button
-                    type="button"
-                    class="yj-button"
-                    onclick="startQuiz('tiere')">
-                    🦁 Tiere
-                </button>
+                <h3 id="quiz-category-title"></h3>
 
-                <button
-                    type="button"
-                    class="yj-button"
-                    onclick="startQuiz('filmcharaktere')">
-                    🎬 Film-Charaktere
-                </button>
-
-                <button
-                    type="button"
-                    class="yj-button"
-                    onclick="startQuiz('buchstaben')">
-                    🔤 Buchstaben & Wörter-Detektive
-                </button>
-
-                <button
-                    type="button"
-                    class="yj-button"
-                    onclick="startQuiz('berufe')">
-                    🧰 Berufe
-                </button>
-
-                <button
-                    type="button"
-                    class="yj-button"
-                    onclick="startQuiz('Mathe1Klasse')">
-                    ➕ Mathe
-                </button>
+                <div id="quiz-select-buttons">
+                    <!-- Quizze der gewählten Kategorie werden per JavaScript erzeugt -->
+                </div>
 
             </div>
 
@@ -377,14 +335,22 @@
     <script src="JS/player.js?v=3"></script>
 
     <script src="JS/sidebar.js"></script>
+    <script src="JS/bugreport.js"></script>
 
     <script src="JS/data.js"></script>
-
-    <script src="JS/index.js"></script>
 
     <script src="JS/sounds.js"></script>
 
     <script src="JS/quiz.js"></script>
+
+    <script>
+        const kuroWelcomeMessage = document.getElementById("welcome-message");
+
+        if (kuroWelcomeMessage && typeof kuro !== "undefined" && kuro.welcome) {
+            const randomIndex = Math.floor(Math.random() * kuro.welcome.length);
+            kuroWelcomeMessage.textContent = kuro.welcome[randomIndex];
+        }
+    </script>
 
 
 </body>

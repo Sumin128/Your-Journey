@@ -20,10 +20,10 @@ function updateOwlSchoolPlayer() {
 
     if (playerNameDisplay) {
         playerNameDisplay.textContent = player.name || "Abenteurer";
+    }
 
-        if (playerAvatarDisplay && player.avatar) {
-    playerAvatarDisplay.src = player.avatar;
-}
+    if (playerAvatarDisplay) {
+        playerAvatarDisplay.src = player.avatar || AVATAR_PLACEHOLDER;
     }
 }
 

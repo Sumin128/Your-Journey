@@ -953,10 +953,6 @@ border:4px solid #8a6339;
 
 }
 
-#avatar-selection {
-
-}
-
 /* =====================================================
    AVATARE
    ===================================================== */
@@ -967,11 +963,11 @@ border:4px solid #8a6339;
 
     grid-template-columns: repeat(3, 90px);
 
-    justify-content: start;
+    justify-content: center;
 
     gap: 15px;
 
-    margin-top: 25px;
+    margin: 20px auto;
 
 }
 
@@ -2324,6 +2320,68 @@ justify-content:center;
 }
 
 
+#quiz-category-buttons {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(220px, 1fr));
+
+    gap: 14px;
+
+    max-width: 650px;
+
+    margin: 20px auto 0;
+
+}
+
+
+#quiz-category-buttons button {
+
+    padding: 15px 20px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: #b87333;
+
+    color: white;
+
+    font-weight: bold;
+
+    font-size: 1rem;
+
+    transition: .25s;
+
+}
+
+
+#quiz-category-buttons button:hover {
+
+    background: #d8893d;
+
+    transform: translateY(-3px);
+
+}
+
+
+#quiz-category-title {
+
+    margin: 16px 0 6px;
+
+    color: var(--yj-color-ink-soft);
+
+}
+
+
+#quiz-back-to-categories {
+
+    margin-top: 6px;
+
+}
+
+
 /* QUIZ */
 
 #quiz-game-panel {
@@ -2360,7 +2418,8 @@ justify-content:center;
     }
 
 
-    #quiz-select-buttons {
+    #quiz-select-buttons,
+    #quiz-category-buttons {
 
         grid-template-columns: 1fr;
 
@@ -2684,5 +2743,219 @@ justify-content:center;
 .inventory-item.active{
 
     background:#d97745;
+
+}
+
+
+/* =====================================================
+   BUG-MELDER (MARIENKÄFER)
+   ===================================================== */
+
+#bug-reporter {
+
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+
+    z-index: 1800;
+
+}
+
+#bug-reporter-toggle {
+
+    width: 52px;
+    height: 52px;
+
+    border: 3px solid var(--yj-color-wood-dark);
+    border-radius: 50%;
+
+    background: radial-gradient(circle at 34% 30%, #ff8a80, #d32f2f 68%);
+    box-shadow: 0 4px 0 #7a1f1b, 0 8px 16px rgba(0, 0, 0, 0.32);
+
+    color: #2b0a06;
+    font-size: 1.6rem;
+    line-height: 1;
+
+    cursor: inherit;
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+}
+
+#bug-reporter-toggle:hover {
+
+    transform: translateY(-2px) scale(1.06);
+
+}
+
+#bug-reporter-toggle:active {
+
+    box-shadow: 0 2px 0 #7a1f1b, 0 4px 8px rgba(0, 0, 0, 0.28);
+    transform: translateY(2px);
+
+}
+
+#bug-reporter-toggle:focus-visible {
+
+    outline: 3px solid #fff3bd;
+    outline-offset: 3px;
+
+}
+
+#bug-reporter-panel {
+
+    position: absolute;
+    right: 0;
+    bottom: 64px;
+
+    width: min(78vw, 270px);
+    padding: 16px;
+
+    border: 3px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-md);
+
+    background: var(--yj-color-paper-soft);
+    backdrop-filter: blur(6px);
+    box-shadow: var(--yj-shadow-card);
+
+    color: var(--yj-color-ink);
+    text-align: left;
+
+    animation: yj-enter 200ms ease both;
+
+}
+
+#bug-reporter-panel[hidden] {
+
+    display: none;
+
+}
+
+#bug-reporter-panel h3 {
+
+    margin: 0 0 10px;
+
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.05rem;
+
+}
+
+#bug-reporter-panel label {
+
+    display: block;
+
+    margin: 10px 0 4px;
+
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--yj-color-ink-soft);
+
+}
+
+#bug-reporter-panel select,
+#bug-reporter-panel textarea {
+
+    width: 100%;
+    padding: 8px 10px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--yj-color-ink);
+
+    font-family: inherit;
+    font-size: 0.9rem;
+
+    resize: vertical;
+
+}
+
+#bug-reporter-status {
+
+    min-height: 18px;
+    margin: 8px 0 0;
+
+    color: var(--yj-color-ink-soft);
+    font-size: 0.82rem;
+    font-weight: 700;
+
+}
+
+#bug-reporter-actions {
+
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    margin-top: 14px;
+
+}
+
+
+/* =====================================================
+   ERSTEINRICHTUNG (NAME + AVATAR)
+   ===================================================== */
+
+#onboarding-overlay {
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 3000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(20, 15, 8, 0.72);
+    backdrop-filter: blur(3px);
+
+}
+
+#onboarding-overlay[hidden] {
+
+    display: none;
+
+}
+
+#onboarding-panel {
+
+    width: min(100%, 480px);
+    padding: 36px;
+
+    text-align: center;
+
+}
+
+#onboarding-panel h2 {
+
+    margin-top: 0;
+
+}
+
+#onboarding-panel > p {
+
+    margin-bottom: 24px;
+
+    color: var(--yj-color-ink-soft);
+
+}
+
+#onboarding-panel #player-name {
+
+    width: 100%;
+
+    text-align: center;
+
+}
+
+#onboarding-panel #save-name {
+
+    width: 100%;
+
+    margin-top: 4px;
 
 }

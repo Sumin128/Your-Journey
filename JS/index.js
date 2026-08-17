@@ -1,142 +1,157 @@
 /* =====================================================
    INDEX.JS
-   Begrüßung, Spielername und Avatar-Auswahl
+   Ersteinrichtung auf der Startseite:
+   Name eingeben + Avatar wählen, bevor es losgeht.
    ===================================================== */
 
-const playerName = document.getElementById("player-name");
-const welcomeTitle = document.getElementById("welcome-title");
-const welcomeMessage = document.getElementById("welcome-message");
-const saveButton = document.getElementById("save-name");
-const playerAvatar = document.getElementById("player-avatar");
-const playerProfile = document.getElementById("player-profile");
-const playerNameDisplay = document.getElementById("player-name-display");
-const featherCount = document.getElementById("feather-count");
-const avatarSelection = document.getElementById("avatar-selection");
-const changeAvatarButton = document.getElementById("change-avatar");
+const onboardingOverlay = document.getElementById("onboarding-overlay");
+const onboardingNameInput = document.getElementById("player-name");
+const onboardingSaveButton = document.getElementById("save-name");
+const onboardingAvatarSelection = document.getElementById("avatar-selection");
+
+let selectedOnboardingAvatar = player.avatar || "";
+
 
 /* =====================================================
-   STARTSEITE AKTUALISIEREN
+   ÜBERLAGERUNG EIN-/AUSBLENDEN
    ===================================================== */
 
-function updatePlayerView() {
-    if (welcomeTitle) {
-        welcomeTitle.textContent = player.name ? "Hallo " + player.name + "!" : "Hallo!";
+function updateOnboardingVisibility() {
+
+    if (!onboardingOverlay) {
+        return;
     }
 
-    if (featherCount) {
-        featherCount.textContent = "🪶 " + player.feathers + " Federn";
-    }
+    onboardingOverlay.hidden = Boolean(player.name && player.avatar);
 
-    if (player.name && playerName && saveButton) {
-        playerName.value = player.name;
-        playerName.style.display = "none";
-        saveButton.style.display = "none";
-    }
-
-    if (player.avatar && playerAvatar && playerProfile && playerNameDisplay) {
-        playerAvatar.src = player.avatar;
-        playerNameDisplay.textContent = player.name;
-        playerProfile.style.display = "flex";
-
-        if (avatarSelection) {
-            avatarSelection.style.display = "none";
-        }
-    }
 }
 
-window.addEventListener("player-updated", function () {
-    updatePlayerView();
-    markSelectedAvatar();
-});
 
 /* =====================================================
-   AUSGEWÄHLTEN AVATAR MARKIEREN
+   "LOS GEHT'S"-BUTTON AKTIVIEREN/DEAKTIVIEREN
    ===================================================== */
 
-function markSelectedAvatar() {
-    document.querySelectorAll("#avatar-selection .avatar").forEach(function (avatar) {
-        avatar.classList.toggle("selected", avatar.getAttribute("src") === player.avatar);
-    });
+function updateOnboardingSaveButton() {
+
+    if (!onboardingSaveButton) {
+        return;
+    }
+
+    const hasName =
+        onboardingNameInput &&
+        onboardingNameInput.value.trim().length > 0;
+
+    onboardingSaveButton.disabled =
+        !(hasName && selectedOnboardingAvatar);
+
 }
 
-/* =====================================================
-   NAME SPEICHERN
-   ===================================================== */
-
-if (saveButton && playerName) {
-    saveButton.addEventListener("click", function () {
-        const name = playerName.value.trim();
-
-        if (!name) {
-            playerName.focus();
-            return;
-        }
-
-        player.name = name;
-        savePlayer();
-        updatePlayerView();
-    });
-}
 
 /* =====================================================
    AVATARE ANZEIGEN
    ===================================================== */
 
-function showCharacters() {
-    if (!avatarSelection) {
+function renderOnboardingAvatars() {
+
+    if (!onboardingAvatarSelection || typeof characters === "undefined") {
         return;
     }
 
-    avatarSelection.innerHTML = "";
+    onboardingAvatarSelection.innerHTML = "";
 
     characters.forEach(function (character) {
+
         const image = document.createElement("img");
+
         image.src = character.image;
         image.alt = "Avatar " + character.id;
         image.classList.add("avatar");
 
-        if (player.avatar === character.image) {
+        if (selectedOnboardingAvatar === character.image) {
             image.classList.add("selected");
         }
 
         image.addEventListener("click", function () {
-            document.querySelectorAll(".avatar").forEach(function (avatar) {
-                avatar.classList.remove("selected");
-            });
+
+            selectedOnboardingAvatar = character.image;
+
+            onboardingAvatarSelection
+                .querySelectorAll(".avatar")
+                .forEach(function (avatarImage) {
+                    avatarImage.classList.remove("selected");
+                });
 
             image.classList.add("selected");
-            player.avatar = character.image;
-            savePlayer();
-            markSelectedAvatar();
-            updatePlayerView();
-            avatarSelection.style.display = "none";
+
+            updateOnboardingSaveButton();
+
         });
 
-        avatarSelection.appendChild(image);
+        onboardingAvatarSelection.appendChild(image);
+
     });
 
-    markSelectedAvatar();
 }
+
 
 /* =====================================================
-   AVATAR ÄNDERN
+   EINRICHTUNG SPEICHERN
    ===================================================== */
 
-if (changeAvatarButton && avatarSelection) {
-    changeAvatarButton.addEventListener("click", function () {
-        avatarSelection.style.display = "grid";
-        markSelectedAvatar();
-    });
+function saveOnboarding() {
+
+    const name = onboardingNameInput.value.trim();
+
+    if (!name || !selectedOnboardingAvatar) {
+        return;
+    }
+
+    player.name = name;
+    player.avatar = selectedOnboardingAvatar;
+
+    savePlayer();
+
+    updatePlayerUI();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    updateOnboardingVisibility();
+
 }
 
-/* =====================================================
-   KUROS BEGRÜSSUNG
-   ===================================================== */
 
-if (welcomeMessage && kuro && kuro.welcome) {
-    const random = Math.floor(Math.random() * kuro.welcome.length);
-    welcomeMessage.textContent = kuro.welcome[random];
+if (onboardingNameInput) {
+
+    onboardingNameInput.value = player.name || "";
+
+    onboardingNameInput.addEventListener(
+        "input",
+        updateOnboardingSaveButton
+    );
+
+    onboardingNameInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+                saveOnboarding();
+            }
+
+        }
+    );
+
 }
 
-showCharacters();
-updatePlayerView();
+if (onboardingSaveButton) {
+
+    onboardingSaveButton.addEventListener(
+        "click",
+        saveOnboarding
+    );
+
+}
+
+
+renderOnboardingAvatars();
+updateOnboardingSaveButton();
+updateOnboardingVisibility();

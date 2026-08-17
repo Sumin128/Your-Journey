@@ -61,16 +61,8 @@ function updateSidebarPlayer() {
 
     if (avatar) {
 
-        if (player.avatar) {
-
-            avatar.src =
-                player.avatar;
-
-        } else {
-
-            avatar.removeAttribute("src");
-
-        }
+        avatar.src =
+            player.avatar || AVATAR_PLACEHOLDER;
 
     }
 

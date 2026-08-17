@@ -5,6 +5,22 @@
 
 
 /* =====================================================
+   0. AVATAR-PLATZHALTER
+   Wird angezeigt, solange kein Avatar gewählt wurde,
+   damit nirgends ein kaputtes Bild-Icon auftaucht.
+   ===================================================== */
+
+const AVATAR_PLACEHOLDER =
+    "data:image/svg+xml;utf8," + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+        '<circle cx="50" cy="50" r="50" fill="#96501e"/>' +
+        '<path d="M50 20 C65 25 75 40 70 55 C65 70 50 78 50 78 C50 78 35 70 30 55 C25 40 35 25 50 20 Z" fill="#ffe2a5"/>' +
+        '<line x1="50" y1="78" x2="50" y2="62" stroke="#96501e" stroke-width="3"/>' +
+        '</svg>'
+    );
+
+
+/* =====================================================
    1. STANDARD-SPIELER
    ===================================================== */
 
@@ -247,17 +263,9 @@ function updatePlayerUI() {
 
     playerAvatars.forEach(function(avatar) {
 
-        if (player.avatar) {
+        avatar.src = player.avatar || AVATAR_PLACEHOLDER;
 
-            avatar.src = player.avatar;
-
-            avatar.style.display = "block";
-
-        } else {
-
-            avatar.removeAttribute("src");
-
-        }
+        avatar.style.display = "block";
 
     });
 
@@ -302,129 +310,6 @@ function updatePlayerUI() {
         }
 
     }
-
-}
-
-
-/* =====================================================
-   5. SPIELERNAME SPEICHERN
-   ===================================================== */
-
-function setPlayerName(name) {
-
-    const cleanName =
-        name.trim();
-
-    if (!cleanName) {
-
-        return;
-
-    }
-
-    player.name = cleanName;
-
-    savePlayer();
-
-    updatePlayerUI();
-
-    window.dispatchEvent(
-        new CustomEvent("player-updated")
-    );
-
-}
-
-
-/* =====================================================
-   6. NAMENSEINGABE EINRICHTEN
-   ===================================================== */
-
-function setupPlayerName() {
-
-    const playerNameInput =
-        document.getElementById("player-name");
-
-    const saveNameButton =
-        document.getElementById("save-name");
-
-    const nameArea =
-        document.getElementById("kuro-name-area");
-
-
-    /*
-       Wenn auf der aktuellen Seite keine Namenseingabe
-       existiert, passiert einfach nichts.
-    */
-
-    if (!playerNameInput || !saveNameButton) {
-
-        return;
-
-    }
-
-
-    /* Gespeicherten Namen anzeigen */
-
-    if (player.name) {
-
-        playerNameInput.value =
-            player.name;
-
-        /*
-           Wenn bereits ein Name existiert,
-           brauchen wir die Eingabe zunächst nicht.
-        */
-
-        if (nameArea) {
-
-            nameArea.style.display = "none";
-
-        }
-
-    }
-
-
-    saveNameButton.addEventListener(
-        "click",
-        function() {
-
-            setPlayerName(
-                playerNameInput.value
-            );
-
-            if (player.name && nameArea) {
-
-                nameArea.style.display = "none";
-
-            }
-
-        }
-    );
-
-
-    /*
-       Enter funktioniert ebenfalls
-    */
-
-    playerNameInput.addEventListener(
-        "keydown",
-        function(event) {
-
-            if (event.key === "Enter") {
-
-                setPlayerName(
-                    playerNameInput.value
-                );
-
-                if (player.name && nameArea) {
-
-                    nameArea.style.display = "none";
-
-                }
-
-            }
-
-        }
-    );
 
 }
 
@@ -576,219 +461,6 @@ function setDarkMode(value) {
     window.dispatchEvent(
         new CustomEvent("player-updated")
     );
-
-}
-
-
-/* =====================================================
-   9. AVATARE
-   ===================================================== */
-
-const avatarOptions = [
-
-    "avatare/avatar1.PNG",
-    "avatare/avatar2.PNG",
-    "avatare/avatar3.PNG",
-    "avatare/avatar4.PNG",
-    "avatare/avatar5.PNG",
-    "avatare/avatar6.PNG"
-
-];
-
-
-/* =====================================================
-   10. AVATAR SPEICHERN
-   ===================================================== */
-
-function setPlayerAvatar(avatarPath) {
-
-    player.avatar = avatarPath;
-
-    savePlayer();
-
-    updatePlayerUI();
-
-    window.dispatchEvent(
-        new CustomEvent("player-updated")
-    );
-
-}
-
-
-/* =====================================================
-   11. AVATARAUSWAHL ERSTELLEN
-   ===================================================== */
-
-function buildAvatarSelection() {
-
-    const avatarSelection =
-        document.getElementById("avatar-selection");
-
-    if (!avatarSelection) {
-
-        return;
-
-    }
-
-
-    avatarSelection.innerHTML = "";
-
-
-    avatarOptions.forEach(function(avatarPath) {
-
-        const avatarImage =
-            document.createElement("img");
-
-        avatarImage.src =
-            avatarPath;
-
-        avatarImage.alt =
-            "Avatar auswählen";
-
-        avatarImage.classList.add(
-            "avatar"
-        );
-
-
-        /*
-           Aktuellen Avatar markieren
-        */
-
-        if (player.avatar === avatarPath) {
-
-            avatarImage.classList.add(
-                "selected"
-            );
-
-        }
-
-
-        avatarImage.addEventListener(
-            "click",
-            function() {
-
-                setPlayerAvatar(
-                    avatarPath
-                );
-
-
-                /*
-                   Auswahl schließen
-                */
-
-                avatarSelection.hidden = true;
-
-
-                /*
-                   Markierung aktualisieren
-                */
-
-                const allAvatars =
-                    avatarSelection.querySelectorAll(
-                        ".avatar"
-                    );
-
-                allAvatars.forEach(
-                    function(image) {
-
-                        image.classList.remove(
-                            "selected"
-                        );
-
-                    }
-                );
-
-                avatarImage.classList.add(
-                    "selected"
-                );
-
-            }
-        );
-
-
-        avatarSelection.appendChild(
-            avatarImage
-        );
-
-    });
-
-}
-
-
-/* =====================================================
-   12. AVATAR ANKLICKEN
-   ===================================================== */
-
-function setupAvatarClick() {
-
-    const playerAvatar =
-        document.getElementById(
-            "player-avatar"
-        );
-
-    const avatarSelection =
-        document.getElementById(
-            "avatar-selection"
-        );
-
-
-    /*
-       Manche Seiten haben keine Avatar-Auswahl.
-       Dann passiert einfach nichts.
-    */
-
-    if (!playerAvatar || !avatarSelection) {
-
-        return;
-
-    }
-
-
-    playerAvatar.style.cursor =
-        "pointer";
-
-
-    playerAvatar.addEventListener(
-        "click",
-        function() {
-
-            avatarSelection.hidden =
-                !avatarSelection.hidden;
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   13. AVATAR-AUSWAHL VORBEREITEN
-   ===================================================== */
-
-function setupAvatarSelection() {
-
-    const avatarSelection =
-        document.getElementById(
-            "avatar-selection"
-        );
-
-    if (!avatarSelection) {
-
-        return;
-
-    }
-
-
-    /*
-       Beim Start verstecken.
-    */
-
-    avatarSelection.hidden = true;
-
-
-    buildAvatarSelection();
-
-    setupAvatarClick();
 
 }
 
@@ -1055,30 +727,14 @@ function initPlayer() {
 
 
     /*
-       3. Namenseingabe einrichten
-       (nur auf Seiten, auf denen sie existiert)
-    */
-
-    setupPlayerName();
-
-
-    /*
-       4. Avatar-Auswahl einrichten
-       (nur auf Seiten, auf denen sie existiert)
-    */
-
-    setupAvatarSelection();
-
-
-    /*
-       5. Gespeicherten Cursor anwenden
+       3. Gespeicherten Cursor anwenden
     */
 
     applyCursor();
 
 
     /*
-       6. Gespeicherten Farbmodus anwenden
+       4. Gespeicherten Farbmodus anwenden
     */
 
     applyTheme();

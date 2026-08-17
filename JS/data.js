@@ -829,3 +829,296 @@ const Mathe1Klasse = [
 ];
 
 
+/* =====================================================
+   MATHE – PLUS
+   ===================================================== */
+
+const quizMathePlus = [
+
+    { question: "3 + 4 =", image: "", answers: [
+        { text: "6", correct: false }, { text: "7", correct: true }, { text: "8", correct: false }, { text: "5", correct: false }
+    ]},
+
+    { question: "6 + 2 =", image: "", answers: [
+        { text: "8", correct: true }, { text: "7", correct: false }, { text: "9", correct: false }, { text: "6", correct: false }
+    ]},
+
+    { question: "5 + 5 =", image: "", answers: [
+        { text: "9", correct: false }, { text: "10", correct: true }, { text: "11", correct: false }, { text: "15", correct: false }
+    ]},
+
+    { question: "7 + 3 =", image: "", answers: [
+        { text: "9", correct: false }, { text: "11", correct: false }, { text: "10", correct: true }, { text: "8", correct: false }
+    ]},
+
+    { question: "2 + 6 =", image: "", answers: [
+        { text: "8", correct: true }, { text: "4", correct: false }, { text: "7", correct: false }, { text: "9", correct: false }
+    ]},
+
+    { question: "8 + 1 =", image: "", answers: [
+        { text: "7", correct: false }, { text: "9", correct: true }, { text: "10", correct: false }, { text: "8", correct: false }
+    ]},
+
+    { question: "4 + 4 =", image: "", answers: [
+        { text: "8", correct: true }, { text: "6", correct: false }, { text: "10", correct: false }, { text: "4", correct: false }
+    ]},
+
+    { question: "9 + 3 =", image: "", answers: [
+        { text: "11", correct: false }, { text: "13", correct: false }, { text: "12", correct: true }, { text: "10", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   MATHE – MINUS
+   ===================================================== */
+
+const quizMatheMinus = [
+
+    { question: "9 - 3 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "6", correct: true }, { text: "7", correct: false }, { text: "4", correct: false }
+    ]},
+
+    { question: "8 - 5 =", image: "", answers: [
+        { text: "2", correct: false }, { text: "3", correct: true }, { text: "4", correct: false }, { text: "1", correct: false }
+    ]},
+
+    { question: "10 - 4 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "7", correct: false }, { text: "6", correct: true }, { text: "4", correct: false }
+    ]},
+
+    { question: "7 - 2 =", image: "", answers: [
+        { text: "4", correct: false }, { text: "5", correct: true }, { text: "6", correct: false }, { text: "3", correct: false }
+    ]},
+
+    { question: "6 - 6 =", image: "", answers: [
+        { text: "1", correct: false }, { text: "0", correct: true }, { text: "6", correct: false }, { text: "2", correct: false }
+    ]},
+
+    { question: "12 - 5 =", image: "", answers: [
+        { text: "6", correct: false }, { text: "8", correct: false }, { text: "7", correct: true }, { text: "5", correct: false }
+    ]},
+
+    { question: "9 - 7 =", image: "", answers: [
+        { text: "3", correct: false }, { text: "2", correct: true }, { text: "1", correct: false }, { text: "4", correct: false }
+    ]},
+
+    { question: "10 - 10 =", image: "", answers: [
+        { text: "10", correct: false }, { text: "1", correct: false }, { text: "0", correct: true }, { text: "5", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   MATHE – MAL
+   ===================================================== */
+
+const quizMatheMal = [
+
+    { question: "2 × 3 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "6", correct: true }, { text: "8", correct: false }, { text: "9", correct: false }
+    ]},
+
+    { question: "4 × 2 =", image: "", answers: [
+        { text: "6", correct: false }, { text: "8", correct: true }, { text: "10", correct: false }, { text: "4", correct: false }
+    ]},
+
+    { question: "5 × 1 =", image: "", answers: [
+        { text: "5", correct: true }, { text: "1", correct: false }, { text: "0", correct: false }, { text: "6", correct: false }
+    ]},
+
+    { question: "3 × 3 =", image: "", answers: [
+        { text: "6", correct: false }, { text: "9", correct: true }, { text: "12", correct: false }, { text: "3", correct: false }
+    ]},
+
+    { question: "2 × 5 =", image: "", answers: [
+        { text: "10", correct: true }, { text: "7", correct: false }, { text: "8", correct: false }, { text: "12", correct: false }
+    ]},
+
+    { question: "4 × 4 =", image: "", answers: [
+        { text: "12", correct: false }, { text: "16", correct: true }, { text: "8", correct: false }, { text: "20", correct: false }
+    ]},
+
+    { question: "3 × 2 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "6", correct: true }, { text: "9", correct: false }, { text: "3", correct: false }
+    ]},
+
+    { question: "5 × 5 =", image: "", answers: [
+        { text: "20", correct: false }, { text: "10", correct: false }, { text: "25", correct: true }, { text: "15", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   MATHE – GETEILT
+   ===================================================== */
+
+const quizMatheGeteilt = [
+
+    { question: "6 ÷ 2 =", image: "", answers: [
+        { text: "2", correct: false }, { text: "3", correct: true }, { text: "4", correct: false }, { text: "6", correct: false }
+    ]},
+
+    { question: "8 ÷ 4 =", image: "", answers: [
+        { text: "1", correct: false }, { text: "2", correct: true }, { text: "4", correct: false }, { text: "3", correct: false }
+    ]},
+
+    { question: "10 ÷ 5 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "1", correct: false }, { text: "2", correct: true }, { text: "10", correct: false }
+    ]},
+
+    { question: "9 ÷ 3 =", image: "", answers: [
+        { text: "2", correct: false }, { text: "3", correct: true }, { text: "4", correct: false }, { text: "6", correct: false }
+    ]},
+
+    { question: "12 ÷ 2 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "7", correct: false }, { text: "6", correct: true }, { text: "4", correct: false }
+    ]},
+
+    { question: "20 ÷ 4 =", image: "", answers: [
+        { text: "4", correct: false }, { text: "6", correct: false }, { text: "5", correct: true }, { text: "8", correct: false }
+    ]},
+
+    { question: "15 ÷ 5 =", image: "", answers: [
+        { text: "5", correct: false }, { text: "3", correct: true }, { text: "2", correct: false }, { text: "4", correct: false }
+    ]},
+
+    { question: "4 ÷ 1 =", image: "", answers: [
+        { text: "1", correct: false }, { text: "0", correct: false }, { text: "4", correct: true }, { text: "2", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   SUPERHELDEN
+   ===================================================== */
+
+const quizSuperhelden = [
+
+    { question: "Welcher Superheld wird auch \"Mann aus Stahl\" genannt und kann fliegen?", image: "", answers: [
+        { text: "Batman", correct: false }, { text: "Superman", correct: true }, { text: "Spiderman", correct: false }, { text: "Iron Man", correct: false }
+    ]},
+
+    { question: "Welcher Superheld schießt Netze aus seinen Handgelenken?", image: "", answers: [
+        { text: "Spiderman", correct: true }, { text: "Hulk", correct: false }, { text: "Thor", correct: false }, { text: "Flash", correct: false }
+    ]},
+
+    { question: "Welcher Superheld ist als Fledermaus-Detektiv in Gotham City unterwegs?", image: "", answers: [
+        { text: "Iron Man", correct: false }, { text: "Batman", correct: true }, { text: "Wolverine", correct: false }, { text: "Aquaman", correct: false }
+    ]},
+
+    { question: "Welche Heldin trägt einen goldenen Lasso der Wahrheit?", image: "", answers: [
+        { text: "Catwoman", correct: false }, { text: "Supergirl", correct: false }, { text: "Wonder Woman", correct: true }, { text: "Black Widow", correct: false }
+    ]},
+
+    { question: "Welcher Held wird riesig und grün, wenn er wütend wird?", image: "", answers: [
+        { text: "Hulk", correct: true }, { text: "Thor", correct: false }, { text: "Superman", correct: false }, { text: "Groot", correct: false }
+    ]},
+
+    { question: "Welcher Held hat sich einen High-Tech-Anzug aus Metall gebaut?", image: "", answers: [
+        { text: "Batman", correct: false }, { text: "Iron Man", correct: true }, { text: "Flash", correct: false }, { text: "Thor", correct: false }
+    ]},
+
+    { question: "Welcher Held ist blitzschnell unterwegs?", image: "", answers: [
+        { text: "Flash", correct: true }, { text: "Hulk", correct: false }, { text: "Batman", correct: false }, { text: "Aquaman", correct: false }
+    ]},
+
+    { question: "Welcher Held trägt einen Hammer, den nur er heben kann?", image: "", answers: [
+        { text: "Iron Man", correct: false }, { text: "Superman", correct: false }, { text: "Thor", correct: true }, { text: "Batman", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   SCHURKEN
+   ===================================================== */
+
+const quizSchurken = [
+
+    { question: "Welcher Bösewicht hat grüne Haare und ein gruseliges Lachen?", image: "", answers: [
+        { text: "Joker", correct: true }, { text: "Lex Luthor", correct: false }, { text: "Thanos", correct: false }, { text: "Green Goblin", correct: false }
+    ]},
+
+    { question: "Welcher Schurke trägt einen Handschuh, mit dem er das halbe Universum verschwinden lassen will?", image: "", answers: [
+        { text: "Joker", correct: false }, { text: "Thanos", correct: true }, { text: "Darth Vader", correct: false }, { text: "Mr. Freeze", correct: false }
+    ]},
+
+    { question: "Welche Bösewichtin stiehlt gerne Diamanten und trägt ein Katzenkostüm?", image: "", answers: [
+        { text: "Harley Quinn", correct: false }, { text: "Catwoman", correct: true }, { text: "Poison Ivy", correct: false }, { text: "Black Widow", correct: false }
+    ]},
+
+    { question: "Welcher Schurke reitet auf einem fliegenden Gleiter und trägt eine gruselige Maske?", image: "", answers: [
+        { text: "Green Goblin", correct: true }, { text: "Venom", correct: false }, { text: "Loki", correct: false }, { text: "Bane", correct: false }
+    ]},
+
+    { question: "Welcher eiskalte Bösewicht kann alles einfrieren, was er berührt?", image: "", answers: [
+        { text: "Mr. Freeze", correct: true }, { text: "Joker", correct: false }, { text: "Thanos", correct: false }, { text: "Bane", correct: false }
+    ]},
+
+    { question: "Welcher Schurke ist Supermans größter Feind und hat eine Glatze?", image: "", answers: [
+        { text: "Joker", correct: false }, { text: "Lex Luthor", correct: true }, { text: "Loki", correct: false }, { text: "Thanos", correct: false }
+    ]},
+
+    { question: "Welche Bösewichtin liebt den Joker und trägt rot-schwarze Kleidung?", image: "", answers: [
+        { text: "Catwoman", correct: false }, { text: "Poison Ivy", correct: false }, { text: "Harley Quinn", correct: true }, { text: "Black Widow", correct: false }
+    ]},
+
+    { question: "Welcher Bösewicht trägt eine schwarze Maske und atmet schwer durch einen Helm?", image: "", answers: [
+        { text: "Darth Vader", correct: true }, { text: "Bane", correct: false }, { text: "Thanos", correct: false }, { text: "Loki", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   QUIZ-KATEGORIEN
+   Ordnet die einzelnen Quizze zu Themenblöcken.
+   Wird von JS/quiz.js benutzt, um die Kategorie- und
+   Quiz-Auswahl bei Kuro anzuzeigen.
+   ===================================================== */
+
+const quizCategories = [
+
+    {
+        id: "mathe",
+        label: "Mathe",
+        icon: "🔢",
+        quizzes: [
+            { id: "mathePlus", label: "Plus", icon: "➕", quiz: quizMathePlus },
+            { id: "matheMinus", label: "Minus", icon: "➖", quiz: quizMatheMinus },
+            { id: "matheMal", label: "Mal", icon: "✖️", quiz: quizMatheMal },
+            { id: "matheGeteilt", label: "Geteilt", icon: "➗", quiz: quizMatheGeteilt }
+        ]
+    },
+
+    {
+        id: "helden",
+        label: "Helden & Schurken",
+        icon: "🦸",
+        quizzes: [
+            { id: "superhelden", label: "Superhelden", icon: "🦸", quiz: quizSuperhelden },
+            { id: "schurken", label: "Schurken", icon: "🦹", quiz: quizSchurken },
+            { id: "filmcharaktere", label: "Film-Charaktere", icon: "🎬", quiz: quizFilmCharaktere }
+        ]
+    },
+
+    {
+        id: "wissen",
+        label: "Wissen & Sprache",
+        icon: "🧠",
+        quizzes: [
+            { id: "allgemeinwissen", label: "Allgemeinwissen", icon: "🧠", quiz: quizAllgemeinwissen },
+            { id: "buchstaben", label: "Buchstaben & Wörter-Detektive", icon: "🔤", quiz: quizBuchstaben },
+            { id: "berufe", label: "Berufe", icon: "🧰", quiz: quizBerufe },
+            { id: "tiere", label: "Tiere", icon: "🦁", quiz: quizTiere }
+        ]
+    }
+
+];
+
+

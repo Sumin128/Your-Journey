@@ -67,16 +67,8 @@ function updateFaroPlayer() {
 
     if (playerAvatar) {
 
-        if (player.avatar) {
-
-            playerAvatar.src = player.avatar;
-            playerAvatar.style.display = "block";
-
-        } else {
-
-            playerAvatar.style.display = "none";
-
-        }
+        playerAvatar.src = player.avatar || AVATAR_PLACEHOLDER;
+        playerAvatar.style.display = "block";
 
     }
 
@@ -578,6 +570,23 @@ if (playSoundButton) {
     );
 
 }
+
+
+if (backToQuizzes) {
+
+    backToQuizzes.addEventListener(
+        "click",
+        returnToQuizSelection
+    );
+
+}
+
+
+/*
+   "Alltagsgeräusche" bleibt bewusst ohne Klick-Handler,
+   solange die Sounddateien (toaster.mp3, waschmaschine.mp3)
+   im Projekt fehlen – siehe JS/words.js-Pendant-Diskussion.
+*/
 
 
 

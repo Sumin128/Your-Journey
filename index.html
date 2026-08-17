@@ -194,6 +194,40 @@
 
 
     <!-- =====================================================
+         ERSTEINRICHTUNG
+         ===================================================== -->
+
+    <div id="onboarding-overlay" hidden>
+
+        <div id="onboarding-panel" class="yj-panel yj-panel--paper yj-enter">
+
+            <h2>Bevor du losziehst...</h2>
+            <p>Wie heißt du, und wer bist du?</p>
+
+            <input
+                id="player-name"
+                type="text"
+                placeholder="Wie heißt du?"
+                autocomplete="off">
+
+            <div id="avatar-selection">
+                <!-- Avatare werden per JavaScript eingefügt -->
+            </div>
+
+            <button
+                id="save-name"
+                type="button"
+                class="yj-button yj-button--wide"
+                disabled>
+                Los geht's!
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
          HOME
          ===================================================== -->
 
@@ -268,7 +302,10 @@
 
     <script src="JS/player.js?v=3"></script>
     <script src="JS/sidebar.js"></script>
+    <script src="JS/bugreport.js"></script>
     <script src="JS/sounds.js"></script>
+    <script src="JS/data.js"></script>
+    <script src="JS/index.js"></script>
 
 
 </body>
