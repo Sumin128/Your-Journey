@@ -1,6 +1,6 @@
 .yj-panel {
     width: min(100%, var(--yj-content-width));
-    border: 4px solid var(--yj-color-border);
+    border: 2px solid var(--yj-color-border);
     border-radius: var(--yj-radius-lg);
     background: var(--yj-color-paper-soft);
     box-shadow: var(--yj-shadow-card);

@@ -22,7 +22,7 @@ function createBugReporter() {
     wrapper.innerHTML = `
         <div id="bug-reporter-panel" hidden>
 
-            <h3><img src="Icons/icons8-marienkäfer-48.png" alt="" class="bug-reporter-icon"> Bug melden</h3>
+            <h3><img src="Icons/bug_reporter.png" alt="" class="bug-reporter-icon"> Bug melden</h3>
 
             <label for="bug-reporter-type">Was ist los?</label>
             <select id="bug-reporter-type">
@@ -53,7 +53,7 @@ function createBugReporter() {
         </div>
 
         <button id="bug-reporter-toggle" type="button" aria-label="Bug melden">
-            <img src="Icons/icons8-marienkäfer-96.png" alt="">
+            <img src="Icons/bug_reporter.png" alt="">
         </button>
     `;
 

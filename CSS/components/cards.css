@@ -1,5 +1,5 @@
 .yj-card {
-    border: 4px solid var(--yj-color-border);
+    border: 2px solid var(--yj-color-border);
     border-radius: var(--yj-radius-lg);
     background:
         linear-gradient(rgba(255, 247, 234, 0.86), rgba(241, 214, 168, 0.8)),

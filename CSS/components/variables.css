@@ -7,14 +7,21 @@
     --yj-color-gold: #ffe2a5;
     --yj-color-paper: #f8edd7;
     --yj-color-paper-soft: rgba(255, 247, 234, 0.78);
-    --yj-color-border: #8a6339;
+    --yj-color-border: #c9a227;
     --yj-color-success: #4caf50;
     --yj-color-danger: #e53935;
+
+    /* Einheitlicher Gold-/Amber-Akzent (ersetzt die verstreuten
+       Orangetöne #b87333 / #d8893d / #d97745 aus den Einzelseiten) */
+    --yj-color-accent: #d99a3d;
+    --yj-color-accent-light: #f3d488;
+    --yj-color-accent-dark: #a8641f;
+
     --yj-radius-sm: 10px;
     --yj-radius-md: 18px;
     --yj-radius-lg: 24px;
-    --yj-shadow-card: 0 10px 26px rgba(0, 0, 0, 0.2);
-    --yj-shadow-raised: 0 5px 0 #3f1e0b, 0 9px 15px rgba(0, 0, 0, 0.28);
+    --yj-shadow-card: 0 10px 26px rgba(91, 58, 33, 0.22);
+    --yj-shadow-raised: 0 5px 0 var(--yj-color-accent-dark), 0 9px 15px rgba(91, 58, 33, 0.26);
     --yj-transition: 160ms ease;
     --yj-content-width: 920px;
 }
