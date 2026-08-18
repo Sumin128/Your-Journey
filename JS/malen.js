@@ -2,8 +2,9 @@
    MALEN.JS
    Zeichenfläche der Malstube: Maus- und Touch-Zeichnen,
    Werkzeuge (Pinsel, Rechteck, Kreis, Radiergummi,
-   Umriss/Gefüllt, Stiftgröße, Rückgängig, Leeren) und
-   Speichern in Supabase Storage.
+   Sprühdose, Farbeimer, Stempel, Umriss/Gefüllt,
+   Stiftgröße, Rückgängig, Leeren) und Speichern in
+   Supabase Storage.
 
    Speichern funktioniert nur mit Konto (siehe auth.js) -
    die App bleibt ohne Konto komplett nutzbar, das Bild
@@ -13,9 +14,6 @@
    malen-und-galerie-prompt.md):
    - Gerade-Linie-Werkzeug (gleiche Snapshot-Technik wie
      Rechteck/Kreis, nur ctx.moveTo()/ctx.lineTo())
-   - Farbeimer/Flood-Fill (braucht einen eigenen Pixel-
-     Algorithmus über getImageData/putImageData)
-   - Stempel-Werkzeug mit den Tier-Icons (🦊🐻🦉)
    ===================================================== */
 
 (function setupMalstube() {
@@ -35,6 +33,7 @@
     const sizeValueLabel = document.getElementById("paint-size-value");
     const toolButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-tool]");
     const fillButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-fill-mode]");
+    const stampButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-stamp]");
     const undoButton = document.getElementById("paint-undo-button");
     const clearButton = document.getElementById("paint-clear-button");
     const saveButton = document.getElementById("paint-save-button");
@@ -47,6 +46,7 @@
     let currentSize = 12;
     let currentTool = "brush";
     let fillMode = "stroke";
+    let currentStamp = "🦊";
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
@@ -54,6 +54,7 @@
 
     let shapeStartPoint = null;
     let shapeSnapshot = null;
+    let sprayIntervalId = null;
 
 
     /* =====================================================
@@ -209,6 +210,22 @@
 
     });
 
+    stampButtons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            currentStamp = button.dataset.stamp;
+
+            stampButtons.forEach(function (item) {
+                item.classList.remove("is-active");
+            });
+
+            button.classList.add("is-active");
+
+        });
+
+    });
+
 
     /* =====================================================
        2b. CURSOR JE WERKZEUG
@@ -220,7 +237,7 @@
        Rechteck/Kreis behalten den normalen Fadenkreuz-Cursor.
        ===================================================== */
 
-    const CURSOR_TOOLS = ["brush", "eraser"];
+    const CURSOR_TOOLS = ["brush", "eraser", "spray"];
     const CURSOR_MIN_DIAMETER = 8;
     const CURSOR_PADDING = 4;
 
@@ -356,12 +373,189 @@
 
     }
 
+
+    /* =====================================================
+       3b. WEITERE WERKZEUGE: SPRÜHDOSE, STEMPEL, FARBEIMER
+       ===================================================== */
+
+    function sprayAt(point) {
+
+        const sprayRadius = Math.max(6, currentSize);
+        const dotsPerBurst = 12;
+
+        ctx.fillStyle = currentColor;
+
+        for (let i = 0; i < dotsPerBurst; i++) {
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * sprayRadius;
+
+            const dotX = point.x + Math.cos(angle) * distance;
+            const dotY = point.y + Math.sin(angle) * distance;
+
+            ctx.globalAlpha = 0.35 + Math.random() * 0.3;
+
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+
+        }
+
+        ctx.globalAlpha = 1;
+
+    }
+
+    function drawStamp(point) {
+
+        const stampSize = Math.max(24, currentSize * 3);
+
+        ctx.font = stampSize + "px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(currentStamp, point.x, point.y);
+
+    }
+
+    function hexToRgb(hex) {
+
+        const value = hex.replace("#", "");
+
+        return [
+            parseInt(value.substring(0, 2), 16),
+            parseInt(value.substring(2, 4), 16),
+            parseInt(value.substring(4, 6), 16)
+        ];
+
+    }
+
+    function floodFill(startX, startY, fillRgb) {
+
+        const width = canvas.width;
+        const height = canvas.height;
+
+        startX = Math.round(startX);
+        startY = Math.round(startY);
+
+        if (startX < 0 || startY < 0 || startX >= width || startY >= height) {
+            return;
+        }
+
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+
+        const startIndex = (startY * width + startX) * 4;
+
+        const targetR = data[startIndex];
+        const targetG = data[startIndex + 1];
+        const targetB = data[startIndex + 2];
+        const targetA = data[startIndex + 3];
+
+        const fillR = fillRgb[0];
+        const fillG = fillRgb[1];
+        const fillB = fillRgb[2];
+        const fillA = 255;
+
+        if (targetR === fillR && targetG === fillG && targetB === fillB && targetA === fillA) {
+            return;
+        }
+
+        const TOLERANCE_SQUARED = 40 * 40;
+
+        function matchesTarget(index) {
+
+            const dr = data[index] - targetR;
+            const dg = data[index + 1] - targetG;
+            const db = data[index + 2] - targetB;
+            const da = data[index + 3] - targetA;
+
+            return (dr * dr + dg * dg + db * db + da * da) <= TOLERANCE_SQUARED;
+
+        }
+
+        const visited = new Uint8Array(width * height);
+        const stack = [startY * width + startX];
+
+        visited[startY * width + startX] = 1;
+
+        while (stack.length > 0) {
+
+            const pixelPos = stack.pop();
+            const index = pixelPos * 4;
+
+            data[index] = fillR;
+            data[index + 1] = fillG;
+            data[index + 2] = fillB;
+            data[index + 3] = fillA;
+
+            const x = pixelPos % width;
+
+            if (x > 0) {
+
+                const left = pixelPos - 1;
+
+                if (!visited[left] && matchesTarget(left * 4)) {
+                    visited[left] = 1;
+                    stack.push(left);
+                }
+
+            }
+
+            if (x < width - 1) {
+
+                const right = pixelPos + 1;
+
+                if (!visited[right] && matchesTarget(right * 4)) {
+                    visited[right] = 1;
+                    stack.push(right);
+                }
+
+            }
+
+            const up = pixelPos - width;
+
+            if (up >= 0 && !visited[up] && matchesTarget(up * 4)) {
+                visited[up] = 1;
+                stack.push(up);
+            }
+
+            const down = pixelPos + width;
+
+            if (down < width * height && !visited[down] && matchesTarget(down * 4)) {
+                visited[down] = 1;
+                stack.push(down);
+            }
+
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+    }
+
     canvas.addEventListener("pointerdown", function (event) {
 
-        isDrawing = true;
         canvas.setPointerCapture(event.pointerId);
 
         const point = getCanvasPoint(event);
+
+        if (currentTool === "bucket") {
+
+            floodFill(point.x, point.y, hexToRgb(currentColor));
+            pushHistoryState();
+
+            return;
+
+        }
+
+        if (currentTool === "stamp") {
+
+            drawStamp(point);
+            pushHistoryState();
+
+            return;
+
+        }
+
+        isDrawing = true;
 
         if (SHAPE_TOOLS.includes(currentTool)) {
 
@@ -374,6 +568,18 @@
 
         lastX = point.x;
         lastY = point.y;
+
+        if (currentTool === "spray") {
+
+            sprayAt(point);
+
+            sprayIntervalId = setInterval(function () {
+                sprayAt({ x: lastX, y: lastY });
+            }, 60);
+
+            return;
+
+        }
 
         drawDot(point);
 
@@ -395,12 +601,32 @@
 
         }
 
+        if (currentTool === "spray") {
+
+            sprayAt(point);
+
+            lastX = point.x;
+            lastY = point.y;
+
+            return;
+
+        }
+
         drawLine({ x: lastX, y: lastY }, point);
 
         lastX = point.x;
         lastY = point.y;
 
     });
+
+    function stopSprayInterval() {
+
+        if (sprayIntervalId) {
+            clearInterval(sprayIntervalId);
+            sprayIntervalId = null;
+        }
+
+    }
 
     function endStroke(event) {
 
@@ -411,6 +637,8 @@
         if (SHAPE_TOOLS.includes(currentTool)) {
             drawShapePreview(getCanvasPoint(event));
         }
+
+        stopSprayInterval();
 
         isDrawing = false;
         shapeStartPoint = null;
@@ -429,6 +657,8 @@
         if (SHAPE_TOOLS.includes(currentTool) && shapeSnapshot) {
             ctx.putImageData(shapeSnapshot, 0, 0);
         }
+
+        stopSprayInterval();
 
         isDrawing = false;
         shapeStartPoint = null;
