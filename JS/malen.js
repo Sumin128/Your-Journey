@@ -31,8 +31,8 @@
     const swatches = document.querySelectorAll(".paint-color-swatch");
     const colorPicker = document.getElementById("paint-color-picker");
     const sizeButtons = document.querySelectorAll(".paint-size-button");
-    const toolButtons = document.querySelectorAll(".paint-tool-button");
-    const fillButtons = document.querySelectorAll(".paint-fill-button");
+    const toolButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-tool]");
+    const fillButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-fill-mode]");
     const undoButton = document.getElementById("paint-undo-button");
     const clearButton = document.getElementById("paint-clear-button");
     const saveButton = document.getElementById("paint-save-button");

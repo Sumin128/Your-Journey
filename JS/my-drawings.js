@@ -64,6 +64,20 @@
        2. ANZEIGE
        ===================================================== */
 
+    function setMyDrawingsMessage(text, isError) {
+
+        const messageEl = document.getElementById("my-drawings-message");
+
+        if (!messageEl) {
+            return;
+        }
+
+        messageEl.textContent = text;
+        messageEl.hidden = !text;
+        messageEl.classList.toggle("account-message--error", Boolean(isError));
+
+    }
+
     function renderEmptyBox(box, isGuest) {
 
         box.classList.add("my-drawing-box--empty");
@@ -108,9 +122,10 @@
             box.classList.remove("my-drawing-box--empty");
             box.innerHTML = "";
 
+            const drawing = drawings[index];
             const url = signedUrls[index];
 
-            if (!url) {
+            if (!drawing || !url) {
                 renderEmptyBox(box, false);
                 return;
             }
@@ -120,7 +135,16 @@
             img.alt = "Eigenes gemaltes Bild";
             img.loading = "lazy";
 
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "yj-button yj-button--compact my-drawing-delete-button";
+            deleteButton.setAttribute("aria-label", "Bild löschen");
+            deleteButton.dataset.drawingId = drawing.id;
+            deleteButton.dataset.storagePath = drawing.storage_path;
+            deleteButton.textContent = "🗑️";
+
             box.appendChild(img);
+            box.appendChild(deleteButton);
 
         });
 
@@ -199,6 +223,59 @@
         }
 
     }
+
+    /* =====================================================
+       4. BILD LÖSCHEN
+       Bewusste Nutzer-Aktion - darf die MIN_DISPLAY_HOURS-
+       Mindestanzeigezeit umgehen, die nur für das automatische
+       Verdrängen durch neue Bilder gilt (siehe Regel oben).
+       ===================================================== */
+
+    async function deleteDrawing(button) {
+
+        const confirmed = confirm("Dieses Bild wirklich löschen? Das kann nicht rückgängig gemacht werden.");
+
+        if (!confirmed) {
+            return;
+        }
+
+        const drawingId = button.dataset.drawingId;
+        const storagePath = button.dataset.storagePath;
+
+        button.disabled = true;
+
+        await supabaseClient.storage.from("drawings").remove([storagePath]);
+
+        const deleteResult =
+            await supabaseClient
+                .from("drawings")
+                .delete()
+                .eq("id", drawingId);
+
+        if (deleteResult.error) {
+            setMyDrawingsMessage("Löschen fehlgeschlagen: " + deleteResult.error.message, true);
+            button.disabled = false;
+            return;
+        }
+
+        setMyDrawingsMessage("Bild gelöscht.", false);
+
+        loadMyDrawings();
+
+    }
+
+    grid.addEventListener("click", function (event) {
+
+        const button = event.target.closest(".my-drawing-delete-button");
+
+        if (!button) {
+            return;
+        }
+
+        deleteDrawing(button);
+
+    });
+
 
     loadMyDrawings();
 
