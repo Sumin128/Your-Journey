@@ -11,11 +11,11 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css">
+        href="CSS/style.css?v=2">
 
     <link
         rel="stylesheet"
-        href="CSS/components/index.css?v=4">
+        href="CSS/components/index.css?v=5">
 
     <title>Einstellungen – Your Journey</title>
 
@@ -59,7 +59,7 @@
                 <button
                     id="inventory-button"
                     type="button">
-                    🎒
+                    <img src="images/inventar.png" alt="" class="inventory-icon">
                 </button>
 
             </div>
@@ -264,6 +264,121 @@
             <div class="settings-row">
 
                 <div class="settings-row-text">
+                    <h2>🔐 Konto (optional)</h2>
+                    <p>
+                        Du musst dich nicht registrieren, um zu spielen.
+                        Ohne Konto wird dein Fortschritt nur auf diesem
+                        Gerät gespeichert und kann z. B. bei einem neuen
+                        Gerät oder gelöschtem Browser-Speicher verloren
+                        gehen. Mit einem kostenlosen Konto bleiben Federn,
+                        Erfolge und Inventar dauerhaft erhalten.
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="account-logged-in" data-auth-only hidden>
+
+                <p data-auth-status></p>
+
+                <button
+                    id="account-logout"
+                    type="button"
+                    class="yj-button yj-button--compact">
+                    Abmelden
+                </button>
+
+            </div>
+
+            <div id="account-guest" data-guest-only>
+
+                <p data-auth-status></p>
+
+                <div class="account-tabs">
+
+                    <button
+                        id="account-tab-login"
+                        type="button"
+                        class="yj-button yj-button--compact account-tab is-active">
+                        Anmelden
+                    </button>
+
+                    <button
+                        id="account-tab-signup"
+                        type="button"
+                        class="yj-button yj-button--compact account-tab">
+                        Registrieren
+                    </button>
+
+                </div>
+
+                <form id="account-login-form" class="account-form">
+
+                    <input
+                        id="login-email"
+                        class="yj-input"
+                        type="email"
+                        placeholder="E-Mail"
+                        autocomplete="email"
+                        required>
+
+                    <input
+                        id="login-password"
+                        class="yj-input"
+                        type="password"
+                        placeholder="Passwort"
+                        autocomplete="current-password"
+                        required>
+
+                    <button type="submit" class="yj-button yj-button--wide">
+                        Anmelden
+                    </button>
+
+                </form>
+
+                <form id="account-signup-form" class="account-form" hidden>
+
+                    <input
+                        id="signup-email"
+                        class="yj-input"
+                        type="email"
+                        placeholder="E-Mail eines Elternteils"
+                        autocomplete="email"
+                        required>
+
+                    <input
+                        id="signup-password"
+                        class="yj-input"
+                        type="password"
+                        placeholder="Passwort (mind. 6 Zeichen)"
+                        autocomplete="new-password"
+                        minlength="6"
+                        required>
+
+                    <label class="account-consent">
+                        <input type="checkbox" id="signup-consent" required>
+                        Ich bin erziehungsberechtigt und stimme der
+                        Erstellung dieses Kontos für mein Kind zu.
+                    </label>
+
+                    <button type="submit" class="yj-button yj-button--wide">
+                        Konto erstellen
+                    </button>
+
+                </form>
+
+                <p id="account-message" class="account-message" hidden></p>
+
+            </div>
+
+        </section>
+
+
+        <section class="settings-panel yj-panel yj-panel--paper yj-enter">
+
+            <div class="settings-row">
+
+                <div class="settings-row-text">
                     <h2>🔊 Ton</h2>
                     <p>Geräusche für richtige und falsche Antworten.</p>
                 </div>
@@ -327,7 +442,9 @@
          JAVASCRIPT
          ===================================================== -->
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="JS/player.js?v=3"></script>
+    <script src="JS/auth.js"></script>
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
     <script src="JS/sounds.js"></script>

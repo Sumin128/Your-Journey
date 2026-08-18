@@ -1,10 +1,10 @@
 .yj-button {
     min-height: 46px;
     padding: 11px 20px;
-    border: 2px solid var(--yj-color-border);
+    border: 2px solid transparent;
     border-radius: var(--yj-radius-sm);
-    background: linear-gradient(180deg, var(--yj-color-accent-light), var(--yj-color-accent) 55%, var(--yj-color-accent-dark));
-    box-shadow: var(--yj-shadow-raised), inset 0 2px 2px rgba(255, 244, 214, 0.5);
+    background: var(--yj-color-button-bg);
+    box-shadow: 0 4px 10px rgba(91, 58, 33, 0.14);
     color: var(--yj-color-ink);
     font-family: Georgia, "Times New Roman", serif;
     font-size: 1rem;
@@ -12,33 +12,48 @@
     line-height: 1.15;
     text-align: center;
     text-decoration: none;
-    text-shadow: 0 1px 0 rgba(255, 244, 214, 0.4);
-    transition: transform var(--yj-transition), filter var(--yj-transition), box-shadow var(--yj-transition);
+    text-shadow: none;
+    transition: transform 130ms var(--yj-ease-out), box-shadow 180ms var(--yj-ease-out), border-color 180ms var(--yj-ease-out);
 }
 
-.yj-button:hover:not(:disabled) {
-    filter: brightness(1.12);
-    transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+    .yj-button:hover:not(:disabled) {
+        border-color: var(--yj-color-accent);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(91, 58, 33, 0.18), 0 0 0 3px rgba(217, 154, 61, 0.32);
+    }
 }
 
 .yj-button:active:not(:disabled) {
-    box-shadow: 0 2px 0 #3f1e0b, 0 4px 8px rgba(0, 0, 0, 0.25);
-    transform: translateY(3px);
+    border-color: var(--yj-color-accent);
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(91, 58, 33, 0.16);
+    transition-duration: 90ms;
 }
 
 .yj-button:focus-visible {
-    outline: 3px solid #fff3bd;
-    outline-offset: 3px;
+    outline: 3px solid var(--yj-color-accent);
+    outline-offset: 2px;
 }
 
 .yj-button:disabled,
 .yj-button.is-disabled {
-    border-color: #45382b;
-    background: linear-gradient(#76634e, #594938);
-    box-shadow: 0 4px 0 #352a20, 0 8px 14px rgba(0, 0, 0, 0.22);
-    color: #c7b8a5;
+    border-color: transparent;
+    background: var(--yj-color-button-bg-disabled);
+    box-shadow: none;
+    color: #a89a86;
     cursor: not-allowed;
-    filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .yj-button {
+        transition: box-shadow var(--yj-transition), border-color var(--yj-transition);
+    }
+
+    .yj-button:hover:not(:disabled),
+    .yj-button:active:not(:disabled) {
+        transform: none;
+    }
 }
 
 .yj-button--compact {
@@ -51,10 +66,13 @@
     min-width: min(300px, 100%);
 }
 
+/*
+ * --secondary bewusst ohne eigene Optik: alle Buttons sollen gleich
+ * aussehen (heller Grundton, schwarze Schrift, Gold-Ring nur beim Hover).
+ * Die Klasse bleibt im Markup erhalten, falls später doch wieder eine
+ * Abstufung gewünscht ist.
+ */
 .yj-button--secondary {
-    background: linear-gradient(180deg, var(--yj-color-wood-light), var(--yj-color-wood) 55%, var(--yj-color-wood-dark));
-    color: var(--yj-color-gold);
-    text-shadow: 0 2px 2px rgba(55, 24, 5, 0.85);
 }
 
 /*
@@ -67,30 +85,32 @@
 #save-name.yj-button,
 #next-word-button.yj-button,
 .shop-item .yj-button {
-    border: 2px solid var(--yj-color-border);
+    border: 2px solid transparent;
     border-radius: var(--yj-radius-sm);
-    background: linear-gradient(180deg, var(--yj-color-accent-light), var(--yj-color-accent) 55%, var(--yj-color-accent-dark));
-    box-shadow: var(--yj-shadow-raised), inset 0 2px 2px rgba(255, 244, 214, 0.5);
+    background: var(--yj-color-button-bg);
+    box-shadow: 0 4px 10px rgba(91, 58, 33, 0.14);
     color: var(--yj-color-ink);
     font-family: Georgia, "Times New Roman", serif;
     font-weight: 700;
-    text-shadow: 0 1px 0 rgba(255, 244, 214, 0.4);
+    text-shadow: none;
 }
 
-#play-sound-button.yj-button:hover:not(:disabled),
-#faro-quiz-select .yj-button:hover:not(:disabled),
-#quiz-select-buttons .yj-button:hover:not(:disabled),
-#save-name.yj-button:hover:not(:disabled),
-#next-word-button.yj-button:hover:not(:disabled),
-.shop-item .yj-button:hover:not(:disabled) {
-    background: linear-gradient(180deg, var(--yj-color-accent-light), var(--yj-color-accent) 55%, var(--yj-color-accent-dark));
-    filter: brightness(1.12);
-    transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+    #play-sound-button.yj-button:hover:not(:disabled),
+    #faro-quiz-select .yj-button:hover:not(:disabled),
+    #quiz-select-buttons .yj-button:hover:not(:disabled),
+    #save-name.yj-button:hover:not(:disabled),
+    #next-word-button.yj-button:hover:not(:disabled),
+    .shop-item .yj-button:hover:not(:disabled) {
+        background: var(--yj-color-button-bg);
+        border-color: var(--yj-color-accent);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(91, 58, 33, 0.18), 0 0 0 3px rgba(217, 154, 61, 0.32);
+    }
 }
 
 .shop-item .yj-button:disabled {
-    border-color: #45382b;
-    background: linear-gradient(#76634e, #594938);
-    color: #c7b8a5;
+    border-color: transparent;
+    background: var(--yj-color-button-bg-disabled);
+    color: #a89a86;
 }
-

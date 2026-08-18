@@ -138,7 +138,7 @@ const inventoryButton =
     panel.innerHTML = `
         <div class="inventory-header">
 
-            <h2>🎒 Dein Rucksack</h2>
+            <h2><img src="images/inventar.png" alt="" class="inventory-icon inventory-icon--title"> Dein Rucksack</h2>
 
             <button
                 id="inventory-close"

@@ -17,12 +17,18 @@
     --yj-color-accent-light: #f3d488;
     --yj-color-accent-dark: #a8641f;
 
+    /* Heller, ruhiger Button-Grundton (Eierschale). Der Gold-Ring
+       erscheint nur beim Hover, nicht dauerhaft. */
+    --yj-color-button-bg: #fdf8ec;
+    --yj-color-button-bg-disabled: #e8e0d2;
+
     --yj-radius-sm: 10px;
     --yj-radius-md: 18px;
     --yj-radius-lg: 24px;
     --yj-shadow-card: 0 10px 26px rgba(91, 58, 33, 0.22);
     --yj-shadow-raised: 0 5px 0 var(--yj-color-accent-dark), 0 9px 15px rgba(91, 58, 33, 0.26);
     --yj-transition: 160ms ease;
+    --yj-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --yj-content-width: 920px;
 }
 
