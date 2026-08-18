@@ -2,6 +2,10 @@
    BÄRENTAL – SEITEN
    ===================================================== */
 
+if (typeof markAnimalVisited === "function") {
+    markAnimalVisited("branos");
+}
+
 const bearWelcome =
     document.getElementById("bear-welcome");
 

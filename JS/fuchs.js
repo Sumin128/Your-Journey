@@ -11,6 +11,10 @@
 loadPlayer();
 applyCursor();
 
+if (typeof markAnimalVisited === "function") {
+    markAnimalVisited("faro");
+}
+
 /* =====================================================
    faro Sprüche
    ===================================================== */

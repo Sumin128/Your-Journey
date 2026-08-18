@@ -40,6 +40,10 @@ let player = {
 
     quizzesCompleted: 0,
 
+    visitedAnimals: [],
+
+    wordGameWins: [],
+
     berries: 0,
 
     activeCursor: "default",
@@ -557,10 +561,10 @@ function showAchievementToast(achievementName) {
    ===================================================== */
 
 const quizCompletionAchievements = [
-    { count: 1, name: "Erstes Quiz gemeistert" },
-    { count: 3, name: "3 Quizze gemeistert" },
-    { count: 5, name: "5 Quizze gemeistert" },
-    { count: 10, name: "10 Quizze gemeistert" }
+    { count: 1, name: "Erstes Quiz gemeistert", description: "Schließe dein erstes Quiz bei Kuro ab.", icon: "🥉" },
+    { count: 3, name: "3 Quizze gemeistert", description: "Schließe 3 Quizze bei Kuro ab.", icon: "🥈" },
+    { count: 5, name: "5 Quizze gemeistert", description: "Schließe 5 Quizze bei Kuro ab.", icon: "🥇" },
+    { count: 10, name: "10 Quizze gemeistert", description: "Schließe 10 Quizze bei Kuro ab.", icon: "🏆" }
 ];
 
 function registerQuizCompletion() {
@@ -590,6 +594,140 @@ function registerQuizCompletion() {
     }
 
 }
+
+
+/* =====================================================
+   TIER-FREUNDE BESUCHEN
+   Wird auf den Orts-Seiten (Kuros Nest, Eulenschule,
+   Fuchsbau, Bärental, ...) aufgerufen. Kommt ein neuer
+   Ort/Tier dazu, einfach hier in die Liste eintragen -
+   der Erfolg passt sich automatisch an.
+   ===================================================== */
+
+const animalFriends = [
+    { id: "kuro", name: "Kuro" },
+    { id: "olivia", name: "Olivia" },
+    { id: "faro", name: "Faro" },
+    { id: "branos", name: "Branos" }
+];
+
+const visitAllAnimalsAchievement = {
+    name: "Alle Tiere besucht",
+    description: "Besuche Kuro, Olivia, Faro und Branos.",
+    icon: "🐾"
+};
+
+function markAnimalVisited(animalId) {
+
+    if (!Array.isArray(player.visitedAnimals)) {
+
+        player.visitedAnimals = [];
+
+    }
+
+    if (player.visitedAnimals.includes(animalId)) {
+
+        return;
+
+    }
+
+    player.visitedAnimals.push(animalId);
+
+    savePlayer();
+
+    window.dispatchEvent(
+        new CustomEvent("player-updated")
+    );
+
+    const allVisited = animalFriends.every(function (animal) {
+
+        return player.visitedAnimals.includes(animal.id);
+
+    });
+
+    if (allVisited) {
+
+        addAchievement(visitAllAnimalsAchievement.name);
+
+    }
+
+}
+
+
+/* =====================================================
+   WÖRTERRATEN-ERFOLGE
+   Wird von JS/eulenschule.js aufgerufen, wenn eine
+   Runde gewonnen wurde.
+   ===================================================== */
+
+const wordGameDifficultyAchievements = {
+    leicht: { name: "Wörterraten: Leicht gemeistert", description: "Gewinne eine Runde Wörterraten auf Leicht.", icon: "🌼" },
+    mittel: { name: "Wörterraten: Mittel gemeistert", description: "Gewinne eine Runde Wörterraten auf Mittel.", icon: "🌳" },
+    schwer: { name: "Wörterraten: Schwer gemeistert", description: "Gewinne eine Runde Wörterraten auf Schwer.", icon: "🔥" }
+};
+
+const wordGameMasterAchievement = {
+    name: "Wörterraten-Meister",
+    description: "Gewinne eine Runde Wörterraten auf jeder Schwierigkeit.",
+    icon: "📖"
+};
+
+function registerWordGameWin(difficulty) {
+
+    if (!Array.isArray(player.wordGameWins)) {
+
+        player.wordGameWins = [];
+
+    }
+
+    const difficultyAchievement = wordGameDifficultyAchievements[difficulty];
+
+    if (!difficultyAchievement) {
+
+        return;
+
+    }
+
+    if (!player.wordGameWins.includes(difficulty)) {
+
+        player.wordGameWins.push(difficulty);
+
+        savePlayer();
+
+    }
+
+    addAchievement(difficultyAchievement.name);
+
+    const allDifficultiesWon = Object.keys(wordGameDifficultyAchievements).every(
+        function (key) {
+
+            return player.wordGameWins.includes(key);
+
+        }
+    );
+
+    if (allDifficultiesWon) {
+
+        addAchievement(wordGameMasterAchievement.name);
+
+    }
+
+}
+
+
+/* =====================================================
+   GESAMTKATALOG ALLER ERFOLGE
+   Wird von der Erfolge-Seite (erfolge.html) genutzt, um
+   alle Erfolge (freigeschaltet oder nicht) anzuzeigen.
+   ===================================================== */
+
+const achievementCatalog = quizCompletionAchievements.concat([
+    visitAllAnimalsAchievement,
+    wordGameDifficultyAchievements.leicht,
+    wordGameDifficultyAchievements.mittel,
+    wordGameDifficultyAchievements.schwer,
+    wordGameMasterAchievement
+]);
 
 
 /* =====================================================

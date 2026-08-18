@@ -17,9 +17,11 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=4">
 
-    <title>Kuros Laden</title>
+    <title>Impressum &amp; Datenschutz – Your Journey</title>
 
 </head>
+
+
 <body>
 
 
@@ -61,6 +63,7 @@
                 </button>
 
             </div>
+
 
             <div class="sidebar-player-info">
 
@@ -146,8 +149,7 @@
 
             <a
                 href="shop_seite.html"
-                class="sidebar-link"
-                aria-current="page">
+                class="sidebar-link">
 
                 <span class="sidebar-icon">🛒</span>
                 <span class="sidebar-label">Kuros Laden</span>
@@ -190,10 +192,10 @@
 
         <div class="sidebar-legal">
 
-            <a href="impressum.html" class="sidebar-link sidebar-legal-link">
+            <a href="impressum.html" class="sidebar-link sidebar-legal-link" aria-current="page">
 
                 <span class="sidebar-icon">⚖️</span>
-                <span class="sidebar-label">Impressum & Datenschutz</span>
+                <span class="sidebar-label">Impressum &amp; Datenschutz</span>
 
             </a>
 
@@ -201,106 +203,113 @@
 
     </nav>
 
+
     <!-- =====================================================
-         KUROS LADEN
+         IMPRESSUM & DATENSCHUTZ
          ===================================================== -->
 
-    <main id="shop-main" class="yj-page">
+    <main id="legal-main" class="yj-page">
 
-        <section id="shop-scene" aria-label="Kuros Laden">
+        <section class="legal-section yj-panel yj-panel--paper yj-enter">
 
-            <img
-                id="shop-image"
-                src="images/kuros_laden_wald4.png"
-                alt="Kuro hinter dem Verkaufstresen in seinem Waldladen">
+            <h1>Impressum</h1>
 
-            <div id="shop-feathers" aria-live="polite">
-                <span class="shop-feather-icon" aria-hidden="true"></span>
-                <span id="feather-count">0 Federn</span>
-                <small id="shop-player-name">Dein Vorrat</small>
-            </div>
+            <p class="legal-placeholder-hint">
+                ⚠️ Platzhalter – bitte durch deine echten Angaben ersetzen (Pflichtangaben nach § 5 TMG/DDG).
+            </p>
 
-            <div id="shop-items">
+            <h2>Angaben gemäß § 5 TMG</h2>
 
-                <article class="shop-item shop-item-one yj-card" id="fox-cursor-item">
+            <p>
+                [Vorname Nachname]<br>
+                [Straße Hausnummer]<br>
+                [PLZ Ort]
+            </p>
 
-                    <span class="shop-item-icon" aria-hidden="true">
-                        <img src="Icons/Cursor/fox_cursor.png" alt="Fuchs-Cursor">
-                    </span>
+            <h2>Kontakt</h2>
 
-                    <div>
-                        <h2>Fuchs-Cursor</h2>
-                        <p>30 🪶</p>
-                    </div>
+            <p>
+                E-Mail: [deine-email@beispiel.de]
+            </p>
 
-                    <button type="button" id="fox-cursor-button" class="yj-button yj-button--compact">
-                        Kaufen
-                    </button>
+            <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
 
-                    <small id="fox-cursor-status"></small>
+            <p>
+                [Vorname Nachname], Anschrift wie oben.
+            </p>
 
-                </article>
+            <p class="legal-note">
+                Diese Seite wird nicht gewerblich betrieben. Sollte dennoch eine
+                Impressumspflicht bestehen, dienen die obigen Angaben ihrer Erfüllung.
+            </p>
 
-
-                <article class="shop-item shop-item-two yj-card" id="bear-cursor-item">
-
-                    <span class="shop-item-icon" aria-hidden="true">
-                        <img src="Icons/Cursor/bear_cursor.png" alt="Bären-Cursor">
-                    </span>
-
-                    <div>
-                        <h2>Bären-Cursor</h2>
-                        <p>40 🪶</p>
-                    </div>
-
-                    <button type="button" id="bear-cursor-button" class="yj-button yj-button--compact">
-                        Kaufen
-                    </button>
-
-                    <small id="bear-cursor-status"></small>
-
-                </article>
+        </section>
 
 
-                <article class="shop-item shop-item-three yj-card">
+        <section class="legal-section yj-panel yj-panel--paper yj-enter">
 
-                    <span class="shop-item-icon" aria-hidden="true">
-                        🦄
-                    </span>
+            <h1>Datenschutzerklärung</h1>
 
-                    <div>
-                        <h2>Einhorn-Cursor</h2>
-                        <p>200 🪶</p>
-                    </div>
+            <p class="legal-placeholder-hint">
+                ⚠️ Grundgerüst – bitte prüfen und mit deinen echten Angaben ergänzen.
+            </p>
 
-                    <button type="button" id="unicorn-cursor-button" class="yj-button yj-button--compact">
-                        Kaufen
-                    </button>
+            <h2>1. Verantwortlicher</h2>
 
-                </article>
+            <p>
+                [Vorname Nachname]<br>
+                [Straße Hausnummer], [PLZ Ort]<br>
+                E-Mail: [deine-email@beispiel.de]
+            </p>
 
+            <h2>2. Lokale Speicherung (localStorage)</h2>
 
-                <article class="shop-item shop-item-four yj-card">
+            <p>
+                Dein Spielername, Avatar und Spielfortschritt werden ausschließlich
+                lokal in deinem Browser gespeichert (localStorage). Diese Daten
+                verlassen dein Gerät nicht und werden nicht an einen Server
+                übertragen.
+            </p>
 
-                    <span class="shop-item-icon" aria-hidden="true">
-                        🎩
-                    </span>
+            <h2>3. Bug-Melder (Formspree)</h2>
 
-                    <div>
-                        <h2>Neuer Avatar</h2>
-                        <p>200 🪶</p>
-                    </div>
+            <p>
+                Über den Bug-Melder (🐞) eingereichte Meldungen (Typ, Text,
+                aufgerufene Seite) werden an den Formular-Dienst
+                <strong>Formspree</strong> (Formspree, Inc., USA) übertragen, damit
+                sie per E-Mail zugestellt werden können. Dabei kann es zu einer
+                Datenübertragung in die USA kommen. Details siehe
+                <a href="https://formspree.io/legal/privacy-policy" target="_blank" rel="noopener">
+                    Formspree-Datenschutzerklärung
+                </a>.
+            </p>
 
-                    <button type="button" class="yj-button yj-button--compact" disabled>
-                        Bald verfügbar
-                    </button>
+            <h2>4. Hosting (Vercel)</h2>
 
-                </article>
+            <p>
+                Diese Seite wird über <strong>Vercel Inc.</strong> gehostet. Beim
+                Aufruf der Seite verarbeitet Vercel technisch bedingt
+                Server-Log-Daten (z. B. IP-Adresse, Zeitpunkt des Zugriffs). Details
+                siehe
+                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">
+                    Vercel-Datenschutzerklärung
+                </a>.
+            </p>
 
-            </div>
+            <h2>5. Cookies</h2>
 
-            <p id="shop-message">
-                Entdecke Kuros Fundstücke!
+            <p>
+                Diese Seite setzt keine Tracking-Cookies. Es wird ausschließlich
+                localStorage für Spielfunktionen genutzt (siehe Punkt 2).
+            </p>
+
+            <h2>6. Deine Rechte</h2>
+
+            <p>
+                Du hast das Recht auf Auskunft, Berichtigung, Löschung und
+                Einschränkung der Verarbeitung deiner personenbezogenen Daten sowie
+                ein Beschwerderecht bei einer Aufsichtsbehörde. Wende dich dazu an
+                die oben genannte Kontakt-E-Mail.
             </p>
 
         </section>
@@ -315,8 +324,8 @@
     <script src="JS/player.js?v=3"></script>
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
-    <script src="JS/shop.js?v=3"></script>
-    <script src="JS/sounds.js"></script>
-</body>
-</html>
 
+
+</body>
+
+</html>

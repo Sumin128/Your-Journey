@@ -8,6 +8,10 @@
 loadPlayer();
 applyCursor();
 
+if (typeof markAnimalVisited === "function") {
+    markAnimalVisited("olivia");
+}
+
 function updateOwlSchoolPlayer() {
     const featherCount = document.getElementById("feather-count");
     const playerNameDisplay = document.getElementById("player-name-display");
@@ -286,6 +290,10 @@ function checkWinCondition() {
     gameFinished = true;
 
     addFeathers(difficultySettings[currentDifficulty].feathers);
+
+    if (typeof registerWordGameWin === "function") {
+        registerWordGameWin(currentDifficulty);
+    }
 
     updateOwlSchoolPlayer();
 
