@@ -31,6 +31,8 @@
     const swatches = document.querySelectorAll(".paint-color-swatch");
     const colorPicker = document.getElementById("paint-color-picker");
     const sizeButtons = document.querySelectorAll(".paint-size-button");
+    const sizeSlider = document.getElementById("paint-size-slider");
+    const sizeValueLabel = document.getElementById("paint-size-value");
     const toolButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-tool]");
     const fillButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-fill-mode]");
     const undoButton = document.getElementById("paint-undo-button");
@@ -133,23 +135,45 @@
 
     });
 
+    function setSize(size, sourceButton) {
+
+        currentSize = size;
+
+        sizeButtons.forEach(function (item) {
+            item.classList.toggle("is-active", item === sourceButton);
+        });
+
+        if (sizeSlider) {
+            sizeSlider.value = String(size);
+        }
+
+        if (sizeValueLabel) {
+            sizeValueLabel.textContent = size + " px";
+        }
+
+        updateCanvasCursor();
+
+    }
+
     sizeButtons.forEach(function (button) {
 
         button.addEventListener("click", function () {
 
-            currentSize = Number(button.dataset.size);
-
-            sizeButtons.forEach(function (item) {
-                item.classList.remove("is-active");
-            });
-
-            button.classList.add("is-active");
-
-            updateCanvasCursor();
+            setSize(Number(button.dataset.size), button);
 
         });
 
     });
+
+    if (sizeSlider) {
+
+        sizeSlider.addEventListener("input", function () {
+
+            setSize(Number(sizeSlider.value), null);
+
+        });
+
+    }
 
     toolButtons.forEach(function (button) {
 
