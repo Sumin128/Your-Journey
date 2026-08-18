@@ -1309,8 +1309,8 @@ border:2px solid var(--yj-color-border);
 
 #shop-scene {
     position: relative;
-    width: min(100%, 1050px);
-    aspect-ratio: 1;
+    width: min(100%, 750px);
+    aspect-ratio: 1122 / 1402;
     margin: 0 auto;
     overflow: hidden;
     border: clamp(4px, .7vw, 9px) solid #5b351c;
@@ -1361,73 +1361,98 @@ border:2px solid var(--yj-color-border);
     font-weight: 700;
 }
 
-.shop-item {
+#shop-items {
     position: absolute;
-    width: 24.7%;
-    height: 10.5%;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: 1fr auto;
+    inset: 0;
+}
+
+.shop-hotspot {
+    position: absolute;
+    width: clamp(34px, 7vw, 60px);
+    height: clamp(34px, 7vw, 60px);
+    transform: translate(-50%, -50%);
+    display: flex;
     align-items: center;
-    column-gap: clamp(4px, .8vw, 11px);
-    padding: .7% 1.3%;
-    color: #432713;
-    text-align: left;
+    justify-content: center;
+    cursor: inherit;
 }
 
-.shop-item-one { left: 16.2%; top: 62.7%; }
-.shop-item-two { right: 16.1%; top: 62.7%; }
-.shop-item-three { left: 16.2%; top: 76.8%; }
-.shop-item-four { right: 16.1%; top: 76.8%; }
+.shop-item-one { left: 30%; top: 58.5%; }
+.shop-item-two { left: 68%; top: 58.5%; }
+.shop-item-three { left: 30%; top: 76%; }
+.shop-item-four { left: 68%; top: 76%; }
 
-.shop-item-icon {
-    grid-row: 1 / 3;
-    position: relative;
-    top: -7px;
-    font-size: clamp(19px, 3.1vw, 40px);
-    filter: drop-shadow(0 2px 1px rgba(255, 255, 255, .5));
+.shop-hotspot-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .45));
+    transition: transform .2s ease, filter .2s ease;
 }
 
-.shop-item h2,
-.shop-item p {
-    margin: 0;
+span.shop-hotspot-icon.shop-hotspot-icon--emoji {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(22px, 4vw, 38px);
+    line-height: 1;
 }
 
-.shop-item h2 {
-    font-size: clamp(10px, 1.65vw, 21px);
-    line-height: 1.05;
+.shop-hotspot:hover .shop-hotspot-icon,
+.shop-hotspot:focus-within .shop-hotspot-icon {
+    transform: scale(1.15);
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .55)) brightness(1.1);
 }
 
-.shop-item p {
-    margin-top: .18em;
-    font-size: clamp(10px, 1.35vw, 17px);
-    font-weight: 800;
+.shop-hotspot::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 14px;
 }
 
-.shop-item button {
-    grid-column:  1 / 3;
-    justify-self: center;
-    width: 92px;
+.shop-hotspot-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-bottom: 10px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(44, 28, 16, .94);
+    color: #ffe7b5;
+    white-space: nowrap;
     text-align: center;
-    margin-top: .1em;
-    padding: .25em .65em;
-    border: 1px solid rgba(67, 39, 19, .35);
-    border-radius: 999px;
-    background: rgba(93, 57, 29, .14);
-    color: #5b3d27;
-    font-size: clamp(7px, .95vw, 12px);
-    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease;
+}
+
+.shop-hotspot:hover .shop-hotspot-tooltip,
+.shop-hotspot:focus-within .shop-hotspot-tooltip {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 #shop-message {
     position: absolute;
-    left: 27%;
-    bottom: 3.4%;
-    width: 46%;
+    left: 50%;
+    bottom: 3%;
+    transform: translateX(-50%);
+    width: 80%;
     margin: 0;
-    color: #4b2b16;
+    color: #ffe7b5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, .6);
+    text-align: center;
     font-family: Georgia, serif;
-    font-size: clamp(10px, 1.45vw, 18px);
+    font-size: clamp(11px, 1.6vw, 18px);
     font-weight: 700;
     line-height: 1.25;
 }
@@ -1447,7 +1472,7 @@ border:2px solid var(--yj-color-border);
 
     #shop-scene {
         overflow: visible;
-        margin-bottom: 360px;
+        margin-bottom: 420px;
     }
 
     #shop-items {
@@ -1460,12 +1485,13 @@ border:2px solid var(--yj-color-border);
         gap: 10px;
     }
 
-    .shop-item,
+    .shop-hotspot,
     .shop-item-one,
     .shop-item-two,
     .shop-item-three,
     .shop-item-four {
         position: static;
+        transform: none;
         width: auto;
         height: auto;
         min-height: 105px;
@@ -1473,19 +1499,30 @@ border:2px solid var(--yj-color-border);
         border: 2px solid #956332;
         border-radius: 14px;
         background: #f1d19c;
-        box-shadow: 0 7px 18px rgba(0, 0, 0, .24);
     }
 
-    .shop-item-icon { font-size: 30px; }
-    .shop-item h2 { font-size: 15px; }
-    .shop-item p { font-size: 14px; }
-    .shop-item button { font-size: 10px; }
+    .shop-hotspot-icon { width: 40px; height: 40px; margin: 0 auto; }
+    span.shop-hotspot-icon.shop-hotspot-icon--emoji { font-size: 34px; }
+
+    .shop-hotspot::after { display: none; }
+
+    .shop-hotspot-tooltip {
+        position: static;
+        transform: none;
+        margin: 8px 0 0;
+        opacity: 1;
+        pointer-events: auto;
+        background: none;
+        color: #4b2b16;
+        padding: 0;
+    }
+
     #shop-message { display: none; }
 }
 
 @media (max-width: 470px) {
     #shop-items { grid-template-columns: 1fr; }
-    #shop-scene { margin-bottom: 600px; }
+    #shop-scene { margin-bottom: 700px; }
 }
 
 /* Hier kommt später das Handy-Layout */
