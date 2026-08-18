@@ -260,6 +260,52 @@
 
                 <div class="paint-tool-group">
 
+                    <span class="paint-tool-label">Werkzeug</span>
+
+                    <div class="paint-shape-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact paint-tool-button is-active" data-tool="brush">
+                            ✏️ Pinsel
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact paint-tool-button" data-tool="rectangle">
+                            ▭ Rechteck
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact paint-tool-button" data-tool="circle">
+                            ⬭ Kreis
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact paint-tool-button" data-tool="eraser">
+                            🧽 Radiergummi
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="paint-tool-group">
+
+                    <span class="paint-tool-label">Rechteck/Kreis</span>
+
+                    <div class="paint-shape-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact paint-fill-button is-active" data-fill-mode="stroke">
+                            Umriss
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact paint-fill-button" data-fill-mode="fill">
+                            Gefüllt
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="paint-tool-group">
+
                     <span class="paint-tool-label">Stiftgröße</span>
 
                     <div class="paint-size-buttons">
@@ -283,10 +329,6 @@
 
                 <div class="paint-tool-group paint-tool-actions">
 
-                    <button type="button" id="paint-eraser-button" class="yj-button yj-button--compact">
-                        🧽 Radiergummi
-                    </button>
-
                     <button type="button" id="paint-undo-button" class="yj-button yj-button--compact">
                         ↩️ Rückgängig
                     </button>
@@ -300,9 +342,13 @@
             </div>
 
 
+            <!-- Bewusst noch nicht gebaut (spätere Ausbaustufe):
+                 Gerade-Linie-Werkzeug, Farbeimer/Flood-Fill, Stempel-Werkzeug
+                 mit den Tier-Icons. Siehe TODO-Kommentare in JS/malen.js. -->
+
             <div class="paint-canvas-wrap">
 
-                <canvas id="paint-canvas" width="600" height="848"></canvas>
+                <canvas id="paint-canvas" width="1200" height="900"></canvas>
 
             </div>
 

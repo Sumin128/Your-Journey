@@ -4053,15 +4053,20 @@ justify-content:center;
 
 }
 
-.paint-size-buttons {
+.paint-size-buttons,
+.paint-shape-buttons {
 
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 
     gap: 8px;
 
 }
 
-.paint-size-button.is-active {
+.paint-size-button.is-active,
+.paint-tool-button.is-active,
+.paint-fill-button.is-active {
 
     border-color: var(--yj-color-accent);
     box-shadow: 0 6px 14px rgba(91, 58, 33, 0.18), 0 0 0 3px rgba(217, 154, 61, 0.32);
@@ -4078,13 +4083,6 @@ justify-content:center;
 
 }
 
-#paint-eraser-button.is-active {
-
-    border-color: var(--yj-color-accent);
-    box-shadow: 0 6px 14px rgba(91, 58, 33, 0.18), 0 0 0 3px rgba(217, 154, 61, 0.32);
-
-}
-
 .paint-canvas-wrap {
 
     display: flex;
@@ -4097,9 +4095,10 @@ justify-content:center;
 #paint-canvas {
 
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
 
-    aspect-ratio: 1 / 1.414;
+    aspect-ratio: 4 / 3;
+    height: auto;
 
     border: 4px solid var(--yj-color-border);
     border-radius: var(--yj-radius-sm);

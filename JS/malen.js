@@ -1,12 +1,21 @@
 /* =====================================================
    MALEN.JS
    Zeichenfläche der Malstube: Maus- und Touch-Zeichnen,
-   Werkzeuge (Farbe, Stiftgröße, Radiergummi, Rückgängig,
-   Leeren) und Speichern in Supabase Storage.
+   Werkzeuge (Pinsel, Rechteck, Kreis, Radiergummi,
+   Umriss/Gefüllt, Stiftgröße, Rückgängig, Leeren) und
+   Speichern in Supabase Storage.
 
    Speichern funktioniert nur mit Konto (siehe auth.js) -
    die App bleibt ohne Konto komplett nutzbar, das Bild
    geht dann beim Verlassen der Seite nur verloren.
+
+   Bewusst noch NICHT gebaut (spätere Ausbaustufe, siehe
+   malen-und-galerie-prompt.md):
+   - Gerade-Linie-Werkzeug (gleiche Snapshot-Technik wie
+     Rechteck/Kreis, nur ctx.moveTo()/ctx.lineTo())
+   - Farbeimer/Flood-Fill (braucht einen eigenen Pixel-
+     Algorithmus über getImageData/putImageData)
+   - Stempel-Werkzeug mit den Tier-Icons (🦊🐻🦉)
    ===================================================== */
 
 (function setupMalstube() {
@@ -22,21 +31,27 @@
     const swatches = document.querySelectorAll(".paint-color-swatch");
     const colorPicker = document.getElementById("paint-color-picker");
     const sizeButtons = document.querySelectorAll(".paint-size-button");
-    const eraserButton = document.getElementById("paint-eraser-button");
+    const toolButtons = document.querySelectorAll(".paint-tool-button");
+    const fillButtons = document.querySelectorAll(".paint-fill-button");
     const undoButton = document.getElementById("paint-undo-button");
     const clearButton = document.getElementById("paint-clear-button");
     const saveButton = document.getElementById("paint-save-button");
     const messageEl = document.getElementById("paint-message");
 
     const MAX_HISTORY_STATES = 20;
+    const SHAPE_TOOLS = ["rectangle", "circle"];
 
     let currentColor = "#e53935";
     let currentSize = 12;
-    let isEraser = false;
+    let currentTool = "brush";
+    let fillMode = "stroke";
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
     let history = [];
+
+    let shapeStartPoint = null;
+    let shapeSnapshot = null;
 
 
     /* =====================================================
@@ -91,9 +106,6 @@
             swatch.classList.add("is-active");
         }
 
-        eraserButton.classList.remove("is-active");
-        isEraser = false;
-
     }
 
     swatches.forEach(function (swatch) {
@@ -133,11 +145,35 @@
 
     });
 
-    eraserButton.addEventListener("click", function () {
+    toolButtons.forEach(function (button) {
 
-        isEraser = !isEraser;
+        button.addEventListener("click", function () {
 
-        eraserButton.classList.toggle("is-active", isEraser);
+            currentTool = button.dataset.tool;
+
+            toolButtons.forEach(function (item) {
+                item.classList.remove("is-active");
+            });
+
+            button.classList.add("is-active");
+
+        });
+
+    });
+
+    fillButtons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            fillMode = button.dataset.fillMode;
+
+            fillButtons.forEach(function (item) {
+                item.classList.remove("is-active");
+            });
+
+            button.classList.add("is-active");
+
+        });
 
     });
 
@@ -164,7 +200,7 @@
 
         ctx.beginPath();
         ctx.arc(point.x, point.y, currentSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = isEraser ? "#ffffff" : currentColor;
+        ctx.fillStyle = currentTool === "eraser" ? "#ffffff" : currentColor;
         ctx.fill();
 
     }
@@ -174,11 +210,48 @@
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
-        ctx.strokeStyle = isEraser ? "#ffffff" : currentColor;
+        ctx.strokeStyle = currentTool === "eraser" ? "#ffffff" : currentColor;
         ctx.lineWidth = currentSize;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.stroke();
+
+    }
+
+    function drawShapePreview(point) {
+
+        if (!shapeSnapshot || !shapeStartPoint) {
+            return;
+        }
+
+        ctx.putImageData(shapeSnapshot, 0, 0);
+
+        const x = Math.min(shapeStartPoint.x, point.x);
+        const y = Math.min(shapeStartPoint.y, point.y);
+        const width = Math.abs(point.x - shapeStartPoint.x);
+        const height = Math.abs(point.y - shapeStartPoint.y);
+
+        ctx.beginPath();
+
+        if (currentTool === "rectangle") {
+
+            ctx.rect(x, y, width, height);
+
+        } else if (currentTool === "circle") {
+
+            ctx.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+
+        }
+
+        ctx.lineWidth = currentSize;
+        ctx.strokeStyle = currentColor;
+        ctx.fillStyle = currentColor;
+
+        if (fillMode === "fill") {
+            ctx.fill();
+        } else {
+            ctx.stroke();
+        }
 
     }
 
@@ -188,6 +261,15 @@
         canvas.setPointerCapture(event.pointerId);
 
         const point = getCanvasPoint(event);
+
+        if (SHAPE_TOOLS.includes(currentTool)) {
+
+            shapeStartPoint = point;
+            shapeSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            return;
+
+        }
 
         lastX = point.x;
         lastY = point.y;
@@ -204,6 +286,14 @@
 
         const point = getCanvasPoint(event);
 
+        if (SHAPE_TOOLS.includes(currentTool)) {
+
+            drawShapePreview(point);
+
+            return;
+
+        }
+
         drawLine({ x: lastX, y: lastY }, point);
 
         lastX = point.x;
@@ -211,21 +301,43 @@
 
     });
 
-    function endStroke() {
+    function endStroke(event) {
 
         if (!isDrawing) {
             return;
         }
 
+        if (SHAPE_TOOLS.includes(currentTool)) {
+            drawShapePreview(getCanvasPoint(event));
+        }
+
         isDrawing = false;
+        shapeStartPoint = null;
+        shapeSnapshot = null;
 
         pushHistoryState();
 
     }
 
+    function cancelStroke() {
+
+        if (!isDrawing) {
+            return;
+        }
+
+        if (SHAPE_TOOLS.includes(currentTool) && shapeSnapshot) {
+            ctx.putImageData(shapeSnapshot, 0, 0);
+        }
+
+        isDrawing = false;
+        shapeStartPoint = null;
+        shapeSnapshot = null;
+
+    }
+
     canvas.addEventListener("pointerup", endStroke);
-    canvas.addEventListener("pointercancel", endStroke);
     canvas.addEventListener("pointerleave", endStroke);
+    canvas.addEventListener("pointercancel", cancelStroke);
 
 
     /* =====================================================
