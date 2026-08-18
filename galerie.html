@@ -218,10 +218,16 @@
             <p>Klicke auf eine Karte um sie in voller Größe anzuschauen.</p>
         </section>
 
-        <div class="gallery-grid">
+        <div class="gallery-grid" id="gallery-grid">
 
-            <section class="map-card yj-card yj-card--interactive">
-                <h3>Übersichtskarte</h3>
+            <section class="map-card yj-card yj-card--interactive" data-map-id="uebersichtskarte">
+                <div class="map-card-title-row">
+                    <h3>Übersichtskarte</h3>
+                    <button type="button" class="map-like-button" data-map-id="uebersichtskarte">
+                        <span class="map-like-heart">❤️</span>
+                        <span class="map-like-count">0</span>
+                    </button>
+                </div>
 
                 <img
                     src="images/startseite_v3.png"
@@ -230,8 +236,14 @@
                     data-full="images/startseite_v3.png">
             </section>
 
-            <section class="map-card yj-card yj-card--interactive">
-                <h3>Kuros Nest</h3>
+            <section class="map-card yj-card yj-card--interactive" data-map-id="kuros-nest">
+                <div class="map-card-title-row">
+                    <h3>Kuros Nest</h3>
+                    <button type="button" class="map-like-button" data-map-id="kuros-nest">
+                        <span class="map-like-heart">❤️</span>
+                        <span class="map-like-count">0</span>
+                    </button>
+                </div>
 
                 <img
                     src="images/kuros_nest_final.png"
@@ -241,8 +253,14 @@
                     loading="lazy">
             </section>
 
-            <section class="map-card yj-card yj-card--interactive">
-                <h3>Olivias Eulenschule</h3>
+            <section class="map-card yj-card yj-card--interactive" data-map-id="eulenschule">
+                <div class="map-card-title-row">
+                    <h3>Olivias Eulenschule</h3>
+                    <button type="button" class="map-like-button" data-map-id="eulenschule">
+                        <span class="map-like-heart">❤️</span>
+                        <span class="map-like-count">0</span>
+                    </button>
+                </div>
 
                 <img
                     src="images/eulenschule.png"
@@ -252,8 +270,14 @@
                     loading="lazy">
             </section>
 
-            <section class="map-card yj-card yj-card--interactive">
-                <h3>Faros Fuchsbau</h3>
+            <section class="map-card yj-card yj-card--interactive" data-map-id="fuchsbau">
+                <div class="map-card-title-row">
+                    <h3>Faros Fuchsbau</h3>
+                    <button type="button" class="map-like-button" data-map-id="fuchsbau">
+                        <span class="map-like-heart">❤️</span>
+                        <span class="map-like-count">0</span>
+                    </button>
+                </div>
 
                 <img
                     src="images/faros_fuchsbau3.png"
@@ -263,8 +287,14 @@
                     loading="lazy">
             </section>
 
-            <section class="map-card yj-card yj-card--interactive">
-                <h3>Bärental</h3>
+            <section class="map-card yj-card yj-card--interactive" data-map-id="baerental">
+                <div class="map-card-title-row">
+                    <h3>Bärental</h3>
+                    <button type="button" class="map-like-button" data-map-id="baerental">
+                        <span class="map-like-heart">❤️</span>
+                        <span class="map-like-count">0</span>
+                    </button>
+                </div>
 
                 <img
                     src="images/baerenthal.png"
@@ -304,6 +334,7 @@
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
     <script src="JS/map.js"></script>
+    <script src="JS/gallery-likes.js"></script>
     <script src="JS/sounds.js"></script>
 
 
