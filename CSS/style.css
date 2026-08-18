@@ -816,6 +816,50 @@ main {
 
 }
 
+/* Gruppen-Überschriften in der Sidebar (rein visuell,
+   keine eigene Klapplogik). Im eingeklappten Zustand auf
+   Höhe 0, damit keine leere Lücke zwischen den Icons
+   entsteht - genau wie .sidebar-label bereits gehandhabt. */
+
+.sidebar-section-label{
+
+    height:0;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+
+    color:#f7eadb;
+
+    font-size:0.75rem;
+
+    font-weight:600;
+
+    text-transform:uppercase;
+
+    letter-spacing:0.04em;
+
+    opacity:0;
+
+    visibility:hidden;
+
+    transition:.25s;
+
+}
+
+#sidebar.open .sidebar-section-label{
+
+    height:auto;
+
+    margin-top:6px;
+
+    padding:0.5rem 1rem 0.25rem;
+
+    opacity:0.6;
+
+    visibility:visible;
+
+}
+
 /* Deaktivierte Links */
 
 .sidebar-link:disabled{
