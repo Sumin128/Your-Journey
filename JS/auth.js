@@ -7,6 +7,12 @@
    Federn, Erfolge und Inventar, falls sich jemand freiwillig
    registriert. Ohne Konto bleibt alles wie bisher rein lokal
    in localStorage (siehe JS/player.js).
+
+   Die Anmelde-Maske wird - genau wie der Rucksack in
+   sidebar.js - per JavaScript gebaut und an <body> gehängt,
+   damit sie auf jeder Seite über ein Icon in der Sidebar
+   erreichbar ist, statt fest in einer einzelnen Seite zu
+   stecken.
    ===================================================== */
 
 const SUPABASE_URL = "https://mcfsfynceaajsflmrxzg.supabase.co";
@@ -18,6 +24,7 @@ const supabaseClient =
         : null;
 
 let currentSession = null;
+let isPasswordRecovery = false;
 
 
 /* =====================================================
@@ -96,7 +103,7 @@ async function pullProfileFromCloud() {
 
 
 /* =====================================================
-   3. ANMELDEN / REGISTRIEREN / ABMELDEN
+   3. ANMELDEN / REGISTRIEREN / ABMELDEN / PASSWORT
    ===================================================== */
 
 async function signUpAccount(email, password, parentalConsent) {
@@ -182,36 +189,77 @@ async function signOutAccount() {
 }
 
 
+async function requestPasswordReset(email) {
+
+    if (!supabaseClient) {
+        return { error: "Konto-Funktion gerade nicht verfügbar." };
+    }
+
+    const { error } =
+        await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + window.location.pathname
+        });
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    return { success: true };
+
+}
+
+
+async function setNewPassword(newPassword) {
+
+    if (!supabaseClient) {
+        return { error: "Konto-Funktion gerade nicht verfügbar." };
+    }
+
+    const { error } =
+        await supabaseClient.auth.updateUser({ password: newPassword });
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    isPasswordRecovery = false;
+
+    return { success: true };
+
+}
+
+
 /* =====================================================
    4. UI AKTUALISIEREN
-   Funktioniert auf jeder Seite, auf der diese
-   data-Attribute existieren (aktuell: Einstellungen).
    ===================================================== */
 
 function updateAuthUI() {
 
+    /* Während der "Passwort vergessen"-Wiederherstellung hat man
+       zwar technisch eine (temporäre) Sitzung, soll aber weder
+       den "angemeldet"-Bereich noch den normalen Login/Registrieren-
+       Bereich sehen - nur das Passwort-Formular. */
+
+    const showLoggedInView = isLoggedIn() && !isPasswordRecovery;
+
     document.querySelectorAll("[data-auth-status]").forEach(function (el) {
 
-        el.textContent = isLoggedIn()
+        el.textContent = isLoggedIn() && !isPasswordRecovery
             ? "Angemeldet als " + currentSession.user.email
             : "Nicht angemeldet – dein Fortschritt wird nur lokal auf diesem Gerät gespeichert.";
 
     });
 
     document.querySelectorAll("[data-auth-only]").forEach(function (el) {
-        el.hidden = !isLoggedIn();
+        el.hidden = !showLoggedInView;
     });
 
     document.querySelectorAll("[data-guest-only]").forEach(function (el) {
-        el.hidden = isLoggedIn();
+        el.hidden = showLoggedInView;
     });
 
 }
 
-
-/* =====================================================
-   5. FORMULARE VERKABELN (nur falls auf der Seite vorhanden)
-   ===================================================== */
 
 function setAccountMessage(text, isError) {
 
@@ -228,13 +276,213 @@ function setAccountMessage(text, isError) {
 }
 
 
+/* =====================================================
+   5. DAS POP-UP-FENSTER BAUEN
+   Wird - genau wie der Rucksack in sidebar.js - einmal per
+   JavaScript erzeugt und an <body> gehängt.
+   ===================================================== */
+
+function createAccountPanel() {
+
+    if (document.getElementById("account-panel")) {
+        return;
+    }
+
+    const panel = document.createElement("div");
+    panel.id = "account-panel";
+    panel.hidden = true;
+
+    panel.innerHTML = `
+        <div id="account-panel-backdrop"></div>
+
+        <div id="account-panel-card" role="dialog" aria-label="Konto">
+
+            <button id="account-panel-close" type="button" aria-label="Schließen">✕</button>
+
+            <h2>🔐 Konto</h2>
+
+            <p class="account-intro">
+                Du musst dich nicht registrieren, um zu spielen. Ohne Konto
+                wird dein Fortschritt nur auf diesem Gerät gespeichert und
+                kann verloren gehen. Mit einem kostenlosen Konto bleiben
+                Federn, Erfolge und Inventar dauerhaft erhalten.
+            </p>
+
+            <div id="account-logged-in" data-auth-only hidden>
+
+                <p data-auth-status></p>
+
+                <button id="account-logout" type="button" class="yj-button yj-button--compact">
+                    Abmelden
+                </button>
+
+            </div>
+
+            <div id="account-guest" data-guest-only>
+
+                <p data-auth-status></p>
+
+                <div class="account-tabs">
+
+                    <button id="account-tab-login" type="button" class="yj-button yj-button--compact account-tab is-active">
+                        Anmelden
+                    </button>
+
+                    <button id="account-tab-signup" type="button" class="yj-button yj-button--compact account-tab">
+                        Registrieren
+                    </button>
+
+                </div>
+
+                <form id="account-login-form" class="account-form">
+
+                    <input id="login-email" class="yj-input" type="email" placeholder="E-Mail" autocomplete="email" required>
+                    <input id="login-password" class="yj-input" type="password" placeholder="Passwort" autocomplete="current-password" required>
+
+                    <button id="account-forgot-password" type="button" class="account-forgot-link">
+                        Passwort vergessen?
+                    </button>
+
+                    <button type="submit" class="yj-button yj-button--wide">
+                        Anmelden
+                    </button>
+
+                </form>
+
+                <form id="account-signup-form" class="account-form" hidden>
+
+                    <input id="signup-email" class="yj-input" type="email" placeholder="E-Mail eines Elternteils" autocomplete="email" required>
+                    <input id="signup-password" class="yj-input" type="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="new-password" minlength="6" required>
+
+                    <label class="account-consent">
+                        <input type="checkbox" id="signup-consent" required>
+                        Ich bin erziehungsberechtigt und stimme der
+                        Erstellung dieses Kontos für mein Kind zu.
+                    </label>
+
+                    <button type="submit" class="yj-button yj-button--wide">
+                        Konto erstellen
+                    </button>
+
+                </form>
+
+                <form id="account-reset-form" class="account-form" hidden>
+
+                    <p>Neues Passwort festlegen:</p>
+
+                    <input id="reset-password" class="yj-input" type="password" placeholder="Neues Passwort (mind. 6 Zeichen)" autocomplete="new-password" minlength="6" required>
+
+                    <button type="submit" class="yj-button yj-button--wide">
+                        Passwort speichern
+                    </button>
+
+                </form>
+
+                <p id="account-message" class="account-message" hidden></p>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+
+    wireAccountForms();
+
+}
+
+
+function openAccountPanel() {
+
+    createAccountPanel();
+
+    const panel = document.getElementById("account-panel");
+    panel.hidden = false;
+
+    updateAuthUI();
+
+}
+
+
+function closeAccountPanel() {
+
+    const panel = document.getElementById("account-panel");
+
+    if (panel) {
+        panel.hidden = true;
+    }
+
+}
+
+
+function showPasswordResetForm() {
+
+    createAccountPanel();
+    openAccountPanel();
+
+    const loginForm = document.getElementById("account-login-form");
+    const signupForm = document.getElementById("account-signup-form");
+    const resetForm = document.getElementById("account-reset-form");
+    const tabs = document.querySelector(".account-tabs");
+
+    if (loginForm) loginForm.hidden = true;
+    if (signupForm) signupForm.hidden = true;
+    if (tabs) tabs.hidden = true;
+    if (resetForm) resetForm.hidden = false;
+
+    setAccountMessage(
+        "Du kannst jetzt ein neues Passwort festlegen.",
+        false
+    );
+
+}
+
+
+/* =====================================================
+   6. ICON IN DER SIDEBAR EINFÜGEN
+   ===================================================== */
+
+function createAccountIcon() {
+
+    if (document.getElementById("account-open-button")) {
+        return;
+    }
+
+    const avatarWrap = document.querySelector(".sidebar-avatar-wrap");
+
+    if (!avatarWrap) {
+        return;
+    }
+
+    const button = document.createElement("button");
+    button.id = "account-open-button";
+    button.type = "button";
+    button.title = "Konto";
+    button.setAttribute("aria-label", "Konto öffnen");
+    button.textContent = "🔐";
+
+    button.addEventListener("click", openAccountPanel);
+
+    avatarWrap.appendChild(button);
+
+}
+
+
+/* =====================================================
+   7. FORMULARE VERKABELN
+   ===================================================== */
+
 function wireAccountForms() {
 
     const loginTab = document.getElementById("account-tab-login");
     const signupTab = document.getElementById("account-tab-signup");
     const loginForm = document.getElementById("account-login-form");
     const signupForm = document.getElementById("account-signup-form");
+    const resetForm = document.getElementById("account-reset-form");
     const logoutButton = document.getElementById("account-logout");
+    const forgotButton = document.getElementById("account-forgot-password");
+    const closeButton = document.getElementById("account-panel-close");
+    const backdrop = document.getElementById("account-panel-backdrop");
 
     if (loginTab && signupTab && loginForm && signupForm) {
 
@@ -280,6 +528,7 @@ function wireAccountForms() {
 
             setAccountMessage("");
             loginForm.reset();
+            closeAccountPanel();
 
         });
 
@@ -315,6 +564,68 @@ function wireAccountForms() {
 
             setAccountMessage("");
             signupForm.reset();
+            closeAccountPanel();
+
+        });
+
+    }
+
+    if (resetForm) {
+
+        resetForm.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            const newPassword = document.getElementById("reset-password").value;
+
+            setAccountMessage("Einen Moment …", false);
+
+            const result = await setNewPassword(newPassword);
+
+            if (result.error) {
+                setAccountMessage(result.error, true);
+                return;
+            }
+
+            setAccountMessage("Passwort gespeichert! Du bist jetzt angemeldet.", false);
+            resetForm.reset();
+            resetForm.hidden = true;
+
+            const tabs = document.querySelector(".account-tabs");
+            const loginFormEl = document.getElementById("account-login-form");
+            if (tabs) tabs.hidden = false;
+            if (loginFormEl) loginFormEl.hidden = false;
+
+            updateAuthUI();
+
+        });
+
+    }
+
+    if (forgotButton) {
+
+        forgotButton.addEventListener("click", async function () {
+
+            const email = document.getElementById("login-email").value.trim();
+
+            if (!email) {
+                setAccountMessage("Bitte trag zuerst deine E-Mail-Adresse oben ein.", true);
+                return;
+            }
+
+            setAccountMessage("Einen Moment …", false);
+
+            const result = await requestPasswordReset(email);
+
+            if (result.error) {
+                setAccountMessage(result.error, true);
+                return;
+            }
+
+            setAccountMessage(
+                "Falls diese E-Mail-Adresse registriert ist, haben wir dir einen Link zum Zurücksetzen geschickt.",
+                false
+            );
 
         });
 
@@ -330,19 +641,34 @@ function wireAccountForms() {
 
     }
 
+    if (closeButton) {
+        closeButton.addEventListener("click", closeAccountPanel);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener("click", closeAccountPanel);
+    }
+
+    document.addEventListener("keydown", function (event) {
+
+        if (event.key === "Escape") {
+            closeAccountPanel();
+        }
+
+    });
+
 }
 
 
 /* =====================================================
-   6. START
+   8. START
    ===================================================== */
 
 async function initAuth() {
 
-    wireAccountForms();
+    createAccountIcon();
 
     if (!supabaseClient) {
-        updateAuthUI();
         return;
     }
 
@@ -354,11 +680,15 @@ async function initAuth() {
         await pullProfileFromCloud();
     }
 
-    updateAuthUI();
-
     supabaseClient.auth.onAuthStateChange(function (event, session) {
 
         currentSession = session;
+
+        if (event === "PASSWORD_RECOVERY") {
+            isPasswordRecovery = true;
+            showPasswordResetForm();
+        }
+
         updateAuthUI();
 
     });

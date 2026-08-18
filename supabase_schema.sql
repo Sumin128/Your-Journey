@@ -1,25 +1,35 @@
 -- ============================================================
--- Your Journey – Datenbank-Schema für Supabase
+-- Your Journey – Datenbank-Schema für Supabase (v2)
 -- ============================================================
 -- Anleitung: Im Supabase-Dashboard links auf "SQL Editor" klicken,
 -- "New query", diesen kompletten Inhalt einfügen, "Run" klicken.
--- Kann gefahrlos mehrfach ausgeführt werden.
+-- Kann gefahrlos mehrfach ausgeführt werden (auch falls du schon
+-- die erste Version dieses Skripts ausgeführt hattest - v2 räumt
+-- die alten Einzel-Spalten auf und ersetzt sie durch eine einzige
+-- player_data-Spalte, die zum kompletten player-Objekt aus
+-- JS/player.js passt und nicht bei jeder neuen Spieler-Eigenschaft
+-- händisch nachgepflegt werden muss).
 -- ============================================================
 
 -- Eine Zeile pro Spieler, verknüpft mit dem Auth-Account (auth.users).
--- Absichtlich minimal: keine echten Namen, keine Adresse – nur das,
--- was für den Spielfortschritt gebraucht wird.
+-- Absichtlich minimal: keine echten Namen, keine Adresse - nur der
+-- komplette Spielstand (Federn, Erfolge, Inventar, Avatar, ...) als
+-- ein JSON-Objekt, plus die Einwilligungs-Markierung.
 create table if not exists public.profiles (
     id uuid primary key references auth.users (id) on delete cascade,
-    player_name text default 'Abenteurer',
-    feathers integer not null default 0,
-    achievements jsonb not null default '[]'::jsonb,
-    inventory jsonb not null default '[]'::jsonb,
-    avatar text,
-    cursor_skin text default 'default',
+    player_data jsonb not null default '{}'::jsonb,
     parental_consent boolean not null default false,
     updated_at timestamptz not null default now()
 );
+
+-- Migration, falls die alte v1-Version schon lief:
+alter table public.profiles add column if not exists player_data jsonb not null default '{}'::jsonb;
+alter table public.profiles drop column if exists player_name;
+alter table public.profiles drop column if exists feathers;
+alter table public.profiles drop column if exists achievements;
+alter table public.profiles drop column if exists inventory;
+alter table public.profiles drop column if exists avatar;
+alter table public.profiles drop column if exists cursor_skin;
 
 -- Row Level Security aktivieren: ohne explizite Regel darf niemand
 -- irgendetwas lesen oder schreiben.
