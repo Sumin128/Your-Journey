@@ -3465,28 +3465,26 @@ justify-content:center;
     align-items: center;
     justify-content: center;
 
-    width: 52px;
-    height: 52px;
-    padding: 10px;
+    width: 60px;
+    height: 60px;
+    padding: 0;
 
-    border: 2px solid var(--yj-color-border);
-    border-radius: 50%;
+    border: none;
+    background: transparent;
+    box-shadow: none;
 
-    background: radial-gradient(circle at 34% 30%, #fff3d6, var(--yj-color-gold) 68%);
-    box-shadow: 0 4px 0 var(--yj-color-accent-dark), 0 8px 16px rgba(91, 58, 33, 0.3);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
 
     cursor: inherit;
 
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease;
 
 }
 
 #bug-reporter-toggle img {
 
-    /* etwas kleiner als der Button, damit der goldene Ring sichtbar
-       bleibt statt vom Marienkäfer komplett verdeckt zu werden */
-    width: 76%;
-    height: 76%;
+    width: 100%;
+    height: 100%;
 
     object-fit: contain;
 
@@ -3511,8 +3509,7 @@ justify-content:center;
 
 #bug-reporter-toggle:active {
 
-    box-shadow: 0 2px 0 var(--yj-color-accent-dark), 0 4px 8px rgba(91, 58, 33, 0.26);
-    transform: translateY(2px);
+    transform: translateY(1px) scale(0.96);
 
 }
 
@@ -4154,14 +4151,52 @@ justify-content:center;
     width: 140px;
     height: 6px;
 
-    border-radius: 999px;
+    background: transparent;
 
-    background: var(--yj-color-wood-light);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    cursor: pointer;
+
+}
+
+#paint-size-slider:focus {
+
+    outline-color: var(--yj-color-accent);
+
+}
+
+#paint-size-slider::-webkit-slider-runnable-track {
 
     appearance: none;
     -webkit-appearance: none;
 
-    cursor: pointer;
+    height: 6px;
+    border-radius: 999px;
+
+    background: linear-gradient(to right, var(--yj-color-accent-light) 0%, var(--yj-color-accent) 50%, var(--yj-color-accent-dark) 100%);
+
+}
+
+#paint-size-slider::-moz-range-track {
+
+    -moz-appearance: none;
+    appearance: none;
+
+    height: 6px;
+    border-radius: 999px;
+
+    background: linear-gradient(to right, var(--yj-color-accent-light) 0%, var(--yj-color-accent) 50%, var(--yj-color-accent-dark) 100%);
+
+}
+
+#paint-size-slider::-ms-track {
+
+    height: 6px;
+    border-radius: 999px;
+
+    background: linear-gradient(to right, var(--yj-color-accent-light) 0%, var(--yj-color-accent) 50%, var(--yj-color-accent-dark) 100%);
 
 }
 
@@ -4172,14 +4207,21 @@ justify-content:center;
 
     width: 22px;
     height: 22px;
+    margin-top: -8px;
 
-    border: 3px solid var(--yj-color-accent-dark);
+    border: 2px solid var(--yj-color-accent-dark);
     border-radius: 50%;
 
-    background: var(--yj-color-accent-light);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: radial-gradient(circle at 32% 28%, #fff8ea, var(--yj-color-accent-light) 55%, var(--yj-color-accent) 100%);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
 
-    cursor: pointer;
+    cursor: grab;
+
+}
+
+#paint-size-slider::-webkit-slider-thumb:active {
+
+    cursor: grabbing;
 
 }
 
@@ -4188,13 +4230,34 @@ justify-content:center;
     width: 22px;
     height: 22px;
 
-    border: 3px solid var(--yj-color-accent-dark);
+    border: 2px solid var(--yj-color-accent-dark);
     border-radius: 50%;
 
-    background: var(--yj-color-accent-light);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: radial-gradient(circle at 32% 28%, #fff8ea, var(--yj-color-accent-light) 55%, var(--yj-color-accent) 100%);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
 
-    cursor: pointer;
+    cursor: grab;
+
+}
+
+#paint-size-slider::-moz-range-thumb:active {
+
+    cursor: grabbing;
+
+}
+
+#paint-size-slider::-ms-thumb {
+
+    width: 22px;
+    height: 22px;
+
+    border: 2px solid var(--yj-color-accent-dark);
+    border-radius: 50%;
+
+    background: radial-gradient(circle at 32% 28%, #fff8ea, var(--yj-color-accent-light) 55%, var(--yj-color-accent) 100%);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.4);
+
+    cursor: grab;
 
 }
 
