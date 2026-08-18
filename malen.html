@@ -17,7 +17,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=5">
 
-    <title>Erfolge – Your Journey</title>
+    <title>Malstube – Your Journey</title>
 
 </head>
 
@@ -159,7 +159,8 @@
 
             <a
                 href="malen.html"
-                class="sidebar-link">
+                class="sidebar-link"
+                aria-current="page">
 
                 <span class="sidebar-icon">🎨</span>
                 <span class="sidebar-label">Malstube</span>
@@ -180,8 +181,7 @@
 
             <a
                 href="erfolge.html"
-                class="sidebar-link"
-                aria-current="page">
+                class="sidebar-link">
 
                 <span class="sidebar-icon">🏆</span>
                 <span class="sidebar-label">Erfolge</span>
@@ -218,26 +218,103 @@
 
 
     <!-- =====================================================
-         ERFOLGE
+         MALSTUBE
          ===================================================== -->
 
-    <main id="achievements-main" class="yj-page">
+    <main id="paint-main" class="yj-page">
 
-        <section class="achievements-header yj-panel yj-panel--paper yj-enter">
+        <section class="paint-header yj-panel yj-panel--paper yj-enter">
 
-            <h1>🏆 Deine Erfolge</h1>
+            <h1>🎨 Malstube</h1>
 
-            <p id="achievements-summary">
-                0 von 0 Erfolgen freigeschaltet
-            </p>
+            <p>Male ein Bild und speichere es in deiner Galerie!</p>
 
         </section>
 
 
-        <section class="achievements-grid-wrap yj-panel yj-panel--paper yj-enter">
+        <section class="paint-workspace yj-panel yj-panel--paper yj-enter">
 
-            <div id="achievements-grid">
-                <!-- Erfolgs-Karten werden per JavaScript erzeugt -->
+            <div class="paint-toolbar">
+
+                <div class="paint-tool-group">
+
+                    <span class="paint-tool-label">Farbe</span>
+
+                    <div class="paint-color-swatches">
+
+                        <button type="button" class="paint-color-swatch is-active" style="--swatch-color:#e53935;" data-color="#e53935" aria-label="Rot"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#ff9800;" data-color="#ff9800" aria-label="Orange"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#ffeb3b;" data-color="#ffeb3b" aria-label="Gelb"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#4caf50;" data-color="#4caf50" aria-label="Grün"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#2196f3;" data-color="#2196f3" aria-label="Blau"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#9c27b0;" data-color="#9c27b0" aria-label="Lila"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#795548;" data-color="#795548" aria-label="Braun"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#212121;" data-color="#212121" aria-label="Schwarz"></button>
+
+                        <input type="color" id="paint-color-picker" class="paint-color-picker" value="#e53935" aria-label="Eigene Farbe wählen">
+
+                    </div>
+
+                </div>
+
+
+                <div class="paint-tool-group">
+
+                    <span class="paint-tool-label">Stiftgröße</span>
+
+                    <div class="paint-size-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact paint-size-button" data-size="4">
+                            Dünn
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact paint-size-button is-active" data-size="12">
+                            Mittel
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact paint-size-button" data-size="24">
+                            Dick
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="paint-tool-group paint-tool-actions">
+
+                    <button type="button" id="paint-eraser-button" class="yj-button yj-button--compact">
+                        🧽 Radiergummi
+                    </button>
+
+                    <button type="button" id="paint-undo-button" class="yj-button yj-button--compact">
+                        ↩️ Rückgängig
+                    </button>
+
+                    <button type="button" id="paint-clear-button" class="yj-button yj-button--compact">
+                        🗑️ Leeren
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="paint-canvas-wrap">
+
+                <canvas id="paint-canvas" width="600" height="848"></canvas>
+
+            </div>
+
+
+            <div class="paint-save-row">
+
+                <button type="button" id="paint-save-button" class="yj-button yj-button--wide">
+                    💾 Bild speichern
+                </button>
+
+                <p id="paint-message" class="account-message" hidden></p>
+
             </div>
 
         </section>
@@ -254,7 +331,7 @@
     <script src="JS/auth.js"></script>
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
-    <script src="JS/erfolge.js"></script>
+    <script src="JS/malen.js"></script>
 
 
 </body>

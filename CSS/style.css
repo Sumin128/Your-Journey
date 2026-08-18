@@ -3911,3 +3911,265 @@ justify-content:center;
     color: var(--yj-color-ink-soft);
 
 }
+
+
+/*=====================================================
+   MALSTUBE
+   ===================================================== */
+
+.paint-header {
+
+    text-align: center;
+
+}
+
+.paint-workspace {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 24px;
+
+    padding: 30px;
+
+}
+
+.paint-toolbar {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+
+    gap: 24px;
+
+    width: 100%;
+
+}
+
+.paint-tool-group {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+.paint-tool-label {
+
+    color: var(--yj-color-ink-soft);
+    font-weight: 700;
+    font-size: 0.9rem;
+
+}
+
+.paint-color-swatches {
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    max-width: 220px;
+
+}
+
+.paint-color-swatch {
+
+    width: 30px;
+    height: 30px;
+
+    border: 3px solid transparent;
+    border-radius: 50%;
+
+    background: var(--swatch-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+
+    cursor: pointer;
+
+}
+
+.paint-color-swatch.is-active {
+
+    border-color: var(--yj-color-accent);
+    transform: scale(1.15);
+
+}
+
+.paint-color-picker {
+
+    width: 30px;
+    height: 30px;
+    padding: 0;
+
+    border: 3px solid var(--yj-color-border);
+    border-radius: 50%;
+
+    background: none;
+
+    cursor: pointer;
+
+}
+
+.paint-size-buttons {
+
+    display: flex;
+
+    gap: 8px;
+
+}
+
+.paint-size-button.is-active {
+
+    border-color: var(--yj-color-accent);
+    box-shadow: 0 6px 14px rgba(91, 58, 33, 0.18), 0 0 0 3px rgba(217, 154, 61, 0.32);
+
+}
+
+.paint-tool-actions {
+
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    align-items: center;
+    justify-content: center;
+
+}
+
+#paint-eraser-button.is-active {
+
+    border-color: var(--yj-color-accent);
+    box-shadow: 0 6px 14px rgba(91, 58, 33, 0.18), 0 0 0 3px rgba(217, 154, 61, 0.32);
+
+}
+
+.paint-canvas-wrap {
+
+    display: flex;
+    justify-content: center;
+
+    width: 100%;
+
+}
+
+#paint-canvas {
+
+    width: 100%;
+    max-width: 600px;
+
+    aspect-ratio: 1 / 1.414;
+
+    border: 4px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-sm);
+
+    background: #ffffff;
+    box-shadow: var(--yj-shadow-card);
+
+    cursor: crosshair;
+    touch-action: none;
+
+}
+
+.paint-save-row {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 10px;
+
+    width: 100%;
+    max-width: 360px;
+
+}
+
+
+/*=====================================================
+   MEINE BILDER (GALERIE)
+   ===================================================== */
+
+.my-drawings-section {
+
+    width: min(100%, 1200px);
+
+    text-align: center;
+
+}
+
+.my-drawings-grid {
+
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 24px;
+
+    margin-top: 20px;
+
+}
+
+@media (max-width: 900px) {
+
+    .my-drawings-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 520px) {
+
+    .my-drawings-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+.my-drawing-box {
+
+    aspect-ratio: 1 / 1.1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px;
+
+    border: 5px solid #7b4b25;
+    border-radius: 22px;
+
+    background: #f8edd7;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+
+    overflow: hidden;
+
+}
+
+.my-drawing-box img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    border-radius: 12px;
+
+}
+
+.my-drawing-box--empty {
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    padding: 18px;
+
+    color: var(--yj-color-ink-soft);
+    font-size: 0.85rem;
+    text-align: center;
+
+}
