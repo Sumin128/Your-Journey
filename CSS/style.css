@@ -4038,18 +4038,48 @@ justify-content:center;
 
 }
 
+.paint-color-picker-wrap {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    padding: 3px;
+
+    border-radius: 50%;
+
+    background: conic-gradient(from 0deg, #e53935, #ff9800, #ffeb3b, #4caf50, #2196f3, #9c27b0, #e53935);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+
+    cursor: pointer;
+
+}
+
 .paint-color-picker {
 
-    width: 30px;
-    height: 30px;
+    width: 100%;
+    height: 100%;
     padding: 0;
 
-    border: 3px solid var(--yj-color-border);
+    border: 2px solid #fff;
     border-radius: 50%;
 
     background: none;
 
     cursor: pointer;
+
+}
+
+.paint-color-picker-hint {
+
+    margin-top: 2px;
+
+    color: var(--yj-color-ink-soft);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
 
 }
 

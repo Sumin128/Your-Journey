@@ -117,6 +117,8 @@
 
             setActiveSwatch(swatch);
 
+            updateCanvasCursor();
+
         });
 
     });
@@ -126,6 +128,8 @@
         currentColor = colorPicker.value;
 
         setActiveSwatch(null);
+
+        updateCanvasCursor();
 
     });
 
@@ -140,6 +144,8 @@
             });
 
             button.classList.add("is-active");
+
+            updateCanvasCursor();
 
         });
 
@@ -156,6 +162,8 @@
             });
 
             button.classList.add("is-active");
+
+            updateCanvasCursor();
 
         });
 
@@ -176,6 +184,75 @@
         });
 
     });
+
+
+    /* =====================================================
+       2b. CURSOR JE WERKZEUG
+       Pinsel und Radiergummi bekommen einen Kreis-Cursor, der
+       exakt dem tatsächlichen Mal-/Radierradius entspricht -
+       der Mittelpunkt des Kreises (= Hotspot) ist genau die
+       Stelle, an der gezeichnet/radiert wird, nicht irgendeine
+       Ecke eines Icons. Wächst mit der Stiftgröße mit.
+       Rechteck/Kreis behalten den normalen Fadenkreuz-Cursor.
+       ===================================================== */
+
+    const CURSOR_TOOLS = ["brush", "eraser"];
+    const CURSOR_MIN_DIAMETER = 8;
+    const CURSOR_PADDING = 4;
+
+    function buildCircleCursor(diameterPx, strokeColor, fillColor) {
+
+        const canvasSize = diameterPx + CURSOR_PADDING * 2;
+
+        const cursorCanvas = document.createElement("canvas");
+        cursorCanvas.width = canvasSize;
+        cursorCanvas.height = canvasSize;
+
+        const cursorCtx = cursorCanvas.getContext("2d");
+        const center = canvasSize / 2;
+        const radius = diameterPx / 2;
+
+        cursorCtx.beginPath();
+        cursorCtx.arc(center, center, radius, 0, Math.PI * 2);
+
+        if (fillColor) {
+            cursorCtx.fillStyle = fillColor;
+            cursorCtx.fill();
+        }
+
+        cursorCtx.lineWidth = 2;
+        cursorCtx.strokeStyle = strokeColor;
+        cursorCtx.stroke();
+
+        return { dataUrl: cursorCanvas.toDataURL(), hotspot: Math.round(center) };
+
+    }
+
+    function updateCanvasCursor() {
+
+        if (!CURSOR_TOOLS.includes(currentTool)) {
+            canvas.style.cursor = "crosshair";
+            return;
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        const displayScale = rect.width > 0 ? rect.width / canvas.width : 800 / 1200;
+
+        const diameterPx = Math.max(CURSOR_MIN_DIAMETER, Math.round(currentSize * displayScale));
+        const isEraser = currentTool === "eraser";
+
+        const strokeColor = isEraser ? "#555555" : currentColor;
+        const fillColor = isEraser ? "rgba(255, 255, 255, 0.65)" : null;
+
+        const cursor = buildCircleCursor(diameterPx, strokeColor, fillColor);
+
+        canvas.style.cursor = "url(" + cursor.dataUrl + ") " + cursor.hotspot + " " + cursor.hotspot + ", crosshair";
+
+    }
+
+    window.addEventListener("resize", updateCanvasCursor);
+
+    updateCanvasCursor();
 
 
     /* =====================================================
