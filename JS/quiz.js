@@ -2,6 +2,10 @@
    SPIELVARIABLEN
    ===================================================== */
 
+if (typeof markAnimalVisited === "function") {
+    markAnimalVisited("kuro");
+}
+
 let currentQuestion = 0;
 let score = 0;
 let activeQuiz = [];
