@@ -1,4 +1,6 @@
 .claude/
+.agents/
+skills-lock.json
 *.bak
 Thumbs.db
 .DS_Store

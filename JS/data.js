@@ -1076,6 +1076,170 @@ const quizSchurken = [
 
 
 /* =====================================================
+   MÄRCHEN
+   ===================================================== */
+
+const quizMaerchen = [
+
+    { question: "Wer weckt Dornröschen mit einem Kuss aus ihrem hundertjährigen Schlaf?", image: "", answers: [
+        { text: "Ein Zwerg", correct: false }, { text: "Ein Prinz", correct: true }, { text: "Ein Jäger", correct: false }, { text: "Ihr Vater", correct: false }
+    ]},
+
+    { question: "Welches Mädchen trägt einen roten Umhang mit Kapuze und besucht ihre Großmutter?", image: "", answers: [
+        { text: "Aschenputtel", correct: false }, { text: "Rapunzel", correct: false }, { text: "Rotkäppchen", correct: true }, { text: "Schneewittchen", correct: false }
+    ]},
+
+    { question: "Wer verliert bei einem Ball um Mitternacht ihren Schuh?", image: "", answers: [
+        { text: "Rapunzel", correct: false }, { text: "Aschenputtel", correct: true }, { text: "Die Meerjungfrau", correct: false }, { text: "Schneewittchen", correct: false }
+    ]},
+
+    { question: "Wie heißt die Prinzessin mit den langen goldenen Haaren, die in einem Turm eingesperrt ist?", image: "", answers: [
+        { text: "Rapunzel", correct: true }, { text: "Rotkäppchen", correct: false }, { text: "Aschenputtel", correct: false }, { text: "Dornröschen", correct: false }
+    ]},
+
+    { question: "In welches Tier verwandelt sich ein Prinz, bis ihn jemand küsst?", image: "", answers: [
+        { text: "Bär", correct: false }, { text: "Frosch", correct: true }, { text: "Wolf", correct: false }, { text: "Rabe", correct: false }
+    ]},
+
+    { question: "Wer folgt einer Krümelspur durch den Wald zu einem Lebkuchenhaus?", image: "", answers: [
+        { text: "Rotkäppchen", correct: false }, { text: "Hänsel und Gretel", correct: true }, { text: "Die sieben Geißlein", correct: false }, { text: "Der gestiefelte Kater", correct: false }
+    ]},
+
+    { question: "Wie viele Zwerge leben bei Schneewittchen im Wald?", image: "", answers: [
+        { text: "5", correct: false }, { text: "6", correct: false }, { text: "7", correct: true }, { text: "9", correct: false }
+    ]},
+
+    { question: "Womit sticht sich Dornröschen und fällt in ihren langen Schlaf?", image: "", answers: [
+        { text: "Nadel eines Spinnrads", correct: true }, { text: "Rosendorn", correct: false }, { text: "Schere", correct: false }, { text: "Apfelkern", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   PIRATEN
+   ===================================================== */
+
+const quizPiraten = [
+
+    { question: "Wie nennt man die schwarze Flagge mit Totenkopf auf einem Piratenschiff?", image: "", answers: [
+        { text: "Jolly Roger", correct: true }, { text: "Kompassrose", correct: false }, { text: "Nordstern", correct: false }, { text: "Schwarze Perle", correct: false }
+    ]},
+
+    { question: "Womit vergraben Piraten ihren Schatz am liebsten?", image: "", answers: [
+        { text: "In einem Sack", correct: false }, { text: "In einer Truhe", correct: true }, { text: "In einer Flasche", correct: false }, { text: "In einem Fass", correct: false }
+    ]},
+
+    { question: "Was tragen Piraten in Geschichten oft über einem Auge?", image: "", answers: [
+        { text: "Ein Fernglas", correct: false }, { text: "Ein Kopftuch", correct: false }, { text: "Eine Augenklappe", correct: true }, { text: "Eine Brille", correct: false }
+    ]},
+
+    { question: "Wie nennt man die Karte, die zu einem versteckten Schatz führt?", image: "", answers: [
+        { text: "Wegweiser", correct: false }, { text: "Schatzkarte", correct: true }, { text: "Seekarte", correct: false }, { text: "Sternenkarte", correct: false }
+    ]},
+
+    { question: "Welches Tier sitzt in Geschichten oft auf der Schulter eines Piraten?", image: "", answers: [
+        { text: "Papagei", correct: true }, { text: "Möwe", correct: false }, { text: "Affe", correct: false }, { text: "Krake", correct: false }
+    ]},
+
+    { question: "Womit steuert die Piratenmannschaft ihr Schiff?", image: "", answers: [
+        { text: "Anker", correct: false }, { text: "Steuerrad", correct: true }, { text: "Ruder", correct: false }, { text: "Segeltau", correct: false }
+    ]},
+
+    { question: "Was ruft ein Pirat, wenn er als Erster Land entdeckt?", image: "", answers: [
+        { text: "Sturm voraus!", correct: false }, { text: "Land in Sicht!", correct: true }, { text: "Alle Mann an Deck!", correct: false }, { text: "Volle Fahrt!", correct: false }
+    ]},
+
+    { question: "Wie nennt man den Anführer eines Piratenschiffs?", image: "", answers: [
+        { text: "Matrose", correct: false }, { text: "Steuermann", correct: false }, { text: "Kapitän", correct: true }, { text: "Admiral", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   DINOSAURIER
+   ===================================================== */
+
+const quizDinosaurier = [
+
+    { question: "Welcher Dinosaurier hatte drei Hörner im Gesicht?", image: "", answers: [
+        { text: "Stegosaurus", correct: false }, { text: "Triceratops", correct: true }, { text: "Velociraptor", correct: false }, { text: "Brachiosaurus", correct: false }
+    ]},
+
+    { question: "Welcher Dinosaurier war für seine scharfen Zähne und kurzen Arme bekannt?", image: "", answers: [
+        { text: "Tyrannosaurus Rex", correct: true }, { text: "Triceratops", correct: false }, { text: "Brachiosaurus", correct: false }, { text: "Stegosaurus", correct: false }
+    ]},
+
+    { question: "Welcher Dinosaurier hatte einen sehr langen Hals, um an hohe Blätter zu kommen?", image: "", answers: [
+        { text: "Velociraptor", correct: false }, { text: "Triceratops", correct: false }, { text: "Brachiosaurus", correct: true }, { text: "Pteranodon", correct: false }
+    ]},
+
+    { question: "Welcher Dinosaurier hatte spitze Stachelplatten auf dem Rücken und am Schwanz?", image: "", answers: [
+        { text: "Stegosaurus", correct: true }, { text: "Tyrannosaurus Rex", correct: false }, { text: "Brachiosaurus", correct: false }, { text: "Triceratops", correct: false }
+    ]},
+
+    { question: "Konnten alle Dinosaurier fliegen?", image: "", answers: [
+        { text: "Ja, alle", correct: false }, { text: "Nein", correct: true }, { text: "Nur nachts", correct: false }, { text: "Nur im Wasser", correct: false }
+    ]},
+
+    { question: "Wie nennt man Dinosaurier, die nur Pflanzen gefressen haben?", image: "", answers: [
+        { text: "Fleischfresser", correct: false }, { text: "Pflanzenfresser", correct: true }, { text: "Allesfresser", correct: false }, { text: "Fischfresser", correct: false }
+    ]},
+
+    { question: "Welches Urzeit-Tier konnte mit großen Flügeln fliegen?", image: "", answers: [
+        { text: "Pteranodon", correct: true }, { text: "Stegosaurus", correct: false }, { text: "Triceratops", correct: false }, { text: "Ankylosaurus", correct: false }
+    ]},
+
+    { question: "Wann lebten die Dinosaurier auf der Erde?", image: "", answers: [
+        { text: "Vor 100 Jahren", correct: false }, { text: "Vor Millionen Jahren", correct: true }, { text: "Vor 1000 Jahren", correct: false }, { text: "Erst seit Kurzem", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
+   WELTRAUM
+   ===================================================== */
+
+const quizWeltraum = [
+
+    { question: "Welcher Planet ist der Erde am nächsten und wird \"roter Planet\" genannt?", image: "", answers: [
+        { text: "Jupiter", correct: false }, { text: "Mars", correct: true }, { text: "Venus", correct: false }, { text: "Saturn", correct: false }
+    ]},
+
+    { question: "Was scheint nachts am Himmel und reflektiert das Licht der Sonne?", image: "", answers: [
+        { text: "Der Mond", correct: true }, { text: "Ein Komet", correct: false }, { text: "Ein Satellit", correct: false }, { text: "Ein Planet", correct: false }
+    ]},
+
+    { question: "Wie nennt man eine Person, die ins Weltall fliegt?", image: "", answers: [
+        { text: "Pilot", correct: false }, { text: "Astronaut", correct: true }, { text: "Forscher", correct: false }, { text: "Kapitän", correct: false }
+    ]},
+
+    { question: "Welcher Planet ist der größte in unserem Sonnensystem?", image: "", answers: [
+        { text: "Erde", correct: false }, { text: "Saturn", correct: false }, { text: "Jupiter", correct: true }, { text: "Mars", correct: false }
+    ]},
+
+    { question: "Womit fliegt man ins Weltall?", image: "", answers: [
+        { text: "Flugzeug", correct: false }, { text: "Rakete", correct: true }, { text: "Heißluftballon", correct: false }, { text: "U-Boot", correct: false }
+    ]},
+
+    { question: "Wie heißt der Stern, der die Erde mit Licht und Wärme versorgt?", image: "", answers: [
+        { text: "Polarstern", correct: false }, { text: "Sonne", correct: true }, { text: "Sirius", correct: false }, { text: "Mond", correct: false }
+    ]},
+
+    { question: "Wie viele Planeten hat unser Sonnensystem?", image: "", answers: [
+        { text: "6", correct: false }, { text: "10", correct: false }, { text: "8", correct: true }, { text: "12", correct: false }
+    ]},
+
+    { question: "Was sieht man nachts als viele kleine helle Punkte am Himmel?", image: "", answers: [
+        { text: "Wolken", correct: false }, { text: "Sterne", correct: true }, { text: "Flugzeuge", correct: false }, { text: "Blitze", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
    QUIZ-KATEGORIEN
    Ordnet die einzelnen Quizze zu Themenblöcken.
    Wird von JS/quiz.js benutzt, um die Kategorie- und
@@ -1116,6 +1280,18 @@ const quizCategories = [
             { id: "buchstaben", label: "Buchstaben & Wörter-Detektive", icon: "🔤", quiz: quizBuchstaben },
             { id: "berufe", label: "Berufe", icon: "🧰", quiz: quizBerufe },
             { id: "tiere", label: "Tiere", icon: "🦁", quiz: quizTiere }
+        ]
+    },
+
+    {
+        id: "abenteuer",
+        label: "Märchen & Abenteuer",
+        icon: "🏰",
+        quizzes: [
+            { id: "maerchen", label: "Märchen", icon: "🏰", quiz: quizMaerchen },
+            { id: "piraten", label: "Piraten", icon: "🏴‍☠️", quiz: quizPiraten },
+            { id: "dinosaurier", label: "Dinosaurier", icon: "🦕", quiz: quizDinosaurier },
+            { id: "weltraum", label: "Weltraum", icon: "🚀", quiz: quizWeltraum }
         ]
     }
 

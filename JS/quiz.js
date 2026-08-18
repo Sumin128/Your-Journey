@@ -9,6 +9,50 @@ let currentCategoryId = null;
 
 
 /* =====================================================
+   ZUFÄLLIGE REIHENFOLGE
+   Mischt eine Kopie des Arrays, ohne das Original
+   zu verändern (Fisher-Yates).
+   ===================================================== */
+
+function shuffleArray(array) {
+
+    const shuffled = array.slice();
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+
+    }
+
+    return shuffled;
+
+}
+
+
+/* =====================================================
+   QUIZ MISCHEN
+   Fragenreihenfolge UND Antwortreihenfolge werden bei
+   jedem Quizstart neu gemischt.
+   ===================================================== */
+
+function shuffleQuiz(quiz) {
+
+    const questionsShuffled = shuffleArray(quiz);
+
+    return questionsShuffled.map(function (question) {
+
+        return Object.assign({}, question, {
+            answers: shuffleArray(question.answers)
+        });
+
+    });
+
+}
+
+
+/* =====================================================
    KATEGORIEN ANZEIGEN
    ===================================================== */
 
@@ -145,7 +189,7 @@ function startQuiz(quizId) {
         return;
     }
 
-    activeQuiz = quizEntry.quiz;
+    activeQuiz = shuffleQuiz(quizEntry.quiz);
 
     // Neues Spiel beginnen
     currentQuestion = 0;
