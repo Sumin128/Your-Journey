@@ -31,6 +31,11 @@ const sidebarToggle =
 const SIDEBAR_THEME_KEY = "mirelon-sidebar-theme";
 const DEFAULT_SIDEBAR_THEME = "baumrinde";
 
+// "baumrinde" ist der Standard und bekommt bewusst KEIN data-theme-
+// Attribut (nutzt die Basiswerte direkt am #sidebar). Neue Themes
+// hier einfach ergänzen.
+const SIDEBAR_THEMES_WITH_ATTRIBUTE = ["smaragdwald", "zuckerwatte"];
+
 function getSidebarTheme() {
 
     return localStorage.getItem(SIDEBAR_THEME_KEY) || DEFAULT_SIDEBAR_THEME;
@@ -43,8 +48,8 @@ function applySidebarTheme(theme) {
         return;
     }
 
-    if (theme === "smaragdwald") {
-        sidebar.setAttribute("data-theme", "smaragdwald");
+    if (SIDEBAR_THEMES_WITH_ATTRIBUTE.includes(theme)) {
+        sidebar.setAttribute("data-theme", theme);
     } else {
         sidebar.removeAttribute("data-theme");
     }
@@ -57,7 +62,10 @@ function applySidebarTheme(theme) {
 
 function setSidebarTheme(theme, skipCloudSync) {
 
-    const validTheme = theme === "smaragdwald" ? "smaragdwald" : "baumrinde";
+    const validTheme =
+        SIDEBAR_THEMES_WITH_ATTRIBUTE.includes(theme)
+            ? theme
+            : DEFAULT_SIDEBAR_THEME;
 
     localStorage.setItem(SIDEBAR_THEME_KEY, validTheme);
 
