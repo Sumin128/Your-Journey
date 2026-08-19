@@ -3714,7 +3714,7 @@ justify-content:center;
 
 #legal-main {
 
-    align-items: stretch;
+    align-items: center;
 
     text-align: left;
 
@@ -3722,7 +3722,7 @@ justify-content:center;
 
 .legal-section {
 
-    max-width: 800px;
+    width: min(100%, 800px);
 
     padding: 32px 40px;
 
