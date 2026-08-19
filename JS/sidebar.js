@@ -20,6 +20,179 @@ const sidebarToggle =
 
 
 /* =====================================================
+   FARBTHEME (Baumrinde / Smaragdwald)
+   Wird als data-theme-Attribut direkt am #sidebar-Element
+   gesetzt, die eigentlichen Farben stecken als CSS-Custom-
+   Properties in style.css. Gilt für alle Nutzer über
+   localStorage; bei einem Konto zusätzlich über Supabase
+   geräteübergreifend synchronisiert (siehe weiter unten).
+   ===================================================== */
+
+const SIDEBAR_THEME_KEY = "mirelon-sidebar-theme";
+const DEFAULT_SIDEBAR_THEME = "baumrinde";
+
+function getSidebarTheme() {
+
+    return localStorage.getItem(SIDEBAR_THEME_KEY) || DEFAULT_SIDEBAR_THEME;
+
+}
+
+function applySidebarTheme(theme) {
+
+    if (!sidebar) {
+        return;
+    }
+
+    if (theme === "smaragdwald") {
+        sidebar.setAttribute("data-theme", "smaragdwald");
+    } else {
+        sidebar.removeAttribute("data-theme");
+    }
+
+    document.querySelectorAll("[data-theme-choice]").forEach(function (card) {
+        card.classList.toggle("is-selected", card.dataset.themeChoice === theme);
+    });
+
+}
+
+function setSidebarTheme(theme, skipCloudSync) {
+
+    const validTheme = theme === "smaragdwald" ? "smaragdwald" : "baumrinde";
+
+    localStorage.setItem(SIDEBAR_THEME_KEY, validTheme);
+
+    applySidebarTheme(validTheme);
+
+    if (!skipCloudSync && typeof isLoggedIn === "function" && isLoggedIn()) {
+        pushSidebarThemeToCloud(validTheme);
+    }
+
+}
+
+// Sofort beim Laden anwenden, bevor irgendetwas anderes passiert,
+// damit nicht kurz das falsche Theme aufblitzt.
+applySidebarTheme(getSidebarTheme());
+
+
+/* =====================================================
+   FARBTHEME <-> SUPABASE (nur bei angemeldetem Konto)
+   Bewusst eigenständig gehalten (nutzt nur die globalen
+   supabaseClient/currentSession/isLoggedIn() aus auth.js
+   lesend), damit auth.js selbst nicht angefasst werden muss.
+   Setzt voraus, dass die Spalte "sidebar_theme" in der
+   profiles-Tabelle existiert (siehe Migrations-Hinweis).
+   ===================================================== */
+
+async function pushSidebarThemeToCloud(theme) {
+
+    if (typeof supabaseClient === "undefined" || !supabaseClient) {
+        return;
+    }
+
+    if (typeof currentSession === "undefined" || !currentSession) {
+        return;
+    }
+
+    await supabaseClient
+        .from("profiles")
+        .update({ sidebar_theme: theme })
+        .eq("id", currentSession.user.id);
+
+}
+
+async function pullSidebarThemeFromCloud() {
+
+    if (typeof supabaseClient === "undefined" || !supabaseClient) {
+        return;
+    }
+
+    if (typeof currentSession === "undefined" || !currentSession) {
+        return;
+    }
+
+    const { data, error } =
+        await supabaseClient
+            .from("profiles")
+            .select("sidebar_theme")
+            .eq("id", currentSession.user.id)
+            .single();
+
+    if (error || !data) {
+        return;
+    }
+
+    if (data.sidebar_theme) {
+
+        // Cloud hat schon einen Wert - der gewinnt, damit alle
+        // Geräte denselben Stand zeigen.
+        setSidebarTheme(data.sidebar_theme, true);
+
+    } else {
+
+        // Erstes Login, Cloud kennt noch kein Theme -
+        // aktuellen lokalen Stand einmalig hochladen.
+        pushSidebarThemeToCloud(getSidebarTheme());
+
+    }
+
+}
+
+if (typeof supabaseClient !== "undefined" && supabaseClient) {
+
+    supabaseClient.auth.onAuthStateChange(function (event, session) {
+
+        if (session) {
+            pullSidebarThemeFromCloud();
+        }
+
+    });
+
+}
+
+
+/* =====================================================
+   AUSKLAPPBARE GRUPPEN (Lernorte, Kreativ)
+   Beim Laden ist nur die Gruppe offen, die die gerade
+   aktive Seite enthält (erkennbar an aria-current) - sonst
+   bleibt alles zu, damit die Sidebar kompakt bleibt.
+   ===================================================== */
+
+const sidebarGroupHeaders =
+    document.querySelectorAll(".sidebar-group-header");
+
+function setSidebarGroupOpen(header, isOpen) {
+
+    const panel = header.nextElementSibling;
+
+    if (!panel) {
+        return;
+    }
+
+    header.classList.toggle("is-open", isOpen);
+    header.setAttribute("aria-expanded", String(isOpen));
+    panel.classList.toggle("is-open", isOpen);
+
+}
+
+sidebarGroupHeaders.forEach(function (header) {
+
+    const panel = header.nextElementSibling;
+
+    const containsActiveLink =
+        Boolean(panel) && panel.querySelector('[aria-current="page"]') !== null;
+
+    setSidebarGroupOpen(header, containsActiveLink);
+
+    header.addEventListener("click", function () {
+
+        setSidebarGroupOpen(header, !header.classList.contains("is-open"));
+
+    });
+
+});
+
+
+/* =====================================================
    SPIELERDATEN ANZEIGEN
    ===================================================== */
 

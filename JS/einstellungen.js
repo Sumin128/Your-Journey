@@ -145,4 +145,25 @@
 
     }
 
+
+    /* =====================================================
+       DESIGN: SIDEBAR-FARBTHEME
+       Die eigentliche Anwenden-/Speichern-Logik (inkl.
+       Supabase-Sync) steckt in sidebar.js, damit sie auf
+       jeder Seite verfügbar ist - hier wird nur der Klick
+       auf eine der beiden Karten verkabelt.
+       ===================================================== */
+
+    document.querySelectorAll("[data-theme-choice]").forEach(function (card) {
+
+        card.addEventListener("click", function () {
+
+            if (typeof setSidebarTheme === "function") {
+                setSidebarTheme(card.dataset.themeChoice);
+            }
+
+        });
+
+    });
+
 })();

@@ -172,27 +172,6 @@ main {
     outline-color: rgba(255, 221, 150, 0.85);
 }
 
-.home-map-label {
-    position: absolute;
-
-    left: var(--x);
-    top: var(--y);
-
-    transform: translate(-50%, -50%);
-
-    padding: 4px 12px;
-    border-radius: 999px;
-
-    background: rgba(44, 28, 16, 0.85);
-    color: #ffe7b5;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-
-    pointer-events: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
 .home-map-tooltip {
     position: absolute;
 
@@ -239,11 +218,6 @@ main {
 
     .home-map {
         border-width: 3px;
-    }
-
-    .home-map-label {
-        font-size: 11px;
-        padding: 3px 8px;
     }
 
     .home-map-tooltip {
@@ -414,6 +388,16 @@ main {
 
 #sidebar{
 
+    /* Theme "Baumrinde" (Standard) */
+    --sb-bg-top: #5C3A24;
+    --sb-bg-bottom: #4A2F1E;
+    --sb-active-bg: #6B4529;
+    --sb-accent: #D9A441;
+    --sb-hover-bg: rgba(107, 69, 41, 0.5);
+    --sb-text: #F0E2C8;
+    --sb-text-muted: #B8A587;
+    --sb-divider: rgba(107, 69, 41, 0.4);
+
     position: fixed;
 
     top: 0;
@@ -429,16 +413,27 @@ main {
 
     overflow: hidden;
 
-    background: rgba(48,30,20,.97);
+    background: linear-gradient(180deg, var(--sb-bg-top) 0%, var(--sb-bg-bottom) 100%);
     backdrop-filter: blur(12px);
 
     border-right: 1px solid rgba(255,255,255,.08);
 
-    box-shadow: 4px 0 18px rgba(0,0,0,.15);
+    box-shadow: 4px 0 18px rgba(0,0,0,.15), inset -3px 0 0 rgba(217, 164, 65, 0.35);
 
-    transition: width .35s ease;
+    transition: width .35s ease, background .25s ease;
 
     z-index:1000;
+
+}
+
+#sidebar[data-theme="smaragdwald"]{
+
+    --sb-bg-top: #2E6B4F;
+    --sb-bg-bottom: #1F4D3A;
+    --sb-active-bg: #3A7A5C;
+    --sb-hover-bg: rgba(58, 122, 92, 0.5);
+    --sb-text-muted: #C9B896;
+    --sb-divider: rgba(58, 122, 92, 0.4);
 
 }
 
@@ -499,7 +494,7 @@ main {
 
 .sidebar-title{
 
-    color:#fff7ea;
+    color:var(--sb-text);
 
     font-size:1.35rem;
 
@@ -654,7 +649,7 @@ main {
 
 #sidebar-player-name{
 
-    color:#fff7ea;
+    color:var(--sb-text);
 
     font-weight:bold;
 
@@ -663,7 +658,7 @@ main {
 #sidebar-feathers,
 #sidebar-achievements{
 
-    color:#d8c4ad;
+    color:var(--sb-text-muted);
 
     font-size:.9rem;
 
@@ -677,7 +672,7 @@ main {
 
     height:1px;
 
-    background:rgba(255,255,255,.1);
+    background:var(--sb-divider);
 
     margin:12px 0;
 
@@ -732,7 +727,7 @@ main {
 
     border-radius:18px;
 
-    color:#f7eadb;
+    color:var(--sb-text-muted);
 
     text-decoration:none;
 
@@ -742,7 +737,18 @@ main {
 
 .sidebar-link:hover{
 
-    background:rgba(255,255,255,.06);
+    background:var(--sb-hover-bg);
+
+    color:var(--sb-text);
+
+}
+
+.sidebar-link[aria-current="page"]{
+
+    background:var(--sb-active-bg);
+    color:var(--sb-text);
+
+    box-shadow:inset 3px 0 0 var(--sb-accent);
 
 }
 
@@ -765,7 +771,7 @@ main {
 
     border-radius:12px;
 
-    background:rgba(255,255,255,.08);
+    background:rgba(217, 164, 65, 0.15);
 
     font-size:22px;
 
@@ -773,9 +779,10 @@ main {
 
 }
 
-.sidebar-link:hover .sidebar-icon{
+.sidebar-link:hover .sidebar-icon,
+.sidebar-group-header:hover .sidebar-icon{
 
-    background:var(--yj-color-accent);
+    background:var(--sb-accent);
 
     transform:scale(1.08);
 
@@ -783,7 +790,7 @@ main {
 
 .sidebar-link[aria-current="page"] .sidebar-icon{
 
-    background:var(--yj-color-accent-dark);
+    background:var(--sb-accent);
 
 }
 
@@ -815,49 +822,116 @@ main {
 
 }
 
-/* Gruppen-Überschriften in der Sidebar (rein visuell,
-   keine eigene Klapplogik). Im eingeklappten Zustand auf
-   Höhe 0, damit keine leere Lücke zwischen den Icons
-   entsteht - genau wie .sidebar-label bereits gehandhabt. */
+/* =====================================================
+   AUSKLAPPBARE GRUPPEN (Lernorte, Kreativ)
+   Rein visuelle Erweiterung von .sidebar-link - der Header
+   ist ein <button>, kein Link, und bekommt zusätzlich einen
+   Pfeil (.sidebar-chevron), der sich beim Öffnen dreht.
+   ===================================================== */
 
-.sidebar-section-label{
+.sidebar-group-header{
 
-    height:0;
-    margin:0;
-    padding:0;
-    overflow:hidden;
+    display:flex;
 
-    color:var(--yj-color-accent-light);
+    align-items:center;
 
-    font-size:0.72rem;
+    gap:14px;
 
-    font-weight:700;
+    width:100%;
 
-    text-transform:uppercase;
+    height:56px;
 
-    letter-spacing:0.08em;
+    padding:0 12px;
+
+    border:none;
+    border-radius:18px;
+
+    background:transparent;
+
+    color:var(--sb-text-muted);
+
+    font:inherit;
+    text-align:left;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.sidebar-group-header:hover{
+
+    background:var(--sb-hover-bg);
+
+    color:var(--sb-text);
+
+}
+
+.sidebar-chevron{
+
+    flex-shrink:0;
+    margin-left:auto;
+
+    font-size:12px;
+
+    color:var(--sb-text-muted);
 
     opacity:0;
-
     visibility:hidden;
 
     transition:.25s;
 
 }
 
-#sidebar.open .sidebar-section-label{
+#sidebar.open .sidebar-chevron{
 
-    height:auto;
-
-    margin-top:10px;
-
-    padding:0.4rem 1rem 0.5rem;
-
-    border-bottom:1px solid rgba(255,255,255,.12);
-
-    opacity:0.95;
-
+    opacity:.8;
     visibility:visible;
+
+}
+
+.sidebar-group-header.is-open .sidebar-chevron{
+
+    transform:rotate(90deg);
+
+}
+
+.sidebar-subnav{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+    max-height:0;
+
+    overflow:hidden;
+
+    padding-left:14px;
+
+    transition:max-height .25s ease;
+
+}
+
+.sidebar-subnav.is-open{
+
+    max-height:320px;
+
+}
+
+.sidebar-sublink{
+
+    height:46px;
+
+}
+
+.sidebar-sublink .sidebar-icon{
+
+    width:32px;
+    height:32px;
+
+    font-size:18px;
 
 }
 
@@ -918,37 +992,6 @@ main {
     opacity: 1;
 
 }
-
-/* =====================================================
-   ABENTEUERAUSWEIS
-   ===================================================== */
-
-#adventure-card{
-
-    text-align: center;
-
-    margin-top: 40px;
-
-}
-
-#scroll-image{
-
-    width: 350px;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-
-}
-
-#scroll-image:hover{
-
-    transform: scale(1.05);
-
-}
-
-
-
 
 
 
@@ -2985,6 +3028,96 @@ justify-content:center;
 .settings-row.is-disabled {
 
     opacity: .6;
+
+}
+
+.settings-theme-grid {
+
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 16px;
+
+    padding: 0 0 20px;
+
+}
+
+.settings-theme-card {
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px 20px 14px 14px;
+
+    border: 2px solid transparent;
+    border-radius: var(--yj-radius-md);
+
+    background: var(--yj-color-paper);
+    box-shadow: var(--yj-shadow-card);
+
+    font: inherit;
+    color: var(--yj-color-ink);
+
+    cursor: pointer;
+
+    transition: var(--yj-transition);
+
+}
+
+.settings-theme-card:hover {
+
+    transform: translateY(-2px);
+
+}
+
+.settings-theme-card.is-selected {
+
+    border-color: var(--yj-color-accent);
+
+    box-shadow: 0 0 0 3px rgba(217, 154, 61, .32), var(--yj-shadow-card);
+
+}
+
+.settings-theme-card.is-selected::after {
+
+    content: "✓";
+
+    margin-left: 8px;
+
+    color: var(--yj-color-success);
+    font-weight: 900;
+
+}
+
+.settings-theme-swatch {
+
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .15);
+
+}
+
+.settings-theme-swatch--baumrinde {
+
+    background: linear-gradient(135deg, #5C3A24, #4A2F1E 60%, #D9A441 100%);
+
+}
+
+.settings-theme-swatch--smaragdwald {
+
+    background: linear-gradient(135deg, #2E6B4F, #1F4D3A 60%, #D9A441 100%);
+
+}
+
+.settings-theme-name {
+
+    font-weight: 700;
 
 }
 
