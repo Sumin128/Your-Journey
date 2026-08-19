@@ -42,11 +42,32 @@
     const MAX_HISTORY_STATES = 20;
     const SHAPE_TOOLS = ["rectangle", "circle"];
 
+    /* Echte Maskottchen als Stempel-Motive, per Bild statt Emoji -
+       einmal vorab laden, damit das erste Stempeln nicht auf das
+       Bild warten muss. */
+    const STAMP_IMAGE_SOURCES = {
+        kuro: "images/Kuro_close.png",
+        olivia: "images/olivia_eule.png",
+        faro: "images/faro1.png",
+        branos: "images/branos.png"
+    };
+
+    const stampImages = {};
+
+    Object.keys(STAMP_IMAGE_SOURCES).forEach(function (stampId) {
+
+        const image = new Image();
+        image.src = STAMP_IMAGE_SOURCES[stampId];
+
+        stampImages[stampId] = image;
+
+    });
+
     let currentColor = "#e53935";
     let currentSize = 12;
     let currentTool = "brush";
     let fillMode = "stroke";
-    let currentStamp = "🦊";
+    let currentStamp = "kuro";
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
@@ -407,12 +428,22 @@
 
     function drawStamp(point) {
 
-        const stampSize = Math.max(24, currentSize * 3);
+        const image = stampImages[currentStamp];
 
-        ctx.font = stampSize + "px serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(currentStamp, point.x, point.y);
+        if (!image || !image.complete || !image.naturalWidth) {
+            return;
+        }
+
+        const targetHeight = Math.max(40, currentSize * 4);
+        const targetWidth = targetHeight * (image.naturalWidth / image.naturalHeight);
+
+        ctx.drawImage(
+            image,
+            point.x - targetWidth / 2,
+            point.y - targetHeight / 2,
+            targetWidth,
+            targetHeight
+        );
 
     }
 

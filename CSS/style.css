@@ -697,25 +697,24 @@ main {
 
     /* eigener Scrollbereich, damit lange Listen nicht die
        Einstellungen/Impressum-Gruppe unten aus dem sichtbaren
-       Bereich (z.B. unter die Taskleiste) drücken */
+       Bereich (z.B. unter die Taskleiste) drücken. Profil oben
+       (.sidebar-player) und Einstellungen/Impressum unten
+       (.sidebar-utility) liegen bewusst AUSSERHALB dieses Blocks
+       und bleiben dadurch fest stehen. */
     flex:1;
     min-height:0;
     overflow-y:auto;
     overflow-x:hidden;
-    scrollbar-width:thin;
+
+    /* Scrollbar unsichtbar, Scrollen bleibt per Maus/Touch möglich */
+    scrollbar-width:none;
+    -ms-overflow-style:none;
 
 }
 
 .sidebar-nav::-webkit-scrollbar{
 
-    width:4px;
-
-}
-
-.sidebar-nav::-webkit-scrollbar-thumb{
-
-    background:rgba(255,255,255,.15);
-    border-radius:4px;
+    display:none;
 
 }
 
@@ -828,15 +827,15 @@ main {
     padding:0;
     overflow:hidden;
 
-    color:#f7eadb;
+    color:var(--yj-color-accent-light);
 
-    font-size:0.75rem;
+    font-size:0.72rem;
 
-    font-weight:600;
+    font-weight:700;
 
     text-transform:uppercase;
 
-    letter-spacing:0.04em;
+    letter-spacing:0.08em;
 
     opacity:0;
 
@@ -850,11 +849,13 @@ main {
 
     height:auto;
 
-    margin-top:6px;
+    margin-top:10px;
 
-    padding:0.5rem 1rem 0.25rem;
+    padding:0.4rem 1rem 0.5rem;
 
-    opacity:0.6;
+    border-bottom:1px solid rgba(255,255,255,.12);
+
+    opacity:0.95;
 
     visibility:visible;
 
@@ -4324,6 +4325,17 @@ justify-content:center;
     justify-content: center;
 
     gap: 8px;
+
+}
+
+.paint-stamp-thumb {
+
+    width: auto;
+    height: 32px;
+
+    object-fit: contain;
+
+    pointer-events: none;
 
 }
 
