@@ -1,6 +1,6 @@
 /* =====================================================
    PLAYER.JS
-   Zentrales Spielersystem für Your Journey
+   Zentrales Spielersystem für Mirelon
    ===================================================== */
 
 

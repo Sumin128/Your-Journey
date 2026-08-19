@@ -93,7 +93,7 @@ function createBugReporter() {
 
     function sendViaMailto(type, text) {
 
-        const subject = "Your Journey – Bug: " + type;
+        const subject = "Mirelon – Bug: " + type;
 
         const mailtoLink =
             "mailto:" + BUG_REPORT_EMAIL +
