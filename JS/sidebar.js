@@ -20,16 +20,19 @@ const sidebarToggle =
 
 
 /* =====================================================
-   FARBTHEME (Baumrinde / Smaragdwald)
+   FARBTHEME (Baumrinde / Smaragdwald / Zuckerwatte)
    Wird als data-theme-Attribut direkt am #sidebar-Element
    gesetzt, die eigentlichen Farben stecken als CSS-Custom-
-   Properties in style.css. Gilt für alle Nutzer über
-   localStorage; bei einem Konto zusätzlich über Supabase
-   geräteübergreifend synchronisiert (siehe weiter unten).
-   ===================================================== */
+   Properties in style.css.
 
-const SIDEBAR_THEME_KEY = "mirelon-sidebar-theme";
-const DEFAULT_SIDEBAR_THEME = "baumrinde";
+   Die Wahl lebt als sidebarTheme-Eigenschaft direkt im ganz
+   normalen player-Objekt (siehe player.js) und wird darüber
+   genau wie alles andere synchronisiert: für Gäste rein
+   lokal per savePlayer() (localStorage), für angemeldete
+   Nutzer automatisch mit über die bestehende player_data-
+   Spalte in Supabase (auth.js pusht/pullt dort schon das
+   komplette player-Objekt) - keine eigene Sync-Logik nötig.
+   ===================================================== */
 
 // "baumrinde" ist der Standard und bekommt bewusst KEIN data-theme-
 // Attribut (nutzt die Basiswerte direkt am #sidebar). Neue Themes
@@ -38,7 +41,7 @@ const SIDEBAR_THEMES_WITH_ATTRIBUTE = ["smaragdwald", "zuckerwatte"];
 
 function getSidebarTheme() {
 
-    return localStorage.getItem(SIDEBAR_THEME_KEY) || DEFAULT_SIDEBAR_THEME;
+    return (typeof player !== "undefined" && player.sidebarTheme) || "baumrinde";
 
 }
 
@@ -60,20 +63,20 @@ function applySidebarTheme(theme) {
 
 }
 
-function setSidebarTheme(theme, skipCloudSync) {
+function setSidebarTheme(theme) {
 
     const validTheme =
         SIDEBAR_THEMES_WITH_ATTRIBUTE.includes(theme)
             ? theme
-            : DEFAULT_SIDEBAR_THEME;
+            : "baumrinde";
 
-    localStorage.setItem(SIDEBAR_THEME_KEY, validTheme);
+    player.sidebarTheme = validTheme;
+
+    savePlayer();
 
     applySidebarTheme(validTheme);
 
-    if (!skipCloudSync && typeof isLoggedIn === "function" && isLoggedIn()) {
-        pushSidebarThemeToCloud(validTheme);
-    }
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
 }
 
@@ -81,81 +84,14 @@ function setSidebarTheme(theme, skipCloudSync) {
 // damit nicht kurz das falsche Theme aufblitzt.
 applySidebarTheme(getSidebarTheme());
 
+// Falls sich player.sidebarTheme anderswo ändert (z. B. nach einem
+// Login, das ein abweichendes Theme aus der Cloud mitbringt),
+// Sidebar-Farbe neu anwenden.
+window.addEventListener("player-updated", function () {
 
-/* =====================================================
-   FARBTHEME <-> SUPABASE (nur bei angemeldetem Konto)
-   Bewusst eigenständig gehalten (nutzt nur die globalen
-   supabaseClient/currentSession/isLoggedIn() aus auth.js
-   lesend), damit auth.js selbst nicht angefasst werden muss.
-   Setzt voraus, dass die Spalte "sidebar_theme" in der
-   profiles-Tabelle existiert (siehe Migrations-Hinweis).
-   ===================================================== */
+    applySidebarTheme(getSidebarTheme());
 
-async function pushSidebarThemeToCloud(theme) {
-
-    if (typeof supabaseClient === "undefined" || !supabaseClient) {
-        return;
-    }
-
-    if (typeof currentSession === "undefined" || !currentSession) {
-        return;
-    }
-
-    await supabaseClient
-        .from("profiles")
-        .update({ sidebar_theme: theme })
-        .eq("id", currentSession.user.id);
-
-}
-
-async function pullSidebarThemeFromCloud() {
-
-    if (typeof supabaseClient === "undefined" || !supabaseClient) {
-        return;
-    }
-
-    if (typeof currentSession === "undefined" || !currentSession) {
-        return;
-    }
-
-    const { data, error } =
-        await supabaseClient
-            .from("profiles")
-            .select("sidebar_theme")
-            .eq("id", currentSession.user.id)
-            .single();
-
-    if (error || !data) {
-        return;
-    }
-
-    if (data.sidebar_theme) {
-
-        // Cloud hat schon einen Wert - der gewinnt, damit alle
-        // Geräte denselben Stand zeigen.
-        setSidebarTheme(data.sidebar_theme, true);
-
-    } else {
-
-        // Erstes Login, Cloud kennt noch kein Theme -
-        // aktuellen lokalen Stand einmalig hochladen.
-        pushSidebarThemeToCloud(getSidebarTheme());
-
-    }
-
-}
-
-if (typeof supabaseClient !== "undefined" && supabaseClient) {
-
-    supabaseClient.auth.onAuthStateChange(function (event, session) {
-
-        if (session) {
-            pullSidebarThemeFromCloud();
-        }
-
-    });
-
-}
+});
 
 
 /* =====================================================

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <link
+        rel="stylesheet"
+        href="CSS/style.css?v=2">
+
+    <link
+        rel="stylesheet"
+        href="CSS/components/index.css?v=5">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap"
+        rel="stylesheet">
+
+    <link
+        rel="stylesheet"
+        href="CSS/puzzle.css">
+
+    <title>Puzzle – Mirelon</title>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <nav id="sidebar">
+
+        <div class="sidebar-header">
+
+            <button
+                id="sidebar-toggle"
+                type="button"
+                aria-label="Menü öffnen">
+                ☰
+            </button>
+
+            <span class="sidebar-title">
+                Mirelon
+            </span>
+
+        </div>
+
+
+        <div class="sidebar-player">
+
+            <div class="sidebar-avatar-wrap">
+
+                <img
+                    id="sidebar-player-avatar"
+                    src=""
+                    alt="Spieler">
+
+                <button
+                    id="inventory-button"
+                    type="button">
+                    <img src="images/inventar.png" alt="" class="inventory-icon">
+                </button>
+
+            </div>
+
+
+            <div class="sidebar-player-info">
+
+                <strong id="sidebar-player-name">
+                    Abenteurer
+                </strong>
+
+                <span id="sidebar-feathers">
+                    🪶 0 Federn
+                </span>
+
+                <span id="sidebar-achievements">
+                    ⭐ 0 Erfolge
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <div class="sidebar-nav">
+
+            <a
+                href="index.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🏠</span>
+                <span class="sidebar-label">Start</span>
+
+            </a>
+
+
+            <button type="button" class="sidebar-group-header">
+                <span class="sidebar-icon">🗺️</span>
+                <span class="sidebar-label">Lernorte</span>
+                <span class="sidebar-chevron">▸</span>
+            </button>
+
+            <div class="sidebar-subnav">
+
+                <a
+                    href="kuros_nest.html"
+                    class="sidebar-link sidebar-sublink">
+
+                    <span class="sidebar-icon">🐦</span>
+                    <span class="sidebar-label">Kuros Nest</span>
+
+                </a>
+
+
+                <a
+                    href="eulenschule.html"
+                    class="sidebar-link sidebar-sublink">
+
+                    <span class="sidebar-icon">🦉</span>
+                    <span class="sidebar-label">Olivias Eulenschule</span>
+
+                </a>
+
+
+                <a
+                    href="fuchs.html"
+                    class="sidebar-link sidebar-sublink">
+
+                    <span class="sidebar-icon">🦊</span>
+                    <span class="sidebar-label">Faros Fuchsbau</span>
+
+                </a>
+
+
+                <a
+                    href="baerental.html"
+                    class="sidebar-link sidebar-sublink">
+
+                    <span class="sidebar-icon">🐻</span>
+                    <span class="sidebar-label">Bärental</span>
+
+                </a>
+
+
+                <a
+                    href="puzzle.html"
+                    class="sidebar-link sidebar-sublink"
+                    aria-current="page">
+
+                    <span class="sidebar-icon">🧩</span>
+                    <span class="sidebar-label">Puzzle</span>
+
+                </a>
+
+            </div>
+
+
+            <button type="button" class="sidebar-group-header">
+                <span class="sidebar-icon">🎨</span>
+                <span class="sidebar-label">Kreativ</span>
+                <span class="sidebar-chevron">▸</span>
+            </button>
+
+            <div class="sidebar-subnav">
+
+                <a
+                    href="malen.html"
+                    class="sidebar-link sidebar-sublink">
+
+                    <span class="sidebar-icon">🎨</span>
+                    <span class="sidebar-label">Malstube</span>
+
+                </a>
+
+
+                <a
+                    href="galerie.html"
+                    class="sidebar-link sidebar-sublink">
+
+                    <span class="sidebar-icon">🖼️</span>
+                    <span class="sidebar-label">Galerie</span>
+
+                </a>
+
+            </div>
+
+
+            <a
+                href="shop_seite.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🛒</span>
+                <span class="sidebar-label">Kuros Laden</span>
+
+            </a>
+
+
+            <button
+                class="sidebar-link"
+                type="button"
+                disabled>
+
+                <span class="sidebar-icon">📚</span>
+                <span class="sidebar-label">Wissenswertes</span>
+
+            </button>
+
+
+            <a
+                href="erfolge.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">🏆</span>
+                <span class="sidebar-label">Erfolge</span>
+
+            </a>
+
+        </div>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <div class="sidebar-utility">
+
+            <a
+                href="einstellungen.html"
+                class="sidebar-link">
+
+                <span class="sidebar-icon">⚙️</span>
+                <span class="sidebar-label">Einstellungen</span>
+
+            </a>
+
+            <a href="impressum.html" class="sidebar-link sidebar-legal-link">
+
+                <span class="sidebar-icon">⚖️</span>
+                <span class="sidebar-label">Impressum &amp; Datenschutz</span>
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         PUZZLE
+         Vom Nutzer gebaut (index.html/puzzle.js/animations.css),
+         hier über .puzzle-app gescoped eingebunden (siehe
+         CSS/puzzle.css) - Struktur/Logik sonst unverändert.
+         ===================================================== -->
+
+    <main id="puzzle-main" class="yj-page">
+
+        <div class="puzzle-app">
+
+            <div class="wrap">
+
+                <header class="top">
+                    <div class="brand-mark">
+                        <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                            <rect x="2" y="2" width="18" height="18" rx="3" fill="var(--accent)" />
+                            <path
+                                d="M20 11a4 4 0 0 1 4-4h0a4 4 0 0 1 0 8h0a4 4 0 0 0 0 8h0a4 4 0 0 1-4 4z"
+                                fill="var(--accent-2)" />
+                            <rect x="24" y="24" width="18" height="18" rx="3" fill="var(--wood)" />
+                            <rect x="2" y="24" width="18" height="18" rx="3" fill="var(--wood-light)" />
+                        </svg>
+                        <div>
+                            <h1>Puzzle</h1>
+                            <div class="sub">
+                                Lade dein eigenes Bild hoch und lege dein persönliches Puzzle zusammen!
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="layout">
+
+                    <!-- CONTROLS PANEL -->
+                    <div class="panel">
+                        <h2>Einstellungen</h2>
+
+                        <div class="field">
+                            <label for="fileInput">Eigenes Bild</label>
+                            <label class="upload-btn" for="fileInput">📤 Bild auswählen</label>
+                            <input
+                                type="file"
+                                id="fileInput"
+                                accept="image/jpeg,image/png,image/webp">
+                            <div class="upload-status" id="uploadStatus" aria-live="polite">
+                                Noch kein Bild ausgewählt
+                            </div>
+                            <div class="thumb-preview" id="thumbPreview">
+                                <img id="thumbImg" alt="Vorschau">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="pieceSlider">Teile (12–108)</label>
+                            <input
+                                type="range"
+                                id="pieceSlider"
+                                min="0"
+                                max="6"
+                                step="1"
+                                value="3">
+                            <div class="stage-markers" aria-hidden="true">
+                                <span>12</span><span>20</span><span>35</span><span>48</span><span>63</span><span>88</span><span>108</span>
+                            </div>
+                            <div class="grid-readout">
+                                <span id="pieceCountLabel">48 Teile</span>
+                                <span id="gridLabel">8 × 6</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="nozzleSelect">Puzzle-Form</label>
+                            <select id="nozzleSelect">
+                                <option value="classic">Klassisch (Rund)</option>
+                                <option value="spiky">Spitz &amp; Kantig</option>
+                                <option value="wavy">Wellig / Sanft</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="difficultySelect">Schwierigkeitsgrad</label>
+                            <select id="difficultySelect">
+                                <option value="normal">Normal</option>
+                                <option value="schwierig">Schwierig</option>
+                            </select>
+                        </div>
+
+                        <details class="advanced-settings">
+                            <summary>Weitere Einstellungen</summary>
+                            <div class="field">
+                                <label for="themeSelect">Oberflächen-Design</label>
+                                <select id="themeSelect">
+                                    <option value="emerald-green">Smaragdgrün</option>
+                                    <option value="azure-blue">Azurblau</option>
+                                    <option value="orange">Orange</option>
+                                    <option value="red">Rot</option>
+                                    <option value="minimal">Minimal</option>
+                                </select>
+                            </div>
+
+                            <div class="field">
+                                <div class="toggle-opt">
+                                    <span>Audio-Effekte</span>
+                                    <button
+                                        type="button"
+                                        class="audio-toggle"
+                                        id="audioToggle"
+                                        data-enabled="true"
+                                        aria-label="Audio-Effekte an"
+                                        aria-pressed="true"
+                                        title="Audio-Effekte an">
+                                        🔊
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="toggle-opt">
+                                    <span>Nur Randteile zeigen</span>
+                                    <button
+                                        type="button"
+                                        class="edge-toggle muted"
+                                        id="edgeToggle"
+                                        data-enabled="false"
+                                        aria-label="Nur Randteile aus"
+                                        aria-pressed="false"
+                                        title="Nur Randteile aus">
+                                        ⛶
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="view-controls">
+                                <button class="f-btn" id="ghostToggleBtn" style="display: none">
+                                    🕶️ Schatten
+                                </button>
+                                <button class="f-btn" id="vorlageToggleBtn" style="display: none">
+                                    🖼️ Vorlage
+                                </button>
+                            </div>
+                        </details>
+
+                        <button class="btn" id="buildBtn" disabled>
+                            🧩 Puzzle erstellen
+                        </button>
+                        <button class="btn secondary" id="resetBtn" style="display: none">
+                            ↺ Neu mischen
+                        </button>
+
+                        <div class="progress-wrap" id="progressWrap" style="display: none">
+                            <div class="progress-label">
+                                <span>Fortschritt</span><b id="progressText">0 / 0</b>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+
+                        <div class="hint">
+                            Drehen: Doppelklick auf ein Teil oder gedrückt halten &amp; 'R' drücken.
+                        </div>
+                    </div>
+
+                    <!-- STAGE -->
+                    <div class="stage">
+                        <div class="board-frame">
+                            <div class="board" id="board">
+                                <img id="ghostImg" class="ghost-bg" alt="Schattenbild">
+                                <div class="empty-msg" id="emptyMsg">
+                                    Lade links ein Bild hoch und klicke auf<br>„Puzzle erstellen".
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tray-panel">
+                            <div class="tray" id="tray"></div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="vorlage-panel hidden" id="vorlagePanel">
+                <img id="vorlageImg" alt="Vorlage">
+                <div class="cap">Vorlage</div>
+            </div>
+
+            <div class="win-overlay" id="winOverlay">
+                <div class="win-card">
+                    <h2>Fertig! 🎉</h2>
+                    <p>
+                        Du hast das Puzzle mit <span id="winPieceCount">0</span> Teilen gelöst.
+                    </p>
+                    <button class="btn" id="winAgainBtn">Nochmal mischen</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="JS/player.js?v=3"></script>
+    <script src="JS/auth.js"></script>
+    <script src="JS/sidebar.js"></script>
+    <script src="JS/bugreport.js"></script>
+    <script src="JS/puzzle.js"></script>
+
+
+</body>
+
+</html>

@@ -48,6 +48,8 @@ let player = {
 
     activeCursor: "default",
 
+    sidebarTheme: "baumrinde",
+
     settings: {
 
         soundOn: true,
