@@ -712,15 +712,32 @@ main {
     overflow-y:auto;
     overflow-x:hidden;
 
-    /* Scrollbar unsichtbar, Scrollen bleibt per Maus/Touch möglich */
-    scrollbar-width:none;
-    -ms-overflow-style:none;
+    /* Scrollbar bewusst sichtbar (schmal, ans Theme angepasst), damit
+       erkennbar ist, dass hier bei wenig Platz weitergescrollt werden
+       kann - vorher war sie komplett versteckt und tiefer stehende
+       Eintraege (z.B. Puzzle unter Lernorte) wirkten dadurch einfach
+       verschwunden statt nur ausgeblendet. */
+    scrollbar-width:thin;
+    scrollbar-color: var(--sb-accent) transparent;
 
 }
 
 .sidebar-nav::-webkit-scrollbar{
 
-    display:none;
+    width:6px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-track{
+
+    background:transparent;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb{
+
+    background:var(--sb-accent);
+    border-radius:3px;
 
 }
 
@@ -922,6 +939,14 @@ main {
     padding-left:14px;
 
     transition:max-height .25s ease;
+
+    /* Ohne das hier zwingt "overflow:hidden" den Flexbox-Algorithmus,
+       diesem Element bei wenig Platz eine effektive Mindesthoehe von 0
+       zuzuweisen - eine aufgeklappte Gruppe wurde dadurch auf niedrigen
+       Bildschirmen komplett unsichtbar (max-height:320px stand zwar im
+       CSS, die tatsaechlich gerenderte Hoehe war aber 0px). Das eigentliche
+       Scrollen bei zu wenig Platz uebernimmt schon .sidebar-nav selbst. */
+    flex-shrink:0;
 
 }
 
