@@ -44,6 +44,10 @@ let player = {
 
     wordGameWins: [],
 
+    puzzlesCompleted: 0,
+
+    puzzleGalleryImagesUsed: [],
+
     berries: 0,
 
     activeCursor: "default",
@@ -718,6 +722,99 @@ function registerWordGameWin(difficulty) {
 
 
 /* =====================================================
+   PUZZLE-ERFOLGE
+   Wird von JS/puzzle.js aufgerufen, wenn ein Puzzle
+   fertig gelöst wurde.
+   ===================================================== */
+
+const puzzleCompletionAchievements = [
+    { count: 5, name: "5 Puzzle gelöst", description: "Löse 5 Puzzle.", icon: "🧩" },
+    { count: 10, name: "10 Puzzle gelöst", description: "Löse 10 Puzzle.", icon: "🧩" },
+    { count: 20, name: "20 Puzzle gelöst", description: "Löse 20 Puzzle.", icon: "🧩" },
+    { count: 50, name: "50 Puzzle gelöst", description: "Löse 50 Puzzle.", icon: "🧩" },
+    { count: 100, name: "100 Puzzle gelöst", description: "Löse 100 Puzzle.", icon: "🧩" }
+];
+
+// Die 5 festen Bilder aus dem "Bilder aus Mirelon"-Abschnitt der
+// Puzzle-Bildauswahl (siehe SITE_IMAGES in JS/puzzle-image-picker.js).
+// Eigene, in der Malstube gemalte Bilder zählen hier bewusst nicht mit,
+// da diese Liste unbegrenzt ist und "alle" damit nie erreichbar wäre.
+const puzzleGalleryImages = [
+    "Übersichtskarte",
+    "Kuros Nest",
+    "Olivias Eulenschule",
+    "Faros Fuchsbau",
+    "Bärental"
+];
+
+const puzzleGalleryAchievement = {
+    name: "Puzzle-Weltenbummler",
+    description: "Löse ein Puzzle mit jedem Bild aus der Galerie.",
+    icon: "🗺️"
+};
+
+function registerPuzzleCompletion(galleryImageLabel) {
+
+    if (typeof player.puzzlesCompleted !== "number") {
+
+        player.puzzlesCompleted = 0;
+
+    }
+
+    player.puzzlesCompleted++;
+
+    if (galleryImageLabel) {
+
+        if (!Array.isArray(player.puzzleGalleryImagesUsed)) {
+
+            player.puzzleGalleryImagesUsed = [];
+
+        }
+
+        if (!player.puzzleGalleryImagesUsed.includes(galleryImageLabel)) {
+
+            player.puzzleGalleryImagesUsed.push(galleryImageLabel);
+
+        }
+
+    }
+
+    savePlayer();
+
+    const unlockedCountAchievement = puzzleCompletionAchievements.find(
+        function (achievement) {
+
+            return achievement.count === player.puzzlesCompleted;
+
+        }
+    );
+
+    if (unlockedCountAchievement) {
+
+        addAchievement(unlockedCountAchievement.name);
+
+    }
+
+    if (galleryImageLabel) {
+
+        const allGalleryImagesUsed = puzzleGalleryImages.every(function (label) {
+
+            return player.puzzleGalleryImagesUsed.includes(label);
+
+        });
+
+        if (allGalleryImagesUsed) {
+
+            addAchievement(puzzleGalleryAchievement.name);
+
+        }
+
+    }
+
+}
+
+
+/* =====================================================
    GESAMTKATALOG ALLER ERFOLGE
    Wird von der Erfolge-Seite (erfolge.html) genutzt, um
    alle Erfolge (freigeschaltet oder nicht) anzuzeigen.
@@ -729,6 +826,8 @@ const achievementCatalog = quizCompletionAchievements.concat([
     wordGameDifficultyAchievements.mittel,
     wordGameDifficultyAchievements.schwer,
     wordGameMasterAchievement
+]).concat(puzzleCompletionAchievements).concat([
+    puzzleGalleryAchievement
 ]);
 
 

@@ -29,7 +29,7 @@
         { label: "Bärental", src: "images/baerenthal.png" },
     ];
 
-    function createThumb(src, label) {
+    function createThumb(src, label, isGalleryImage) {
 
         const button = document.createElement("button");
         button.type = "button";
@@ -49,7 +49,7 @@
         button.addEventListener("click", function () {
 
             if (window.MirelonPuzzle && window.MirelonPuzzle.setSourceImage) {
-                window.MirelonPuzzle.setSourceImage(src, label);
+                window.MirelonPuzzle.setSourceImage(src, label, { isGalleryImage: Boolean(isGalleryImage) });
             }
 
             closeOverlay();
@@ -65,7 +65,7 @@
         siteGrid.innerHTML = "";
 
         SITE_IMAGES.forEach(function (entry) {
-            siteGrid.appendChild(createThumb(entry.src, entry.label));
+            siteGrid.appendChild(createThumb(entry.src, entry.label, true));
         });
 
     }

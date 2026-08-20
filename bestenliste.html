@@ -17,7 +17,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=5">
 
-    <title>Kontakt – Mirelon</title>
+    <title>Bestenliste – Mirelon</title>
 
 </head>
 
@@ -219,6 +219,16 @@
 
             </a>
 
+            <a
+                href="bestenliste.html"
+                class="sidebar-link"
+                aria-current="page">
+
+                <span class="sidebar-icon">🏅</span>
+                <span class="sidebar-label">Bestenliste</span>
+
+            </a>
+
         </div>
 
 
@@ -249,18 +259,42 @@
 
 
     <!-- =====================================================
-         KONTAKT
+         BESTENLISTE
          ===================================================== -->
 
-    <main id="contact-main" class="yj-page">
+    <main id="highscore-main" class="yj-page">
 
-        <section class="contact-section yj-panel yj-panel--paper yj-enter">
+        <section class="highscore-header yj-panel yj-panel--paper yj-enter">
 
-            <h1>Kontakt</h1>
+            <h1>🏅 Bestenliste</h1>
 
             <p>
-                Kontaktinformationen und Feedback für Mirelon.
+                Die schnellsten Puzzle-Zeiten aus ganz Mirelon –
+                wähle eine Teile-Anzahl und schau, wer am
+                schnellsten war!
             </p>
+
+        </section>
+
+        <section class="highscore-panel yj-panel yj-panel--paper yj-enter">
+
+            <div class="highscore-piece-tabs" id="highscorePieceTabs">
+
+                <button type="button" class="highscore-piece-tab" data-pieces="12">12</button>
+                <button type="button" class="highscore-piece-tab" data-pieces="20">20</button>
+                <button type="button" class="highscore-piece-tab" data-pieces="35">35</button>
+                <button type="button" class="highscore-piece-tab is-selected" data-pieces="48">48</button>
+                <button type="button" class="highscore-piece-tab" data-pieces="63">63</button>
+                <button type="button" class="highscore-piece-tab" data-pieces="88">88</button>
+                <button type="button" class="highscore-piece-tab" data-pieces="108">108</button>
+
+            </div>
+
+            <p id="highscorePersonalBest" class="highscore-personal-best" hidden></p>
+
+            <p id="highscoreMessage" class="account-message" hidden></p>
+
+            <ol class="highscore-list" id="highscoreList"></ol>
 
         </section>
 
@@ -276,6 +310,7 @@
     <script src="JS/auth.js"></script>
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
+    <script src="JS/highscore.js"></script>
 
 
 </body>

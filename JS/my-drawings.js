@@ -5,63 +5,32 @@
    filtert serverseitig zusätzlich auf user_id), niemals
    die Bilder anderer Nutzer.
 
-   Rotations-Regel: es werden immer bis zu 4 Bilder gezeigt,
-   aber ein neues Bild verdrängt ein angezeigtes erst, wenn
-   dieses mindestens MIN_DISPLAY_HOURS Stunden sichtbar war.
-   Das lässt sich rein aus den created_at-Zeitstempeln aller
-   gespeicherten Bilder berechnen (siehe computeDisplayedDrawings),
-   ohne einen zusätzlichen Datenbank-Status zu brauchen.
+   Zeigt bis zu 4 Bilder pro Seite (neueste zuerst). Wer mehr
+   als 4 Bilder gespeichert hat, blättert über "Weiter"/
+   "Zurück" zur nächsten Seite, statt dass ältere Bilder
+   automatisch verdrängt werden.
    ===================================================== */
 
 (function setupMyDrawings() {
 
     const grid = document.getElementById("my-drawings-grid");
+    const pagination = document.getElementById("my-drawings-pagination");
+    const prevButton = document.getElementById("my-drawings-prev");
+    const nextButton = document.getElementById("my-drawings-next");
+    const pageLabel = document.getElementById("my-drawings-page-label");
 
     if (!grid || typeof supabaseClient === "undefined" || !supabaseClient) {
         return;
     }
 
-    /* Wie viele Stunden ein Bild mindestens sichtbar bleibt,
-       bevor ein neueres Bild es aus den 4 Boxen verdrängen darf.
-       Kann hier einfach angepasst werden. */
+    const PAGE_SIZE = 4;
 
-    const MIN_DISPLAY_HOURS = 24;
-
-
-    /* =====================================================
-       1. ROTATIONS-REGEL
-       ===================================================== */
-
-    function computeDisplayedDrawings(drawingsAscendingByCreatedAt) {
-
-        const displayed = [];
-
-        drawingsAscendingByCreatedAt.forEach(function (drawing) {
-
-            if (displayed.length < 4) {
-                displayed.push(drawing);
-                return;
-            }
-
-            const oldest = displayed[0];
-
-            const oldestAgeHours =
-                (new Date(drawing.created_at) - new Date(oldest.created_at)) / 3600000;
-
-            if (oldestAgeHours >= MIN_DISPLAY_HOURS) {
-                displayed.shift();
-                displayed.push(drawing);
-            }
-
-        });
-
-        return displayed.slice().reverse();
-
-    }
+    let allDrawings = [];
+    let currentPage = 0;
 
 
     /* =====================================================
-       2. ANZEIGE
+       1. ANZEIGE
        ===================================================== */
 
     function setMyDrawingsMessage(text, isError) {
@@ -97,12 +66,30 @@
 
     }
 
-    async function renderDrawings(drawings) {
+    function updatePaginationControls() {
+
+        const totalPages = Math.max(1, Math.ceil(allDrawings.length / PAGE_SIZE));
+
+        if (totalPages <= 1) {
+            pagination.hidden = true;
+            return;
+        }
+
+        pagination.hidden = false;
+        pageLabel.textContent = "Seite " + (currentPage + 1) + " von " + totalPages;
+        prevButton.disabled = currentPage === 0;
+        nextButton.disabled = currentPage >= totalPages - 1;
+
+    }
+
+    async function renderCurrentPage() {
 
         const boxes = grid.querySelectorAll(".my-drawing-box");
+        const pageStart = currentPage * PAGE_SIZE;
+        const pageDrawings = allDrawings.slice(pageStart, pageStart + PAGE_SIZE);
 
         const signedUrls = await Promise.all(
-            drawings.map(function (drawing) {
+            pageDrawings.map(function (drawing) {
 
                 return supabaseClient.storage
                     .from("drawings")
@@ -122,7 +109,7 @@
             box.classList.remove("my-drawing-box--empty");
             box.innerHTML = "";
 
-            const drawing = drawings[index];
+            const drawing = pageDrawings[index];
             const url = signedUrls[index];
 
             if (!drawing || !url) {
@@ -148,6 +135,8 @@
 
         });
 
+        updatePaginationControls();
+
     }
 
     function renderGuestState() {
@@ -158,8 +147,9 @@
             guestHint.hidden = false;
         }
 
-        const boxes = grid.querySelectorAll(".my-drawing-box");
+        pagination.hidden = true;
 
+        const boxes = grid.querySelectorAll(".my-drawing-box");
         boxes.forEach(function (box) {
             box.classList.remove("my-drawing-box--empty");
             box.innerHTML = "";
@@ -170,7 +160,7 @@
 
 
     /* =====================================================
-       3. DATEN LADEN
+       2. DATEN LADEN
        ===================================================== */
 
     async function loadMyDrawings() {
@@ -196,7 +186,7 @@
                     .from("drawings")
                     .select("id, storage_path, created_at")
                     .eq("user_id", session.user.id)
-                    .order("created_at", { ascending: true });
+                    .order("created_at", { ascending: false });
 
             if (queryResult.error || !queryResult.data) {
 
@@ -209,9 +199,11 @@
 
             }
 
-            const displayed = computeDisplayedDrawings(queryResult.data);
+            allDrawings = queryResult.data;
+            const totalPages = Math.max(1, Math.ceil(allDrawings.length / PAGE_SIZE));
+            currentPage = Math.min(currentPage, totalPages - 1);
 
-            await renderDrawings(displayed);
+            await renderCurrentPage();
 
         } catch (error) {
 
@@ -224,11 +216,9 @@
 
     }
 
+
     /* =====================================================
-       4. BILD LÖSCHEN
-       Bewusste Nutzer-Aktion - darf die MIN_DISPLAY_HOURS-
-       Mindestanzeigezeit umgehen, die nur für das automatische
-       Verdrängen durch neue Bilder gilt (siehe Regel oben).
+       3. BILD LÖSCHEN
        ===================================================== */
 
     async function deleteDrawing(button) {
@@ -276,10 +266,35 @@
 
     });
 
+    prevButton.addEventListener("click", function () {
+
+        if (currentPage === 0) {
+            return;
+        }
+
+        currentPage -= 1;
+        renderCurrentPage();
+
+    });
+
+    nextButton.addEventListener("click", function () {
+
+        const totalPages = Math.max(1, Math.ceil(allDrawings.length / PAGE_SIZE));
+
+        if (currentPage >= totalPages - 1) {
+            return;
+        }
+
+        currentPage += 1;
+        renderCurrentPage();
+
+    });
+
 
     loadMyDrawings();
 
     supabaseClient.auth.onAuthStateChange(function () {
+        currentPage = 0;
         loadMyDrawings();
     });
 

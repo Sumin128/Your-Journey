@@ -75,6 +75,7 @@
   let zTop = 10;
   let activePiece = null;
   let hasWon = false;
+  let puzzleStartTime = null;
 
   const fileInput = document.getElementById('fileInput');
   const uploadStatus = document.getElementById('uploadStatus');
@@ -145,10 +146,17 @@
     uploadStatus.classList.remove('ready');
   };
 
+  // Merkt sich, ob und welches der 5 festen Galerie-Bilder gerade als
+  // Vorlage dient - fuer den Erfolg "Puzzle-Weltenbummler" (siehe
+  // player.js). Bleibt null bei eigenem Upload oder einem eigenen,
+  // in der Malstube gemalten Bild.
+  let sourceGalleryLabel = null;
+
   // Gemeinsame Ladepipeline fuer ein Bild, egal ob es vom eigenen
   // Rechner hochgeladen (dataURL) oder aus der Galerie gewaehlt wurde
   // (lokaler Seiten-Pfad oder signierte Supabase-URL fuer eigene Bilder).
-  function useImageAsSource(rawSrc, label) {
+  function useImageAsSource(rawSrc, label, options) {
+    const isGalleryImage = Boolean(options && options.isGalleryImage);
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -184,6 +192,7 @@
       preparedImg.crossOrigin = 'anonymous';
       preparedImg.onload = () => {
         sourceImg = preparedImg;
+        sourceGalleryLabel = isGalleryImage ? label : null;
         difficultySelect.disabled = false;
         nozzleSelect.disabled = false;
         thumbImg.src = imageSource;
@@ -369,6 +378,7 @@
 
   function buildPuzzle() {
     if (!sourceImg) return;
+    puzzleStartTime = Date.now();
     difficultySelect.disabled = true;
     difficultySelect.title = 'Während eines laufenden Puzzles gesperrt';
     nozzleSelect.disabled = true;
@@ -816,11 +826,40 @@
       : '0%';
   }
 
+  // Traegt eine gewonnene Runde in die globale Bestenliste ein (Tabelle
+  // puzzle_scores in Supabase, siehe JS/highscore.js). Nur fuer angemeldete
+  // Nutzer moeglich - fuer Gaeste bleibt es beim rein lokalen Fortschritt
+  // oben. Fehler hier duerfen das Spiel nie stoeren, daher nur ein
+  // stilles catch.
+  async function submitHighscore(pieceCount, difficulty, durationMs) {
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+    try {
+      const sessionResult = await supabaseClient.auth.getSession();
+      const session = sessionResult.data.session;
+      if (!session) return;
+
+      const playerName =
+        (typeof player !== 'undefined' && player.name) || 'Abenteurer';
+
+      await supabaseClient.from('puzzle_scores').insert({
+        user_id: session.user.id,
+        player_name: playerName,
+        pieces: pieceCount,
+        difficulty: difficulty,
+        duration_ms: durationMs,
+      });
+    } catch (error) {
+      // Bestenliste ist ein Bonus-Feature - darf das Spiel nicht stoeren.
+    }
+  }
+
   function recordPuzzleCompletion() {
+    const durationMs = puzzleStartTime ? Date.now() - puzzleStartTime : null;
     const completion = {
       completedAt: new Date().toISOString(),
       difficulty: difficultySelect.value,
       pieces: pieces.length,
+      durationMs: durationMs,
     };
     const storageKey = 'mirelonPuzzleCompletions';
     let completions = [];
@@ -831,6 +870,12 @@
       localStorage.setItem(storageKey, JSON.stringify(completions));
     } catch (error) {
       // Storage may be unavailable in private or restricted browser contexts.
+    }
+    if (durationMs) {
+      submitHighscore(pieces.length, difficultySelect.value, durationMs);
+    }
+    if (typeof registerPuzzleCompletion === 'function') {
+      registerPuzzleCompletion(sourceGalleryLabel);
     }
     window.dispatchEvent(
       new CustomEvent('mirelon:puzzle-completed', { detail: completion })
