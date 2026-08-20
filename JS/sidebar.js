@@ -129,7 +129,19 @@ sidebarGroupHeaders.forEach(function (header) {
 
     header.addEventListener("click", function () {
 
-        setSidebarGroupOpen(header, !header.classList.contains("is-open"));
+        const willOpen = !header.classList.contains("is-open");
+
+        // Immer nur eine Gruppe gleichzeitig offen: alle anderen zuklappen,
+        // bevor diese hier ggf. aufklappt.
+        sidebarGroupHeaders.forEach(function (otherHeader) {
+
+            if (otherHeader !== header) {
+                setSidebarGroupOpen(otherHeader, false);
+            }
+
+        });
+
+        setSidebarGroupOpen(header, willOpen);
 
     });
 

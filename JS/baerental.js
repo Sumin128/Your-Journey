@@ -1102,6 +1102,13 @@ function makeGuess(animal) {
         }
 
 
+        if (typeof registerAnimalGuessWin === "function") {
+
+            registerAnimalGuessWin();
+
+        }
+
+
         finishRound(
             animal.name
         );

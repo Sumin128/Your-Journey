@@ -75,7 +75,6 @@
   let zTop = 10;
   let activePiece = null;
   let hasWon = false;
-  let puzzleStartTime = null;
 
   const fileInput = document.getElementById('fileInput');
   const uploadStatus = document.getElementById('uploadStatus');
@@ -378,7 +377,6 @@
 
   function buildPuzzle() {
     if (!sourceImg) return;
-    puzzleStartTime = Date.now();
     difficultySelect.disabled = true;
     difficultySelect.title = 'Während eines laufenden Puzzles gesperrt';
     nozzleSelect.disabled = true;
@@ -826,40 +824,11 @@
       : '0%';
   }
 
-  // Traegt eine gewonnene Runde in die globale Bestenliste ein (Tabelle
-  // puzzle_scores in Supabase, siehe JS/highscore.js). Nur fuer angemeldete
-  // Nutzer moeglich - fuer Gaeste bleibt es beim rein lokalen Fortschritt
-  // oben. Fehler hier duerfen das Spiel nie stoeren, daher nur ein
-  // stilles catch.
-  async function submitHighscore(pieceCount, difficulty, durationMs) {
-    if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
-    try {
-      const sessionResult = await supabaseClient.auth.getSession();
-      const session = sessionResult.data.session;
-      if (!session) return;
-
-      const playerName =
-        (typeof player !== 'undefined' && player.name) || 'Abenteurer';
-
-      await supabaseClient.from('puzzle_scores').insert({
-        user_id: session.user.id,
-        player_name: playerName,
-        pieces: pieceCount,
-        difficulty: difficulty,
-        duration_ms: durationMs,
-      });
-    } catch (error) {
-      // Bestenliste ist ein Bonus-Feature - darf das Spiel nicht stoeren.
-    }
-  }
-
   function recordPuzzleCompletion() {
-    const durationMs = puzzleStartTime ? Date.now() - puzzleStartTime : null;
     const completion = {
       completedAt: new Date().toISOString(),
       difficulty: difficultySelect.value,
       pieces: pieces.length,
-      durationMs: durationMs,
     };
     const storageKey = 'mirelonPuzzleCompletions';
     let completions = [];
@@ -870,9 +839,6 @@
       localStorage.setItem(storageKey, JSON.stringify(completions));
     } catch (error) {
       // Storage may be unavailable in private or restricted browser contexts.
-    }
-    if (durationMs) {
-      submitHighscore(pieces.length, difficultySelect.value, durationMs);
     }
     if (typeof registerPuzzleCompletion === 'function') {
       registerPuzzleCompletion(sourceGalleryLabel);

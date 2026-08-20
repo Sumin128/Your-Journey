@@ -1,31 +1,20 @@
 /* =====================================================
    HIGHSCORE.JS
-   Globale Bestenliste fuer das Puzzle (Tabelle puzzle_scores
-   in Supabase, siehe supabase_schema_puzzle_scores.sql).
-   Jede Teile-Anzahl hat ihre eigene Top-10-Liste, da eine
-   Zeit bei 12 Teilen nicht mit einer Zeit bei 108 Teilen
-   vergleichbar ist.
+   Globale Punkte-Bestenliste (Tabelle highscores in Supabase,
+   siehe supabase_schema_highscores.sql). Jeder gewonnene
+   Quiz/Wörterraten/Wer-ist-es/Puzzle-Durchgang gibt Punkte
+   (siehe awardHighscorePoints in JS/player.js) - hier wird
+   nur die Rangliste angezeigt.
    ===================================================== */
 
 (function setupHighscore() {
 
-    const tabsWrap = document.getElementById("highscorePieceTabs");
     const list = document.getElementById("highscoreList");
     const messageEl = document.getElementById("highscoreMessage");
     const personalBestEl = document.getElementById("highscorePersonalBest");
 
-    if (!tabsWrap || !list) {
+    if (!list) {
         return;
-    }
-
-    function formatDuration(durationMs) {
-
-        const totalSeconds = Math.round(durationMs / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-
-        return minutes + ":" + String(seconds).padStart(2, "0");
-
     }
 
     function setMessage(text, isError) {
@@ -57,18 +46,13 @@
             name.className = "highscore-name";
             name.textContent = row.player_name;
 
-            const badge = document.createElement("span");
-            badge.className = "highscore-difficulty";
-            badge.textContent = row.difficulty === "schwierig" ? "Schwierig" : "Normal";
-
-            const time = document.createElement("span");
-            time.className = "highscore-time";
-            time.textContent = formatDuration(row.duration_ms);
+            const points = document.createElement("span");
+            points.className = "highscore-time";
+            points.textContent = row.points + " Punkte";
 
             item.appendChild(rank);
             item.appendChild(name);
-            item.appendChild(badge);
-            item.appendChild(time);
+            item.appendChild(points);
 
             list.appendChild(item);
 
@@ -76,7 +60,7 @@
 
     }
 
-    async function loadHighscores(pieces) {
+    async function loadHighscores() {
 
         list.innerHTML = "";
         setMessage("", false);
@@ -92,10 +76,9 @@
 
         const scoresResult =
             await supabaseClient
-                .from("puzzle_scores")
-                .select("user_id, player_name, difficulty, duration_ms")
-                .eq("pieces", pieces)
-                .order("duration_ms", { ascending: true })
+                .from("highscores")
+                .select("user_id, player_name, points")
+                .order("points", { ascending: false })
                 .limit(10);
 
         if (scoresResult.error) {
@@ -104,7 +87,7 @@
         }
 
         if (!scoresResult.data || !scoresResult.data.length) {
-            setMessage("Hier steht noch niemand – löse als Erste*r ein Puzzle mit dieser Teile-Anzahl!", false);
+            setMessage("Hier steht noch niemand – gewinne als Erste*r ein Spiel!", false);
         } else {
             renderList(scoresResult.data, session ? session.user.id : null);
         }
@@ -113,52 +96,31 @@
             return;
         }
 
-        const ownBestInTop =
+        const ownInTop =
             scoresResult.data &&
             scoresResult.data.some(function (row) {
                 return row.user_id === session.user.id;
             });
 
-        if (ownBestInTop) {
+        if (ownInTop) {
             return;
         }
 
-        const ownBestResult =
+        const ownResult =
             await supabaseClient
-                .from("puzzle_scores")
-                .select("duration_ms")
-                .eq("pieces", pieces)
+                .from("highscores")
+                .select("points")
                 .eq("user_id", session.user.id)
-                .order("duration_ms", { ascending: true })
-                .limit(1);
+                .maybeSingle();
 
-        if (ownBestResult.data && ownBestResult.data.length) {
+        if (ownResult.data) {
             personalBestEl.textContent =
-                "Deine Bestzeit bei " + pieces + " Teilen: " +
-                formatDuration(ownBestResult.data[0].duration_ms) +
-                " (noch nicht in den Top 10)";
+                "Deine Punkte: " + ownResult.data.points + " (noch nicht in den Top 10)";
             personalBestEl.hidden = false;
         }
 
     }
 
-    tabsWrap.addEventListener("click", function (event) {
-
-        const tab = event.target.closest(".highscore-piece-tab");
-
-        if (!tab) {
-            return;
-        }
-
-        tabsWrap.querySelectorAll(".highscore-piece-tab").forEach(function (otherTab) {
-            otherTab.classList.toggle("is-selected", otherTab === tab);
-        });
-
-        loadHighscores(parseInt(tab.dataset.pieces, 10));
-
-    });
-
-    const initialTab = tabsWrap.querySelector(".highscore-piece-tab.is-selected");
-    loadHighscores(initialTab ? parseInt(initialTab.dataset.pieces, 10) : 48);
+    loadHighscores();
 
 })();

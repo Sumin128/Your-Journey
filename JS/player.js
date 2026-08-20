@@ -48,6 +48,8 @@ let player = {
 
     puzzleGalleryImagesUsed: [],
 
+    highscorePoints: 0,
+
     berries: 0,
 
     activeCursor: "default",
@@ -561,6 +563,68 @@ function showAchievementToast(achievementName) {
 
 
 /* =====================================================
+   HIGHSCORE-PUNKTE
+   Gemeinsamer Punktestand über alle Spiele hinweg (Quiz,
+   Wörterraten, Wer-ist-es, Puzzle) - unabhängig von den
+   Federn. Jeder Sieg gibt den gleichen festen Punktewert.
+   Speist die globale Bestenliste (bestenliste.html/highscore.js)
+   über eine eigene Supabase-Tabelle, da player_data per RLS nur
+   für den eigenen Nutzer lesbar ist (siehe supabase_schema_highscores.sql).
+   ===================================================== */
+
+const HIGHSCORE_POINTS_PER_WIN = 10;
+
+async function syncHighscoreToCloud() {
+
+    if (typeof supabaseClient === "undefined" || !supabaseClient) {
+        return;
+    }
+
+    try {
+
+        const sessionResult = await supabaseClient.auth.getSession();
+        const session = sessionResult.data.session;
+
+        if (!session) {
+            return;
+        }
+
+        await supabaseClient.from("highscores").upsert({
+            user_id: session.user.id,
+            player_name: player.name || "Abenteurer",
+            points: player.highscorePoints,
+        });
+
+    } catch (error) {
+
+        // Bestenliste ist ein Bonus-Feature - darf das Spiel nicht stören.
+
+    }
+
+}
+
+function awardHighscorePoints() {
+
+    if (typeof player.highscorePoints !== "number") {
+
+        player.highscorePoints = 0;
+
+    }
+
+    player.highscorePoints += HIGHSCORE_POINTS_PER_WIN;
+
+    savePlayer();
+
+    window.dispatchEvent(
+        new CustomEvent("player-updated")
+    );
+
+    syncHighscoreToCloud();
+
+}
+
+
+/* =====================================================
    QUIZ-ERFOLGE BEI KURO
    Wird von JS/quiz.js aufgerufen, wenn ein Quiz
    zu Ende gespielt wurde.
@@ -584,6 +648,8 @@ function registerQuizCompletion() {
     player.quizzesCompleted++;
 
     savePlayer();
+
+    awardHighscorePoints();
 
     const unlockedAchievement = quizCompletionAchievements.find(
         function (achievement) {
@@ -694,6 +760,8 @@ function registerWordGameWin(difficulty) {
 
     }
 
+    awardHighscorePoints();
+
     if (!player.wordGameWins.includes(difficulty)) {
 
         player.wordGameWins.push(difficulty);
@@ -717,6 +785,19 @@ function registerWordGameWin(difficulty) {
         addAchievement(wordGameMasterAchievement.name);
 
     }
+
+}
+
+
+/* =====================================================
+   WER-IST-ES BEI BRANOS
+   Wird von JS/baerental.js aufgerufen, wenn das geheime
+   Tier richtig erraten wurde.
+   ===================================================== */
+
+function registerAnimalGuessWin() {
+
+    awardHighscorePoints();
 
 }
 
@@ -780,6 +861,8 @@ function registerPuzzleCompletion(galleryImageLabel) {
     }
 
     savePlayer();
+
+    awardHighscorePoints();
 
     const unlockedCountAchievement = puzzleCompletionAchievements.find(
         function (achievement) {

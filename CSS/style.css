@@ -4713,39 +4713,6 @@ justify-content:center;
 
 }
 
-.highscore-piece-tabs {
-
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-
-    margin-bottom: 18px;
-
-}
-
-.highscore-piece-tab {
-
-    padding: 8px 16px;
-
-    border: 2px solid var(--yj-color-border);
-    border-radius: var(--yj-radius-sm);
-
-    background: var(--yj-color-button-bg);
-    color: var(--yj-color-ink);
-
-    font-weight: 600;
-    cursor: pointer;
-
-}
-
-.highscore-piece-tab.is-selected {
-
-    background: var(--yj-color-accent);
-    border-color: var(--yj-color-accent-dark);
-    color: #ffffff;
-
-}
-
 .highscore-personal-best {
 
     margin: 0 0 16px;
@@ -4775,7 +4742,7 @@ justify-content:center;
 .highscore-row {
 
     display: grid;
-    grid-template-columns: 48px 1fr auto auto;
+    grid-template-columns: 48px 1fr auto;
     align-items: center;
     gap: 12px;
 
@@ -4813,18 +4780,6 @@ justify-content:center;
 
 }
 
-.highscore-difficulty {
-
-    font-size: 0.75rem;
-
-    padding: 3px 9px;
-    border-radius: 999px;
-
-    background: var(--yj-color-border);
-    color: var(--yj-color-ink-soft);
-
-}
-
 .highscore-time {
 
     font-weight: 700;
@@ -4837,10 +4792,6 @@ justify-content:center;
 
     .highscore-row {
         grid-template-columns: 36px 1fr auto;
-    }
-
-    .highscore-difficulty {
-        display: none;
     }
 
 }
