@@ -568,8 +568,12 @@ function showAchievementToast(achievementName) {
    Wörterraten, Wer-ist-es, Puzzle) - unabhängig von den
    Federn. Jeder Sieg gibt den gleichen festen Punktewert.
    Speist die globale Bestenliste (bestenliste.html/highscore.js)
-   über eine eigene Supabase-Tabelle, da player_data per RLS nur
-   für den eigenen Nutzer lesbar ist (siehe supabase_schema_highscores.sql).
+   über eine eigene Supabase-Tabelle (siehe
+   supabase_schema_highscores.sql). Der eigentliche Punktestand
+   in der Cloud wird serverseitig über die increment_highscore()-
+   Funktion um einen festen Wert erhöht (nicht direkt vom Client
+   gesetzt), damit niemand sich per Browser-Konsole einen
+   beliebigen Punktestand eintragen kann.
    ===================================================== */
 
 const HIGHSCORE_POINTS_PER_WIN = 10;
@@ -589,10 +593,8 @@ async function syncHighscoreToCloud() {
             return;
         }
 
-        await supabaseClient.from("highscores").upsert({
-            user_id: session.user.id,
-            player_name: player.name || "Abenteurer",
-            points: player.highscorePoints,
+        await supabaseClient.rpc("increment_highscore", {
+            player_name_input: player.name || "Abenteurer",
         });
 
     } catch (error) {
