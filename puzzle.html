@@ -300,8 +300,13 @@
                         <h2>Einstellungen</h2>
 
                         <div class="field">
-                            <label for="fileInput">Eigenes Bild</label>
-                            <label class="upload-btn" for="fileInput">📤 Bild auswählen</label>
+                            <label for="fileInput">Bild für das Puzzle</label>
+                            <div class="image-source-buttons">
+                                <label class="upload-btn" for="fileInput">📤 Hochladen</label>
+                                <button type="button" class="upload-btn secondary" id="galleryPickBtn">
+                                    🖼️ Aus der Galerie
+                                </button>
+                            </div>
                             <input
                                 type="file"
                                 id="fileInput"
@@ -459,6 +464,29 @@
                 </div>
             </div>
 
+            <div class="image-picker-overlay" id="imagePickerOverlay">
+                <div class="image-picker-card">
+
+                    <button type="button" class="image-picker-close" id="imagePickerClose" aria-label="Schließen">
+                        ×
+                    </button>
+
+                    <h2>Bild auswählen</h2>
+
+                    <section class="image-picker-section">
+                        <h3>Meine Bilder</h3>
+                        <p class="image-picker-hint" id="imagePickerMineHint" hidden></p>
+                        <div class="image-picker-grid" id="imagePickerMineGrid"></div>
+                    </section>
+
+                    <section class="image-picker-section">
+                        <h3>Bilder aus Mirelon</h3>
+                        <div class="image-picker-grid" id="imagePickerSiteGrid"></div>
+                    </section>
+
+                </div>
+            </div>
+
         </div>
 
     </main>
@@ -474,6 +502,7 @@
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
     <script src="JS/puzzle.js"></script>
+    <script src="JS/puzzle-image-picker.js"></script>
 
 
 </body>

@@ -287,6 +287,10 @@
     cursor: not-allowed;
 }
 
+.puzzle-app .image-source-buttons {
+    display: flex;
+    gap: 8px;
+}
 .puzzle-app .upload-btn {
     display: flex;
     align-items: center;
@@ -303,12 +307,23 @@
     font-size: 14px;
     box-shadow: 0 4px 12px var(--shadow-color, rgba(0, 0, 0, 0.18));
     transition: filter 0.15s ease, transform 0.1s ease;
+    font-family: inherit;
 }
 .puzzle-app .upload-btn:hover {
     filter: brightness(1.08);
 }
 .puzzle-app .upload-btn:active {
     transform: scale(0.98);
+}
+.puzzle-app .upload-btn.secondary {
+    background: var(--panel-2);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow: none;
+}
+.puzzle-app .upload-btn.secondary:hover {
+    filter: none;
+    border-color: var(--accent);
 }
 .puzzle-app input[type='file'] {
     display: none;
@@ -797,4 +812,126 @@
     color: var(--ink-soft);
     line-height: 1.55;
     margin-bottom: 22px;
+}
+
+/* =====================================================
+   BILDAUSWAHL-MODAL (Upload / Galerie)
+   ===================================================== */
+
+.puzzle-app .image-picker-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1550;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+}
+.puzzle-app .image-picker-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.puzzle-app .image-picker-card {
+    position: relative;
+    background: linear-gradient(180deg, var(--paper), var(--paper-2));
+    color: var(--ink);
+    border-radius: 18px;
+    padding: 32px 34px;
+    max-width: 640px;
+    width: 100%;
+    max-height: min(720px, 86vh);
+    overflow-y: auto;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--line);
+    transform: translateY(10px) scale(0.96);
+    transition: transform 0.3s ease;
+    text-align: left;
+}
+.puzzle-app .image-picker-overlay.show .image-picker-card {
+    transform: translateY(0) scale(1);
+}
+.puzzle-app .image-picker-card h2 {
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 18px;
+    padding-right: 30px;
+}
+.puzzle-app .image-picker-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--panel-2);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+.puzzle-app .image-picker-close:hover {
+    background: var(--accent);
+    color: #ffffff;
+}
+.puzzle-app .image-picker-section {
+    margin-bottom: 22px;
+}
+.puzzle-app .image-picker-section:last-child {
+    margin-bottom: 0;
+}
+.puzzle-app .image-picker-section h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--ink);
+}
+.puzzle-app .image-picker-hint {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+}
+.puzzle-app .image-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    gap: 10px;
+}
+.puzzle-app .image-picker-thumb {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: var(--panel-2);
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+    font-family: inherit;
+}
+.puzzle-app .image-picker-thumb:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+.puzzle-app .image-picker-thumb img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+.puzzle-app .image-picker-thumb span {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    line-height: 1.3;
+}
+@media (max-width: 480px) {
+    .puzzle-app .image-source-buttons {
+        flex-direction: column;
+    }
 }

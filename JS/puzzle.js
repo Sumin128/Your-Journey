@@ -136,19 +136,82 @@
     updateEdgeVisibility();
   });
 
+  const maxImageSize = 6000;
+  const maxRenderSize = 2500;
+
+  const rejectImage = (message) => {
+    fileInput.value = '';
+    uploadStatus.textContent = message;
+    uploadStatus.classList.remove('ready');
+  };
+
+  // Gemeinsame Ladepipeline fuer ein Bild, egal ob es vom eigenen
+  // Rechner hochgeladen (dataURL) oder aus der Galerie gewaehlt wurde
+  // (lokaler Seiten-Pfad oder signierte Supabase-URL fuer eigene Bilder).
+  function useImageAsSource(rawSrc, label) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      if (
+        img.naturalWidth > maxImageSize ||
+        img.naturalHeight > maxImageSize
+      ) {
+        rejectImage('Das Bild darf höchstens 6000 × 6000 Pixel groß sein.');
+        return;
+      }
+
+      let imageSource = rawSrc;
+      const scale = Math.min(
+        1,
+        maxRenderSize / Math.max(img.naturalWidth, img.naturalHeight)
+      );
+      if (scale < 1) {
+        const resizeCanvas = document.createElement('canvas');
+        resizeCanvas.width = Math.round(img.naturalWidth * scale);
+        resizeCanvas.height = Math.round(img.naturalHeight * scale);
+        resizeCanvas
+          .getContext('2d')
+          .drawImage(img, 0, 0, resizeCanvas.width, resizeCanvas.height);
+        try {
+          imageSource = resizeCanvas.toDataURL('image/png', 0.9);
+        } catch (err) {
+          rejectImage('Dieses Bild kann leider nicht verwendet werden.');
+          return;
+        }
+      }
+
+      const preparedImg = new Image();
+      preparedImg.crossOrigin = 'anonymous';
+      preparedImg.onload = () => {
+        sourceImg = preparedImg;
+        difficultySelect.disabled = false;
+        nozzleSelect.disabled = false;
+        thumbImg.src = imageSource;
+        ghostImg.src = imageSource;
+        thumbPrev.classList.add('show');
+        vorlageImg.src = imageSource;
+        buildBtn.disabled = false;
+        uploadStatus.textContent = 'Bild bereit: ' + label;
+        uploadStatus.classList.add('ready');
+        updateGridLabel();
+      };
+      preparedImg.src = imageSource;
+    };
+    img.onerror = () => {
+      rejectImage('Bild konnte nicht geladen werden.');
+    };
+    img.src = rawSrc;
+  }
+
+  window.MirelonPuzzle = {
+    setSourceImage: useImageAsSource,
+  };
+
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     const maxFileSize = 10 * 1024 * 1024;
-    const maxImageSize = 6000;
-    const maxRenderSize = 2500;
-
-    const rejectImage = (message) => {
-      fileInput.value = '';
-      uploadStatus.textContent = message;
-      uploadStatus.classList.remove('ready');
-    };
 
     if (!allowedTypes.includes(file.type)) {
       rejectImage('Bitte JPG, PNG oder WEBP auswählen.');
@@ -161,48 +224,7 @@
 
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const img = new Image();
-      img.onload = () => {
-        if (
-          img.naturalWidth > maxImageSize ||
-          img.naturalHeight > maxImageSize
-        ) {
-          rejectImage('Das Bild darf höchstens 6000 × 6000 Pixel groß sein.');
-          return;
-        }
-
-        let imageSource = ev.target.result;
-        const scale = Math.min(
-          1,
-          maxRenderSize / Math.max(img.naturalWidth, img.naturalHeight)
-        );
-        if (scale < 1) {
-          const resizeCanvas = document.createElement('canvas');
-          resizeCanvas.width = Math.round(img.naturalWidth * scale);
-          resizeCanvas.height = Math.round(img.naturalHeight * scale);
-          resizeCanvas
-            .getContext('2d')
-            .drawImage(img, 0, 0, resizeCanvas.width, resizeCanvas.height);
-          imageSource = resizeCanvas.toDataURL(file.type, 0.9);
-        }
-
-        const preparedImg = new Image();
-        preparedImg.onload = () => {
-          sourceImg = preparedImg;
-          difficultySelect.disabled = false;
-          nozzleSelect.disabled = false;
-          thumbImg.src = imageSource;
-          ghostImg.src = imageSource;
-          thumbPrev.classList.add('show');
-          vorlageImg.src = imageSource;
-          buildBtn.disabled = false;
-          uploadStatus.textContent = 'Bild bereit: ' + file.name;
-          uploadStatus.classList.add('ready');
-          updateGridLabel();
-        };
-        preparedImg.src = imageSource;
-      };
-      img.src = ev.target.result;
+      useImageAsSource(ev.target.result, file.name);
     };
     reader.readAsDataURL(file);
   });
