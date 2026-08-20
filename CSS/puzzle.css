@@ -158,12 +158,29 @@
 }
 
 .puzzle-app header.top {
+    position: relative;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 20px;
     margin-bottom: 26px;
     flex-wrap: wrap;
+}
+.puzzle-app .luis-mascot {
+    position: absolute;
+    left: 0;
+    top: -8px;
+    width: 130px;
+    height: auto;
+    transition: opacity 0.25s ease;
+}
+.puzzle-app .luis-mascot.is-fading {
+    opacity: 0;
+}
+@media (max-width: 760px) {
+    .puzzle-app .luis-mascot {
+        display: none;
+    }
 }
 .puzzle-app header.top .brand-mark {
     display: flex;

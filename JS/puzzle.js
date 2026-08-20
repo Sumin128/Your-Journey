@@ -105,9 +105,33 @@
   const difficultySelect = document.getElementById('difficultySelect');
   const audioToggle = document.getElementById('audioToggle');
   const edgeToggle = document.getElementById('edgeToggle');
+  const luisMascot = document.getElementById('luisMascot');
+
+  // Luis traegt zu jedem Oberflaechen-Design die passende Farbe. Die
+  // Bilder sind transparent (nur Chamaeleon + Ast), daher reicht ein
+  // sanftes Aus-/Einblenden statt eines harten Bildwechsels.
+  const luisThemeImages = {
+    'emerald-green': 'images/chameleon_luis_green.png',
+    'azure-blue': 'images/chameleon_luis_blue.png',
+    orange: 'images/chameleon_luis_orange.png',
+    red: 'images/chameleon_luis_red.png',
+    minimal: 'images/chameleon_luis_grey.png',
+  };
+
+  function setLuisTheme(theme) {
+    if (!luisMascot) return;
+    const nextSrc = luisThemeImages[theme] || luisThemeImages['emerald-green'];
+    if (luisMascot.src.endsWith(nextSrc)) return;
+    luisMascot.classList.add('is-fading');
+    setTimeout(() => {
+      luisMascot.src = nextSrc;
+      luisMascot.classList.remove('is-fading');
+    }, 250);
+  }
 
   themeSelect.addEventListener('change', (e) => {
     puzzleApp.setAttribute('data-theme', e.target.value);
+    setLuisTheme(e.target.value);
   });
 
   audioToggle.addEventListener('click', () => {
