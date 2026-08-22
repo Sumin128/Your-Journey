@@ -2,13 +2,11 @@
    BUG-MELDER
    Schwebender Marienkäfer-Button, der auf jeder Seite
    per JavaScript erzeugt wird. Öffnet ein kleines
-   Formular und verschickt die Meldung automatisch
-   per Formspree (Fallback: E-Mail-Programm).
+   Formular und speichert die Meldung in Supabase (Tabelle
+   "bugs"). Nutzt den globalen supabaseClient aus JS/auth.js,
+   das auf jeder Seite schon vor diesem Skript geladen wird -
+   keine eigene Supabase-Verbindung noetig.
    ===================================================== */
-
-const BUG_REPORT_EMAIL = "simon.walbroehl@gmail.com";
-
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/meajrbwv";
 
 function createBugReporter() {
 
@@ -82,28 +80,6 @@ function createBugReporter() {
     });
 
 
-    function buildReportText(type, text) {
-
-        return "Typ: " + type + "\n" +
-            "Seite: " + document.title + "\n" +
-            "Link: " + location.href + "\n\n" +
-            "Beschreibung:\n" + text;
-
-    }
-
-    function sendViaMailto(type, text) {
-
-        const subject = "Mirelon – Bug: " + type;
-
-        const mailtoLink =
-            "mailto:" + BUG_REPORT_EMAIL +
-            "?subject=" + encodeURIComponent(subject) +
-            "&body=" + encodeURIComponent(buildReportText(type, text));
-
-        window.location.href = mailtoLink;
-
-    }
-
     function resetAndClose() {
 
         textField.value = "";
@@ -129,47 +105,36 @@ function createBugReporter() {
         sendButton.disabled = true;
         statusText.textContent = "Sende...";
 
-        fetch(FORMSPREE_ENDPOINT, {
+        (async function () {
 
-            method: "POST",
+            const { error } = await supabaseClient
+                .from("bugs")
+                .insert([
+                    {
+                        title: type,
+                        description: text,
+                        category: type,
+                        email: "",
+                        browser: navigator.userAgent,
+                        device: navigator.platform,
+                        url: location.href
+                    }
+                ]);
 
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
+            if (error) {
+                throw error;
+            }
 
-            body: JSON.stringify({
-                type: type,
-                message: text,
-                page: document.title,
-                url: location.href
-            })
+            statusText.textContent = "Danke! Dein Bug wurde gemeldet. 🐞";
+            resetAndClose();
 
-        })
-            .then(function (response) {
-
-                if (!response.ok) {
-                    throw new Error("Formspree Fehler");
-                }
-
-                statusText.textContent = "Danke! Dein Bug wurde gemeldet. 🐞";
-
-                resetAndClose();
-
-            })
-            .catch(function () {
-
-                statusText.textContent = "Versand fehlgeschlagen – öffne E-Mail-Programm...";
-
-                sendViaMailto(type, text);
-
-                resetAndClose();
-
+        })()
+            .catch(function (error) {
+                console.error(error);
+                statusText.textContent = "Fehler beim Senden.";
             })
             .finally(function () {
-
                 sendButton.disabled = false;
-
             });
 
     });
