@@ -827,7 +827,8 @@ const puzzleGalleryImages = [
     "Kuros Nest",
     "Olivias Eulenschule",
     "Faros Fuchsbau",
-    "Bärental"
+    "Bärental",
+    "Luis"
 ];
 
 const puzzleGalleryAchievement = {

@@ -27,6 +27,7 @@
         { label: "Olivias Eulenschule", src: "images/eulenschule.png" },
         { label: "Faros Fuchsbau", src: "images/faros_fuchsbau3.png" },
         { label: "Bärental", src: "images/baerenthal.png" },
+        { label: "Luis", src: "images/luis_chameleon.png" },
     ];
 
     function createThumb(src, label, isGalleryImage) {
