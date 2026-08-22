@@ -372,6 +372,8 @@ function createAccountPanel() {
 
                     <input id="reset-password" class="yj-input" type="password" placeholder="Neues Passwort (mind. 6 Zeichen)" autocomplete="new-password" minlength="6" required>
 
+                    <input id="reset-password-repeat" class="yj-input" type="password" placeholder="Neues Passwort wiederholen" autocomplete="new-password" minlength="6" required>
+
                     <button type="submit" class="yj-button yj-button--wide">
                         Passwort speichern
                     </button>
@@ -577,6 +579,12 @@ function wireAccountForms() {
             event.preventDefault();
 
             const newPassword = document.getElementById("reset-password").value;
+            const newPasswordRepeat = document.getElementById("reset-password-repeat").value;
+
+            if (newPassword !== newPasswordRepeat) {
+                setAccountMessage("Die beiden Passwörter stimmen nicht überein.", true);
+                return;
+            }
 
             setAccountMessage("Einen Moment …", false);
 
