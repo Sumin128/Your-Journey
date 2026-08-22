@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="images/magischer_baum_von_mirelon%20-favicon.png">
+
+    <link
+        rel="stylesheet"
+        href="CSS/style.css?v=2">
+
+    <link
+        rel="stylesheet"
+        href="CSS/components/index.css?v=5">
+
+    <title>Authentifizierung erfolgreich – Mirelon</title>
+
+    <style>
+        /* Diese Seite hat bewusst keine Sidebar (nicht ueber die
+           Navigation erreichbar, nur als Ziel fuer Bestaetigungs-
+           Links aus Supabase-E-Mails gedacht) - daher hier der
+           sonst fuer die Sidebar reservierte linke Rand entfernt. */
+        main {
+            margin-left: 0;
+            justify-content: center;
+        }
+
+        .auth-success-card {
+            max-width: 440px;
+            padding: 44px 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .auth-success-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .auth-success-card p {
+            color: var(--yj-color-ink-soft);
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+         AUTHENTIFIZIERUNG ERFOLGREICH
+         Kein Link von irgendwo auf der Seite - das hier ist das
+         Ziel, auf das Supabase nach Bestaetigung einer E-Mail
+         (Registrierung, Passwort zuruecksetzen, ...) weiterleitet.
+         Die Redirect-URL dafuer wird im Supabase-Dashboard unter
+         Authentication -> URL Configuration eingetragen.
+         ===================================================== -->
+
+    <main id="auth-success-main" class="yj-page">
+
+        <section class="auth-success-card yj-panel yj-panel--paper yj-enter">
+
+            <div class="auth-success-icon" aria-hidden="true">✅</div>
+
+            <h1>Authentifizierung erfolgreich</h1>
+
+            <p>
+                Dein Konto wurde bestätigt. Du kannst dieses Fenster
+                jetzt schließen oder direkt weiterziehen.
+            </p>
+
+            <a href="index.html" class="yj-button yj-button--wide">
+                Weiter zu Mirelon
+            </a>
+
+        </section>
+
+    </main>
+
+
+</body>
+
+</html>
