@@ -74,22 +74,46 @@
 
         <section class="auth-success-card yj-panel yj-panel--paper yj-enter">
 
-            <div class="auth-success-icon" aria-hidden="true">✅</div>
+            <div class="auth-success-icon" aria-hidden="true">🌳</div>
 
-            <h1>Authentifizierung erfolgreich</h1>
+            <h1>Willkommen in Mirelon!</h1>
 
             <p>
-                Dein Konto wurde bestätigt. Du kannst dieses Fenster
-                jetzt schließen oder direkt weiterziehen.
+                Deine E-Mail wurde erfolgreich bestätigt.
+                Dein Konto ist jetzt aktiviert und du kannst
+                dein Abenteuer beginnen.
             </p>
 
-            <a href="index.html" class="yj-button yj-button--wide">
-                Weiter zu Mirelon
+            <a href="index.html" class="yj-button yj-button--wide" data-auth-only hidden>
+                🪶 Welt betreten
             </a>
+
+            <button type="button" id="auth-success-login-btn" class="yj-button yj-button--wide" data-guest-only>
+                🪶 Jetzt anmelden
+            </button>
 
         </section>
 
     </main>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         Laedt auth.js, damit hier erkannt wird, ob die
+         Bestaetigung den Nutzer schon automatisch eingeloggt
+         hat (dann "Welt betreten") oder nicht (dann oeffnet
+         "Jetzt anmelden" das normale Anmelde-Fenster).
+         ===================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="JS/player.js?v=3"></script>
+    <script src="JS/auth.js"></script>
+
+    <script>
+        document.getElementById("auth-success-login-btn").addEventListener("click", function () {
+            openAccountPanel();
+        });
+    </script>
 
 
 </body>

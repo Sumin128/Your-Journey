@@ -121,7 +121,8 @@ async function signUpAccount(email, password, parentalConsent) {
             email: email,
             password: password,
             options: {
-                data: { parental_consent: true }
+                data: { parental_consent: true },
+                emailRedirectTo: window.location.origin + "/auth-success.html"
             }
         });
 
