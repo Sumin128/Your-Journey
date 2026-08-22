@@ -523,6 +523,17 @@ main {
 
 }
 
+.sidebar-logo{
+
+    height:64px;
+    width:auto;
+
+    display:block;
+
+    flex:0 0 auto;
+
+}
+
 #sidebar.open .sidebar-title{
 
     opacity:1;
