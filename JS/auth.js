@@ -197,8 +197,26 @@ async function requestPasswordReset(email) {
 
     const { error } =
         await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + window.location.pathname
+            redirectTo: window.location.origin + "/reset-password.html"
         });
+
+    if (error) {
+        return { error: error.message };
+    }
+
+    return { success: true };
+
+}
+
+
+async function updateEmail(newEmail) {
+
+    if (!supabaseClient) {
+        return { error: "Konto-Funktion gerade nicht verfügbar." };
+    }
+
+    const { error } =
+        await supabaseClient.auth.updateUser({ email: newEmail });
 
     if (error) {
         return { error: error.message };
@@ -261,6 +279,41 @@ function updateAuthUI() {
 }
 
 
+/* Uebersetzt die technischen (englischen) Supabase-Fehlermeldungen
+   in verstaendliche deutsche Hinweise. Unbekannte Meldungen kommen
+   unveraendert durch, damit nie eine leere Meldung angezeigt wird. */
+function friendlyAuthError(message) {
+
+    const knownMessages = {
+        "Invalid login credentials": "E-Mail oder Passwort ist falsch.",
+        "User already registered": "Für diese E-Mail-Adresse gibt es schon ein Konto.",
+        "Email not confirmed": "Bitte bestätige zuerst deine E-Mail-Adresse über den Link, den wir dir geschickt haben.",
+        "Password should be at least 6 characters": "Das Passwort muss mindestens 6 Zeichen haben.",
+        "Unable to validate email address: invalid format": "Das ist keine gültige E-Mail-Adresse.",
+        "Auth session missing!": "Der Link ist abgelaufen oder ungültig. Fordere einen neuen Link an."
+    };
+
+    if (knownMessages[message]) {
+        return knownMessages[message];
+    }
+
+    if (/network|fetch/i.test(message)) {
+        return "Keine Verbindung möglich. Prüf deine Internetverbindung und versuch's nochmal.";
+    }
+
+    if (/rate limit|only request this after/i.test(message)) {
+        return "Bitte warte einen Moment, bevor du es erneut versuchst.";
+    }
+
+    if (/expired|invalid.*(link|token)/i.test(message)) {
+        return "Der Link ist abgelaufen oder ungültig. Fordere einen neuen Link an.";
+    }
+
+    return message;
+
+}
+
+
 function setAccountMessage(text, isError) {
 
     const messageEl = document.getElementById("account-message");
@@ -312,6 +365,39 @@ function createAccountPanel() {
 
                 <p data-auth-status></p>
 
+                <details class="account-change-section">
+
+                    <summary>E-Mail ändern</summary>
+
+                    <form id="account-change-email-form" class="account-form">
+
+                        <input id="change-email-new" class="yj-input" type="email" placeholder="Neue E-Mail-Adresse" autocomplete="email" required>
+
+                        <button type="submit" class="yj-button yj-button--compact">
+                            E-Mail ändern
+                        </button>
+
+                    </form>
+
+                </details>
+
+                <details class="account-change-section">
+
+                    <summary>Passwort ändern</summary>
+
+                    <form id="account-change-password-form" class="account-form">
+
+                        <input id="change-password-new" class="yj-input" type="password" placeholder="Neues Passwort (mind. 6 Zeichen)" autocomplete="new-password" minlength="6" required>
+                        <input id="change-password-repeat" class="yj-input" type="password" placeholder="Neues Passwort wiederholen" autocomplete="new-password" minlength="6" required>
+
+                        <button type="submit" class="yj-button yj-button--compact">
+                            Passwort ändern
+                        </button>
+
+                    </form>
+
+                </details>
+
                 <button id="account-logout" type="button" class="yj-button yj-button--compact">
                     Abmelden
                 </button>
@@ -353,6 +439,7 @@ function createAccountPanel() {
 
                     <input id="signup-email" class="yj-input" type="email" placeholder="E-Mail eines Elternteils" autocomplete="email" required>
                     <input id="signup-password" class="yj-input" type="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="new-password" minlength="6" required>
+                    <input id="signup-password-repeat" class="yj-input" type="password" placeholder="Passwort wiederholen" autocomplete="new-password" minlength="6" required>
 
                     <label class="account-consent">
                         <input type="checkbox" id="signup-consent" required>
@@ -481,6 +568,8 @@ function wireAccountForms() {
     const loginForm = document.getElementById("account-login-form");
     const signupForm = document.getElementById("account-signup-form");
     const resetForm = document.getElementById("account-reset-form");
+    const changeEmailForm = document.getElementById("account-change-email-form");
+    const changePasswordForm = document.getElementById("account-change-password-form");
     const logoutButton = document.getElementById("account-logout");
     const forgotButton = document.getElementById("account-forgot-password");
     const closeButton = document.getElementById("account-panel-close");
@@ -524,7 +613,7 @@ function wireAccountForms() {
             const result = await signInAccount(email, password);
 
             if (result.error) {
-                setAccountMessage(result.error, true);
+                setAccountMessage(friendlyAuthError(result.error), true);
                 return;
             }
 
@@ -544,14 +633,20 @@ function wireAccountForms() {
 
             const email = document.getElementById("signup-email").value.trim();
             const password = document.getElementById("signup-password").value;
+            const passwordRepeat = document.getElementById("signup-password-repeat").value;
             const consent = document.getElementById("signup-consent").checked;
+
+            if (password !== passwordRepeat) {
+                setAccountMessage("Die beiden Passwörter stimmen nicht überein.", true);
+                return;
+            }
 
             setAccountMessage("Einen Moment …", false);
 
             const result = await signUpAccount(email, password, consent);
 
             if (result.error) {
-                setAccountMessage(result.error, true);
+                setAccountMessage(friendlyAuthError(result.error), true);
                 return;
             }
 
@@ -591,7 +686,7 @@ function wireAccountForms() {
             const result = await setNewPassword(newPassword);
 
             if (result.error) {
-                setAccountMessage(result.error, true);
+                setAccountMessage(friendlyAuthError(result.error), true);
                 return;
             }
 
@@ -605,6 +700,63 @@ function wireAccountForms() {
             if (loginFormEl) loginFormEl.hidden = false;
 
             updateAuthUI();
+
+        });
+
+    }
+
+    if (changeEmailForm) {
+
+        changeEmailForm.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            const newEmail = document.getElementById("change-email-new").value.trim();
+
+            setAccountMessage("Einen Moment …", false);
+
+            const result = await updateEmail(newEmail);
+
+            if (result.error) {
+                setAccountMessage(friendlyAuthError(result.error), true);
+                return;
+            }
+
+            setAccountMessage(
+                "Bestätige die neue Adresse über den Link, den wir dir geschickt haben.",
+                false
+            );
+            changeEmailForm.reset();
+
+        });
+
+    }
+
+    if (changePasswordForm) {
+
+        changePasswordForm.addEventListener("submit", async function (event) {
+
+            event.preventDefault();
+
+            const newPassword = document.getElementById("change-password-new").value;
+            const newPasswordRepeat = document.getElementById("change-password-repeat").value;
+
+            if (newPassword !== newPasswordRepeat) {
+                setAccountMessage("Die beiden Passwörter stimmen nicht überein.", true);
+                return;
+            }
+
+            setAccountMessage("Einen Moment …", false);
+
+            const result = await setNewPassword(newPassword);
+
+            if (result.error) {
+                setAccountMessage(friendlyAuthError(result.error), true);
+                return;
+            }
+
+            setAccountMessage("Passwort geändert!", false);
+            changePasswordForm.reset();
 
         });
 
@@ -626,7 +778,7 @@ function wireAccountForms() {
             const result = await requestPasswordReset(email);
 
             if (result.error) {
-                setAccountMessage(result.error, true);
+                setAccountMessage(friendlyAuthError(result.error), true);
                 return;
             }
 
