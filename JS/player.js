@@ -920,8 +920,17 @@ function registerAnimalGuessWin() {
    ===================================================== */
 
 const memoryCompletionAchievements = [
-    { count: 1, name: "Memory-Neuling", description: "Spiele Memory auf Normal 1 Mal.", icon: "🧠" },
-    { count: 5, name: "Memory-Profi", description: "Spiele Memory auf Normal 5 Mal.", icon: "🃏" }
+    { difficulty: "normal", count: 1, name: "Memory-Neuling", description: "Spiele Memory auf Normal 1 Mal.", icon: "🧠" },
+    { difficulty: "normal", count: 5, name: "Memory-Profi", description: "Spiele Memory auf Normal 5 Mal.", icon: "🃏" },
+    { difficulty: "normal", count: 10, name: "Memory-Meister", description: "Spiele Memory auf Normal 10 Mal.", icon: "🏅" },
+
+    { difficulty: "schwer", count: 1, name: "Herausforderer", description: "Spiele Memory auf Schwer 1 Mal.", icon: "🔥" },
+    { difficulty: "schwer", count: 5, name: "Kartenprofi", description: "Spiele Memory auf Schwer 5 Mal.", icon: "🎴" },
+    { difficulty: "schwer", count: 10, name: "Schwer-Champion", description: "Spiele Memory auf Schwer 10 Mal.", icon: "🏆" },
+
+    { difficulty: "extraschwer", count: 1, name: "Wagemutig", description: "Spiele Memory auf Extra Schwer 1 Mal.", icon: "💀" },
+    { difficulty: "extraschwer", count: 5, name: "Gedächtniskünstler", description: "Spiele Memory auf Extra Schwer 5 Mal.", icon: "🧩" },
+    { difficulty: "extraschwer", count: 10, name: "Memory-Legende", description: "Spiele Memory auf Extra Schwer 10 Mal.", icon: "👑" }
 ];
 
 function registerMemoryCompletion(difficulty) {
@@ -938,23 +947,27 @@ function registerMemoryCompletion(difficulty) {
 
     player.memoryGamesCompleted[level]++;
 
-    addFeathers(level === "schwer" ? 5 : 1);
+    let memoryReward = 1;
+
+    if (level === "schwer") {
+        memoryReward = 5;
+    } else if (level === "extraschwer") {
+        memoryReward = 10;
+    }
+
+    addFeathers(memoryReward);
 
     awardHighscorePoints();
 
-    if (level === "normal") {
+    const unlockedAchievement = memoryCompletionAchievements.find(function (achievement) {
 
-        const unlockedAchievement = memoryCompletionAchievements.find(function (achievement) {
+        return achievement.difficulty === level && achievement.count === player.memoryGamesCompleted[level];
 
-            return achievement.count === player.memoryGamesCompleted.normal;
+    });
 
-        });
+    if (unlockedAchievement) {
 
-        if (unlockedAchievement) {
-
-            addAchievement(unlockedAchievement.name);
-
-        }
+        addAchievement(unlockedAchievement.name);
 
     }
 

@@ -1,26 +1,38 @@
 /* =====================================================
    MEMORY BEI TESSA
-   Klassisches Memory in zwei Schwierigkeitsgraden:
+   Klassisches Memory in drei Schwierigkeitsgraden:
    - Normal: 6 Kartenpaare (12 Karten), Deck 1
    - Schwer: 12 Kartenpaare (24 Karten), Deck 2
+   - Extra Schwer: 18 Kartenpaare (36 Karten), Deck 1 + Deck 2
    Bei jeder Runde werden die Karten neu gemischt.
    ===================================================== */
+
+const MEMORY_DECK_1_IDS = ["faro", "luis", "magical", "kuro", "tessa", "house"];
+
+const MEMORY_DECK_2_IDS = [
+    "bau", "boat", "branos", "bruecke", "eule", "hoehle",
+    "igel", "lantern", "nest", "schloss", "squirrel", "zelt"
+];
 
 const MEMORY_DIFFICULTIES = {
     normal: {
         label: "Normal",
         path: "images/memory/deck1/",
         columns: 3,
-        ids: ["faro", "luis", "magical", "kuro", "tessa", "house"]
+        ids: MEMORY_DECK_1_IDS
     },
     schwer: {
         label: "Schwer",
         path: "images/memory/deck2/",
         columns: 6,
-        ids: [
-            "bau", "boat", "branos", "bruecke", "eule", "hoehle",
-            "igel", "lantern", "nest", "schloss", "squirrel", "zelt"
-        ]
+        ids: MEMORY_DECK_2_IDS
+    },
+    extraschwer: {
+        label: "Extra Schwer",
+        path: "images/memory/",
+        columns: 6,
+        ids: MEMORY_DECK_1_IDS.map(function (id) { return "deck1/" + id; })
+            .concat(MEMORY_DECK_2_IDS.map(function (id) { return "deck2/" + id; }))
     }
 };
 
