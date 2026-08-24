@@ -22,11 +22,11 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=5">
+        href="CSS/style.css?v=10">
 
     <link
         rel="stylesheet"
-        href="CSS/components/index.css?v=8">
+        href="CSS/components/index.css?v=9">
 
     <title>Tessas Hasenschule – Mirelon</title>
 
@@ -263,7 +263,7 @@
 
 
     <!-- =====================================================
-         HOPPELS HASENBAU
+         TESSAS HASENSCHULE
          ===================================================== -->
 
     <main id="hase-main" class="yj-page">
@@ -303,19 +303,84 @@
 
             <div id="tessa-dialog">
 
-                <h1>Tessas Wörterraten</h1>
+                <h1>Tessas Hasenschule</h1>
 
                 <p id="tessa-text">
-                    Willkommen in meinem Hasenschule.
-                    Gemeinsam entdecken wir heute ein neues Wort.
+                    Willkommen in meiner Hasenschule.
+                    Welches Spiel möchtest du heute spielen?
                 </p>
+
+                <button
+                    id="hase-start-button"
+                    type="button"
+                    class="yj-button yj-button--wide">
+                    Spiele entdecken
+                </button>
 
             </div>
 
         </section>
 
 
-        <section id="word-game" class="game-panel yj-panel yj-panel--paper">
+        <section
+            id="hase-game-menu"
+            class="game-panel yj-panel yj-panel--paper"
+            hidden>
+
+            <h2>Tessas Spiele</h2>
+            <p>Welches Spiel möchtest du spielen?</p>
+
+            <div class="hase-menu-grid">
+
+                <article class="hase-menu-card">
+
+                    <div class="hase-menu-icon">📖</div>
+
+                    <div class="hase-menu-info">
+                        <h3>Wörterraten</h3>
+                        <p>Errate das gesuchte Wort, bevor dir die Herzen ausgehen.</p>
+                    </div>
+
+                    <button
+                        id="start-wordgame-button"
+                        type="button"
+                        class="yj-button">
+                        Spielen ➜
+                    </button>
+
+                </article>
+
+                <article class="hase-menu-card">
+
+                    <div class="hase-menu-icon">🧠</div>
+
+                    <div class="hase-menu-info">
+                        <h3>Memory</h3>
+                        <p>Finde die passenden Kartenpaare.</p>
+                    </div>
+
+                    <button
+                        id="start-memory-button"
+                        type="button"
+                        class="yj-button">
+                        Spielen ➜
+                    </button>
+
+                </article>
+
+            </div>
+
+            <button
+                id="back-to-tessa"
+                type="button"
+                class="yj-button yj-button--secondary yj-button--wide">
+                ← &nbsp; Zurück zu Tessa
+            </button>
+
+        </section>
+
+
+        <section id="word-game" class="game-panel yj-panel yj-panel--paper" hidden>
 
             <div id="difficulty-select">
 
@@ -348,6 +413,13 @@
                     </button>
 
                 </div>
+
+                <button
+                    id="back-to-hase-menu"
+                    type="button"
+                    class="yj-button yj-button--secondary">
+                    ← Spiel verlassen
+                </button>
 
             </div>
 
@@ -390,6 +462,82 @@
 
         </section>
 
+
+        <section id="memory-game" class="game-panel yj-panel yj-panel--paper" hidden>
+
+            <div id="memory-difficulty-select">
+
+                <h2>Wähle deine Schwierigkeit</h2>
+
+                <div id="memory-difficulty-buttons">
+
+                    <button
+                        class="yj-button memory-difficulty-button"
+                        type="button"
+                        data-memory-difficulty="normal">
+                        🌼 Normal
+                        <small>6 Kartenpaare · 12 Karten</small>
+                    </button>
+
+                    <button
+                        class="yj-button memory-difficulty-button"
+                        type="button"
+                        data-memory-difficulty="schwer">
+                        🔥 Schwer
+                        <small>12 Kartenpaare · 24 Karten</small>
+                    </button>
+
+                </div>
+
+                <button
+                    id="back-to-hase-menu-from-memory"
+                    type="button"
+                    class="yj-button yj-button--secondary">
+                    ← Spiel verlassen
+                </button>
+
+            </div>
+
+
+            <div id="memory-play" class="is-hidden">
+
+                <h2>Memory</h2>
+                <p id="memory-intro-text">Finde alle Kartenpaare!</p>
+
+                <div id="memory-status">
+
+                    <span id="memory-moves">Versuche: 0</span>
+                    <span id="memory-pairs">Paare: 0 / 6</span>
+
+                </div>
+
+                <div id="memory-board" aria-label="Memory-Spielfeld"></div>
+
+                <p id="memory-result-message" aria-live="polite"></p>
+
+                <div id="memory-actions">
+
+                    <button
+                        id="memory-restart-button"
+                        type="button"
+                        class="yj-button yj-button--compact"
+                        hidden>
+                        🔄 Nochmal spielen
+                    </button>
+
+                    <button
+                        id="change-memory-difficulty-button"
+                        type="button"
+                        class="yj-button yj-button--secondary yj-button--compact">
+                        🔄 Schwierigkeit wechseln
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
     </main>
 
     <!-- =====================================================
@@ -397,13 +545,14 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=5"></script>
+    <script src="JS/player.js?v=7"></script>
     <script src="JS/auth.js"></script>
     <script src="JS/sidebar.js"></script>
     <script src="JS/bugreport.js"></script>
     <script src="JS/sounds.js"></script>
     <script src="JS/words.js?v=1"></script>
-    <script src="JS/eulenschule.js?v=3"></script>
+    <script src="JS/eulenschule.js?v=6"></script>
+    <script src="JS/memory.js"></script>
 </body>
 </html>
 

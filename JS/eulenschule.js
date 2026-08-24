@@ -34,6 +34,85 @@ function updateHasenschulePlayer() {
 updateHasenschulePlayer();
 window.addEventListener("player-updated", updateHasenschulePlayer);
 
+
+/* =====================================================
+   1b. BILDSCHIRM-NAVIGATION
+   Tessas Hasenschule funktioniert wie Branos' Bärental:
+   Begrüßung -> Spielmenü -> gewähltes Spiel (Wörterraten
+   oder Memory, siehe JS/memory.js).
+   ===================================================== */
+
+const tessaIntro = document.getElementById("tessa-intro");
+const haseGameMenu = document.getElementById("hase-game-menu");
+const wordGameSection = document.getElementById("word-game");
+const memoryGameSection = document.getElementById("memory-game");
+
+const haseStartButton = document.getElementById("hase-start-button");
+const startWordgameButton = document.getElementById("start-wordgame-button");
+const startMemoryButton = document.getElementById("start-memory-button");
+const backToTessaButton = document.getElementById("back-to-tessa");
+const backToHaseMenuButton = document.getElementById("back-to-hase-menu");
+const backToHaseMenuFromMemoryButton = document.getElementById("back-to-hase-menu-from-memory");
+
+if (haseStartButton) {
+    haseStartButton.addEventListener("click", function () {
+
+        tessaIntro.hidden = true;
+        haseGameMenu.hidden = false;
+
+    });
+}
+
+if (startMemoryButton) {
+    startMemoryButton.addEventListener("click", function () {
+
+        haseGameMenu.hidden = true;
+        memoryGameSection.hidden = false;
+
+        if (typeof showMemoryDifficultySelect === "function") {
+            showMemoryDifficultySelect();
+        }
+
+    });
+}
+
+if (backToHaseMenuFromMemoryButton) {
+    backToHaseMenuFromMemoryButton.addEventListener("click", function () {
+
+        memoryGameSection.hidden = true;
+        haseGameMenu.hidden = false;
+
+    });
+}
+
+if (backToTessaButton) {
+    backToTessaButton.addEventListener("click", function () {
+
+        haseGameMenu.hidden = true;
+        tessaIntro.hidden = false;
+
+    });
+}
+
+if (startWordgameButton) {
+    startWordgameButton.addEventListener("click", function () {
+
+        haseGameMenu.hidden = true;
+        wordGameSection.hidden = false;
+
+    });
+}
+
+if (backToHaseMenuButton) {
+    backToHaseMenuButton.addEventListener("click", function () {
+
+        wordGameSection.hidden = true;
+        haseGameMenu.hidden = false;
+
+    });
+}
+
+
 /* 2. ELEMENTE AUS DEM HTML */
 
 const difficultySelect = document.getElementById("difficulty-select");

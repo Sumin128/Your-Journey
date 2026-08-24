@@ -48,6 +48,12 @@ let player = {
 
     puzzleGalleryImagesUsed: [],
 
+    memoryGamesCompleted: {
+
+        normal: 0
+
+    },
+
     highscorePoints: 0,
 
     berries: 0,
@@ -158,6 +164,25 @@ if (typeof player.items.unicornCursor === "undefined") {
     player.items.unicornCursor = false;
 
 }
+
+    /* Falls ältere Speicherstände noch kein memoryGamesCompleted haben */
+
+    if (!player.memoryGamesCompleted) {
+
+        player.memoryGamesCompleted = {
+
+            normal: 0
+
+        };
+
+    }
+
+    if (typeof player.memoryGamesCompleted.normal !== "number") {
+
+        player.memoryGamesCompleted.normal = 0;
+
+    }
+
 
     /* Falls ältere Speicherstände keine Freunde haben */
 
@@ -620,13 +645,25 @@ async function syncHighscoreToCloud() {
             return;
         }
 
-        await supabaseClient.rpc("increment_highscore", {
+        const rpcResult = await supabaseClient.rpc("increment_highscore", {
             player_name_input: player.name || "Abenteurer",
         });
 
+        if (rpcResult.error) {
+
+            // Bestenliste ist ein Bonus-Feature - darf das Spiel nicht
+            // sichtbar stoeren, aber der Fehler soll wenigstens in der
+            // Konsole auftauchen, statt komplett spurlos zu verschwinden
+            // (supabase.rpc() wirft bei einem serverseitigen Fehler keine
+            // Exception, sondern liefert nur {error} im Ergebnis zurueck).
+
+            console.warn("Bestenliste konnte nicht aktualisiert werden:", rpcResult.error);
+
+        }
+
     } catch (error) {
 
-        // Bestenliste ist ein Bonus-Feature - darf das Spiel nicht stören.
+        console.warn("Bestenliste konnte nicht aktualisiert werden:", error);
 
     }
 
@@ -832,6 +869,54 @@ function registerAnimalGuessWin() {
 
 
 /* =====================================================
+   MEMORY BEI TESSA
+   Wird von JS/memory.js aufgerufen, wenn eine Memory-
+   Runde fertig gespielt wurde (alle Paare gefunden).
+   ===================================================== */
+
+const memoryCompletionAchievements = [
+    { count: 1, name: "Memory-Neuling", description: "Spiele Memory auf Normal 1 Mal.", icon: "🧠" },
+    { count: 5, name: "Memory-Profi", description: "Spiele Memory auf Normal 5 Mal.", icon: "🃏" }
+];
+
+function registerMemoryCompletion(difficulty) {
+
+    const level = difficulty || "normal";
+
+    if (!player.memoryGamesCompleted) {
+        player.memoryGamesCompleted = {};
+    }
+
+    if (typeof player.memoryGamesCompleted[level] !== "number") {
+        player.memoryGamesCompleted[level] = 0;
+    }
+
+    player.memoryGamesCompleted[level]++;
+
+    addFeathers(level === "schwer" ? 5 : 1);
+
+    awardHighscorePoints();
+
+    if (level === "normal") {
+
+        const unlockedAchievement = memoryCompletionAchievements.find(function (achievement) {
+
+            return achievement.count === player.memoryGamesCompleted.normal;
+
+        });
+
+        if (unlockedAchievement) {
+
+            addAchievement(unlockedAchievement.name);
+
+        }
+
+    }
+
+}
+
+
+/* =====================================================
    PUZZLE-ERFOLGE
    Wird von JS/puzzle.js aufgerufen, wenn ein Puzzle
    fertig gelöst wurde.
@@ -952,7 +1037,7 @@ const achievementCatalog = quizCompletionAchievements.concat([
     wordGameMasterAchievement
 ]).concat(puzzleCompletionAchievements).concat([
     puzzleGalleryAchievement
-]).concat(featherMilestoneAchievements).concat(shopItemAchievements);
+]).concat(featherMilestoneAchievements).concat(shopItemAchievements).concat(memoryCompletionAchievements);
 
 
 /* =====================================================
