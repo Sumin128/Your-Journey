@@ -271,48 +271,110 @@ const inventoryButton =
 
             <button
                 id="inventory-close"
-                type="button">
+                type="button"
+                aria-label="Inventar schließen">
                 ✕
             </button>
 
         </div>
 
-        <div class="inventory-items">
+        <div class="inventory-categories" role="group" aria-label="Kategorie filtern">
 
-            <button
-                id="inventory-fox-cursor"
-                class="inventory-item"
-                type="button">
-                🦊 Fuchs-Cursor
-            </button>
+            <button type="button" class="inventory-category-chip is-active" data-category="all" aria-pressed="true">Alle</button>
+            <button type="button" class="inventory-category-chip" data-category="cursor" aria-pressed="false">🖱 Cursor</button>
+            <button type="button" class="inventory-category-chip" data-category="items" aria-pressed="false">🎁 Items</button>
 
-            <button
-                id="inventory-bear-cursor"
-                class="inventory-item"
-                type="button">
-                🐻 Bären-Cursor
-            </button>
+        </div>
 
-            <button
-                id="inventory-unicorn-cursor"
-                class="inventory-item"
-                type="button">
-                <img src="Icons/Cursor/unicorn_cursor.png" alt="" class="inventory-icon--title" loading="lazy" decoding="async"> Einhorn-Cursor
-            </button>
+        <div class="inventory-body">
 
-            <button
-                id="inventory-kuro-cursor"
-                class="inventory-item"
-                type="button">
-                <img src="Icons/Cursor/kuro_cursor.png" alt="" class="inventory-icon--title" loading="lazy" decoding="async"> Kuro-Cursor
-            </button>
+            <div class="inventory-items">
 
-            <button
-                id="inventory-default-cursor"
-                class="inventory-item"
-                type="button">
-                🖱️ Standard-Cursor
-            </button>
+                <button
+                    id="inventory-fox-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <span class="inventory-item-icon" aria-hidden="true">🦊</span>
+                    <span class="inventory-item-name">Fuchs</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-bear-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <span class="inventory-item-icon" aria-hidden="true">🐻</span>
+                    <span class="inventory-item-name">Bär</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-unicorn-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <img src="Icons/Cursor/unicorn_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
+                    <span class="inventory-item-name">Einhorn</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-kuro-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <img src="Icons/Cursor/kuro_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
+                    <span class="inventory-item-name">Kuro</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-hasen-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <img src="Icons/Cursor/hasen_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
+                    <span class="inventory-item-name">Hase</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-golden-feather-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <img src="Icons/Cursor/golden_feather_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
+                    <span class="inventory-item-name">Goldene Feder</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-blackgolden-feather-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <img src="Icons/Cursor/blackgolden_feather_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
+                    <span class="inventory-item-name">Schwarzgoldene Feder</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-default-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <span class="inventory-item-icon" aria-hidden="true">🖱️</span>
+                    <span class="inventory-item-name">Standard</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+            </div>
+
+            <p class="inventory-empty-state" hidden>
+                Hier erscheinen bald neue Gegenstände! 🎁
+            </p>
 
         </div>
     `;
@@ -334,6 +396,10 @@ if (inventoryButton && inventoryPanel) {
 
         inventoryPanel.hidden = !inventoryPanel.hidden;
 
+        if (!inventoryPanel.hidden) {
+            updateInventoryUI();
+        }
+
     });
 
 }
@@ -348,6 +414,118 @@ if (inventoryClose && inventoryPanel) {
 
 }
 
+
+/* =====================================================
+   INVENTAR: KATEGORIE-FILTER
+   ===================================================== */
+
+const inventoryCategoryChips =
+    document.querySelectorAll(".inventory-category-chip");
+
+let activeInventoryCategory = "all";
+
+inventoryCategoryChips.forEach(function (chip) {
+
+    chip.addEventListener("click", function () {
+
+        activeInventoryCategory = chip.dataset.category;
+
+        inventoryCategoryChips.forEach(function (otherChip) {
+
+            const isActive = otherChip === chip;
+
+            otherChip.classList.toggle("is-active", isActive);
+            otherChip.setAttribute("aria-pressed", String(isActive));
+
+        });
+
+        updateInventoryUI();
+
+    });
+
+});
+
+
+/* =====================================================
+   INVENTAR: CURSOR-DEFINITIONEN
+   Eine Quelle der Wahrheit für Anzeige (Name, Kategorie,
+   Besitz-Prüfung) - die Kauf-/Aktivierungslogik selbst
+   bleibt unverändert in setCursor()/shop.js.
+   ===================================================== */
+
+const INVENTORY_CURSORS = [
+    { id: "inventory-fox-cursor", name: "fox", label: "Fuchs", owned: function () { return Boolean(player.items && player.items.foxCursor); } },
+    { id: "inventory-bear-cursor", name: "bear", label: "Bär", owned: function () { return Boolean(player.items && player.items.bearCursor); } },
+    { id: "inventory-unicorn-cursor", name: "unicorn", label: "Einhorn", owned: function () { return Boolean(player.items && player.items.unicornCursor); } },
+    { id: "inventory-kuro-cursor", name: "kuro", label: "Kuro", owned: function () { return Boolean(player.items && player.items.kuroCursor); } },
+    { id: "inventory-hasen-cursor", name: "hasen", label: "Hase", owned: function () { return Boolean(player.items && player.items.hasenCursor); } },
+    { id: "inventory-golden-feather-cursor", name: "goldenfeather", label: "Goldene Feder", owned: function () { return Boolean(player.items && player.items.goldenFeatherCursor); } },
+    { id: "inventory-blackgolden-feather-cursor", name: "blackgoldenfeather", label: "Schwarzgoldene Feder", owned: function () { return Boolean(player.items && player.items.blackGoldenFeatherCursor); } },
+    { id: "inventory-default-cursor", name: "default", label: "Standard", owned: function () { return true; } },
+];
+
+function updateInventoryUI() {
+
+    if (typeof player === "undefined" || !inventoryPanel) {
+        return;
+    }
+
+    let visibleCount = 0;
+
+    INVENTORY_CURSORS.forEach(function (entry) {
+
+        const button = document.getElementById(entry.id);
+
+        if (!button) {
+            return;
+        }
+
+        const isOwned = entry.owned();
+        const isActive = player.activeCursor === entry.name;
+        const matchesCategory =
+            activeInventoryCategory === "all" ||
+            activeInventoryCategory === button.dataset.category;
+
+        button.hidden = !matchesCategory;
+
+        if (matchesCategory) {
+            visibleCount++;
+        }
+
+        button.disabled = !isOwned;
+        button.classList.toggle("is-active", isActive);
+        button.classList.toggle("is-locked", !isOwned);
+
+        const statusEl = button.querySelector(".inventory-item-status");
+
+        if (statusEl) {
+
+            statusEl.textContent =
+                isActive ? "✓ Aktiv" : (isOwned ? "" : "🔒 Gesperrt");
+
+        }
+
+        let ariaLabel = entry.label + "-Cursor";
+
+        if (isActive) {
+            ariaLabel += ", aktiv";
+        } else if (!isOwned) {
+            ariaLabel += ", gesperrt, im Laden erhältlich";
+        }
+
+        button.setAttribute("aria-label", ariaLabel);
+
+    });
+
+    const emptyState =
+        inventoryPanel.querySelector(".inventory-empty-state");
+
+    if (emptyState) {
+        emptyState.hidden = visibleCount > 0;
+    }
+
+}
+
 const inventoryFoxCursorButton =
     document.getElementById("inventory-fox-cursor");
 
@@ -359,6 +537,15 @@ const inventoryBearCursorButton =
 
     const inventoryKuroCursorButton =
     document.getElementById("inventory-kuro-cursor");
+
+    const inventoryHasenCursorButton =
+    document.getElementById("inventory-hasen-cursor");
+
+    const inventoryGoldenFeatherCursorButton =
+    document.getElementById("inventory-golden-feather-cursor");
+
+    const inventoryBlackGoldenFeatherCursorButton =
+    document.getElementById("inventory-blackgolden-feather-cursor");
 
 const inventoryDefaultCursorButton =
     document.getElementById("inventory-default-cursor");
@@ -405,6 +592,36 @@ if (inventoryKuroCursorButton) {
 
 }
 
+if (inventoryHasenCursorButton) {
+
+    inventoryHasenCursorButton.addEventListener("click", function () {
+
+        setCursor("hasen");
+
+    });
+
+}
+
+if (inventoryGoldenFeatherCursorButton) {
+
+    inventoryGoldenFeatherCursorButton.addEventListener("click", function () {
+
+        setCursor("goldenfeather");
+
+    });
+
+}
+
+if (inventoryBlackGoldenFeatherCursorButton) {
+
+    inventoryBlackGoldenFeatherCursorButton.addEventListener("click", function () {
+
+        setCursor("blackgoldenfeather");
+
+    });
+
+}
+
 
 if (inventoryDefaultCursorButton) {
 
@@ -415,3 +632,11 @@ if (inventoryDefaultCursorButton) {
     });
 
 }
+
+
+updateInventoryUI();
+
+window.addEventListener(
+    "player-updated",
+    updateInventoryUI
+);

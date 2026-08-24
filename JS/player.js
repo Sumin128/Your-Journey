@@ -64,9 +64,7 @@ let player = {
 
     settings: {
 
-        soundOn: true,
-
-        theme: "light"
+        soundOn: true
 
     },
 
@@ -75,7 +73,10 @@ let player = {
     foxCursor: false,
     bearCursor: false,
      unicornCursor: false,
-    kuroCursor: false
+    kuroCursor: false,
+    hasenCursor: false,
+    goldenFeatherCursor: false,
+    blackGoldenFeatherCursor: false
 },
 
     friends: {
@@ -172,6 +173,24 @@ if (typeof player.items.kuroCursor === "undefined") {
 
 }
 
+if (typeof player.items.hasenCursor === "undefined") {
+
+    player.items.hasenCursor = false;
+
+}
+
+if (typeof player.items.goldenFeatherCursor === "undefined") {
+
+    player.items.goldenFeatherCursor = false;
+
+}
+
+if (typeof player.items.blackGoldenFeatherCursor === "undefined") {
+
+    player.items.blackGoldenFeatherCursor = false;
+
+}
+
     /* Falls ältere Speicherstände noch kein memoryGamesCompleted haben */
 
     if (!player.memoryGamesCompleted) {
@@ -265,11 +284,6 @@ if (typeof player.items.kuroCursor === "undefined") {
     }
 
 
-    if (player.settings.theme !== "dark") {
-
-        player.settings.theme = "light";
-
-    }
 
 }
 
@@ -491,45 +505,6 @@ function setSoundOn(value) {
     player.settings.soundOn = Boolean(value);
 
     savePlayer();
-
-    window.dispatchEvent(
-        new CustomEvent("player-updated")
-    );
-
-}
-
-
-/* =====================================================
-   8c. DUNKELMODUS
-   ===================================================== */
-
-function isDarkMode() {
-
-    return Boolean(
-        player.settings &&
-        player.settings.theme === "dark"
-    );
-
-}
-
-
-function applyTheme() {
-
-    document.documentElement.setAttribute(
-        "data-theme",
-        isDarkMode() ? "dark" : "light"
-    );
-
-}
-
-
-function setDarkMode(value) {
-
-    player.settings.theme = value ? "dark" : "light";
-
-    savePlayer();
-
-    applyTheme();
 
     window.dispatchEvent(
         new CustomEvent("player-updated")
@@ -1071,7 +1046,7 @@ function applyCursor() {
         player.items.bearCursor === true
     ) {
         cursor =
-            "url('Icons/Cursor/bear_cursor.png') 4 4, auto";
+            "url('Icons/Cursor/bear_cursor.png') 8 12, auto";
     }
 
 
@@ -1092,6 +1067,36 @@ function applyCursor() {
     ) {
         cursor =
             "url('Icons/Cursor/kuro_cursor.png') 6 37, auto";
+    }
+
+
+    if (
+        player.activeCursor === "hasen" &&
+        player.items &&
+        player.items.hasenCursor === true
+    ) {
+        cursor =
+            "url('Icons/Cursor/hasen_cursor.png') 17 10, auto";
+    }
+
+
+    if (
+        player.activeCursor === "goldenfeather" &&
+        player.items &&
+        player.items.goldenFeatherCursor === true
+    ) {
+        cursor =
+            "url('Icons/Cursor/golden_feather_cursor.png') 13 14, auto";
+    }
+
+
+    if (
+        player.activeCursor === "blackgoldenfeather" &&
+        player.items &&
+        player.items.blackGoldenFeatherCursor === true
+    ) {
+        cursor =
+            "url('Icons/Cursor/blackgolden_feather_cursor.png') 10 13, auto";
     }
 
 
@@ -1184,6 +1189,63 @@ if (
 ) {
 
     player.activeCursor = "kuro";
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    return true;
+}
+
+
+// Hase
+if (
+    cursorName === "hasen" &&
+    player.items &&
+    player.items.hasenCursor
+) {
+
+    player.activeCursor = "hasen";
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    return true;
+}
+
+
+// Goldene Feder
+if (
+    cursorName === "goldenfeather" &&
+    player.items &&
+    player.items.goldenFeatherCursor
+) {
+
+    player.activeCursor = "goldenfeather";
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    return true;
+}
+
+
+// Schwarzgoldene Feder
+if (
+    cursorName === "blackgoldenfeather" &&
+    player.items &&
+    player.items.blackGoldenFeatherCursor
+) {
+
+    player.activeCursor = "blackgoldenfeather";
 
     savePlayer();
 
@@ -1346,13 +1408,6 @@ function initPlayer() {
     */
 
     applyCursor();
-
-
-    /*
-       4. Gespeicherten Farbmodus anwenden
-    */
-
-    applyTheme();
 
 }
 

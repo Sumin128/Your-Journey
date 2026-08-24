@@ -49,6 +49,24 @@ const kuroCursorButton =
 
 const kuroCursorPrice = 90;
 
+
+const hasenCursorButton =
+    document.querySelector("#hasen-cursor-button");
+
+const hasenCursorPrice = 100;
+
+
+const goldenFeatherCursorButton =
+    document.querySelector("#golden-feather-cursor-button");
+
+const goldenFeatherCursorPrice = 300;
+
+
+const blackGoldenFeatherCursorButton =
+    document.querySelector("#blackgolden-feather-cursor-button");
+
+const blackGoldenFeatherCursorPrice = 300;
+
 /* =====================================================
    KUROS LADEN
    Kauf Funktion für den Bärencursor
@@ -238,6 +256,258 @@ function updateKuroCursorButton() {
 
 /* =====================================================
    KUROS LADEN
+   Kauf Funktion für den Hasen-Cursor
+   ===================================================== */
+
+function buyHasenCursor() {
+
+    if (player.items.hasenCursor) {
+
+        player.activeCursor = "hasen";
+
+        savePlayer();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        applyCursor();
+
+        updateHasenCursorButton();
+
+        return;
+    }
+
+    if (player.feathers < hasenCursorPrice) {
+
+        alert("Du hast nicht genug Federn.");
+
+        return;
+    }
+
+    player.feathers -= hasenCursorPrice;
+
+    player.items.hasenCursor = true;
+
+    player.activeCursor = "hasen";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    updateShopPlayer();
+
+    updateHasenCursorButton();
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Update des Hasen-Cursor Buttons
+   ===================================================== */
+
+function updateHasenCursorButton() {
+
+    if (!hasenCursorButton) {
+        return;
+    }
+
+    if (!player.items.hasenCursor) {
+
+        hasenCursorButton.textContent = "Kaufen";
+        hasenCursorButton.disabled = false;
+
+        return;
+    }
+
+    if (player.activeCursor === "hasen") {
+
+        hasenCursorButton.textContent = "Aktiv";
+        hasenCursorButton.disabled = true;
+
+    } else {
+
+        hasenCursorButton.textContent = "Aktivieren";
+        hasenCursorButton.disabled = false;
+
+    }
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Kauf Funktion für den Goldene-Feder-Cursor
+   ===================================================== */
+
+function buyGoldenFeatherCursor() {
+
+    if (player.items.goldenFeatherCursor) {
+
+        player.activeCursor = "goldenfeather";
+
+        savePlayer();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        applyCursor();
+
+        updateGoldenFeatherCursorButton();
+
+        return;
+    }
+
+    if (player.feathers < goldenFeatherCursorPrice) {
+
+        alert("Du hast nicht genug Federn.");
+
+        return;
+    }
+
+    player.feathers -= goldenFeatherCursorPrice;
+
+    player.items.goldenFeatherCursor = true;
+
+    player.activeCursor = "goldenfeather";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    updateShopPlayer();
+
+    updateGoldenFeatherCursorButton();
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Update des Goldene-Feder-Cursor Buttons
+   ===================================================== */
+
+function updateGoldenFeatherCursorButton() {
+
+    if (!goldenFeatherCursorButton) {
+        return;
+    }
+
+    if (!player.items.goldenFeatherCursor) {
+
+        goldenFeatherCursorButton.textContent = "Kaufen";
+        goldenFeatherCursorButton.disabled = false;
+
+        return;
+    }
+
+    if (player.activeCursor === "goldenfeather") {
+
+        goldenFeatherCursorButton.textContent = "Aktiv";
+        goldenFeatherCursorButton.disabled = true;
+
+    } else {
+
+        goldenFeatherCursorButton.textContent = "Aktivieren";
+        goldenFeatherCursorButton.disabled = false;
+
+    }
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Kauf Funktion für den Schwarzgoldene-Feder-Cursor
+   ===================================================== */
+
+function buyBlackGoldenFeatherCursor() {
+
+    if (player.items.blackGoldenFeatherCursor) {
+
+        player.activeCursor = "blackgoldenfeather";
+
+        savePlayer();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        applyCursor();
+
+        updateBlackGoldenFeatherCursorButton();
+
+        return;
+    }
+
+    if (player.feathers < blackGoldenFeatherCursorPrice) {
+
+        alert("Du hast nicht genug Federn.");
+
+        return;
+    }
+
+    player.feathers -= blackGoldenFeatherCursorPrice;
+
+    player.items.blackGoldenFeatherCursor = true;
+
+    player.activeCursor = "blackgoldenfeather";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    updateShopPlayer();
+
+    updateBlackGoldenFeatherCursorButton();
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Update des Schwarzgoldene-Feder-Cursor Buttons
+   ===================================================== */
+
+function updateBlackGoldenFeatherCursorButton() {
+
+    if (!blackGoldenFeatherCursorButton) {
+        return;
+    }
+
+    if (!player.items.blackGoldenFeatherCursor) {
+
+        blackGoldenFeatherCursorButton.textContent = "Kaufen";
+        blackGoldenFeatherCursorButton.disabled = false;
+
+        return;
+    }
+
+    if (player.activeCursor === "blackgoldenfeather") {
+
+        blackGoldenFeatherCursorButton.textContent = "Aktiv";
+        blackGoldenFeatherCursorButton.disabled = true;
+
+    } else {
+
+        blackGoldenFeatherCursorButton.textContent = "Aktivieren";
+        blackGoldenFeatherCursorButton.disabled = false;
+
+    }
+
+}
+
+/* =====================================================
+   KUROS LADEN
    Update des Bärencursor Buttons
    ===================================================== */
 
@@ -389,6 +659,9 @@ updateFoxCursorButton();
 updateBearCursorButton();
 updateUnicornCursorButton();
 updateKuroCursorButton();
+updateHasenCursorButton();
+updateGoldenFeatherCursorButton();
+updateBlackGoldenFeatherCursorButton();
 
 if (foxCursorButton) {
     foxCursorButton.addEventListener("click", buyFoxCursor);
@@ -404,6 +677,18 @@ if (unicornCursorButton) {
 
 if (kuroCursorButton) {
     kuroCursorButton.addEventListener("click", buyKuroCursor);
+}
+
+if (hasenCursorButton) {
+    hasenCursorButton.addEventListener("click", buyHasenCursor);
+}
+
+if (goldenFeatherCursorButton) {
+    goldenFeatherCursorButton.addEventListener("click", buyGoldenFeatherCursor);
+}
+
+if (blackGoldenFeatherCursorButton) {
+    blackGoldenFeatherCursorButton.addEventListener("click", buyBlackGoldenFeatherCursor);
 }
 
 window.addEventListener(

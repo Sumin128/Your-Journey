@@ -130,22 +130,6 @@
     }
 
 
-    const darkToggle =
-        document.getElementById("dark-toggle");
-
-    if (darkToggle) {
-
-        darkToggle.checked = isDarkMode();
-
-        darkToggle.addEventListener("change", function () {
-
-            setDarkMode(darkToggle.checked);
-
-        });
-
-    }
-
-
     /* =====================================================
        DESIGN: SIDEBAR-FARBTHEME
        Die eigentliche Anwenden-/Speichern-Logik (inkl.
