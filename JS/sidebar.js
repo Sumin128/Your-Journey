@@ -267,7 +267,7 @@ const inventoryButton =
     panel.innerHTML = `
         <div class="inventory-header">
 
-            <h2><img src="images/inventar.png" alt="" class="inventory-icon inventory-icon--title"> Dein Rucksack</h2>
+            <h2><img src="Icons/Sidebar/inventar.png" alt="" class="inventory-icon inventory-icon--title" loading="lazy" decoding="async"> Dein Inventar</h2>
 
             <button
                 id="inventory-close"
@@ -297,7 +297,14 @@ const inventoryButton =
                 id="inventory-unicorn-cursor"
                 class="inventory-item"
                 type="button">
-                <img src="Icons/Cursor/unicorn_cursor.png" alt="" class="inventory-icon--title"> Einhorn-Cursor
+                <img src="Icons/Cursor/unicorn_cursor.png" alt="" class="inventory-icon--title" loading="lazy" decoding="async"> Einhorn-Cursor
+            </button>
+
+            <button
+                id="inventory-kuro-cursor"
+                class="inventory-item"
+                type="button">
+                <img src="Icons/Cursor/kuro_cursor.png" alt="" class="inventory-icon--title" loading="lazy" decoding="async"> Kuro-Cursor
             </button>
 
             <button
@@ -350,6 +357,9 @@ const inventoryBearCursorButton =
     const inventoryUnicornCursorButton =
     document.getElementById("inventory-unicorn-cursor");
 
+    const inventoryKuroCursorButton =
+    document.getElementById("inventory-kuro-cursor");
+
 const inventoryDefaultCursorButton =
     document.getElementById("inventory-default-cursor");
 
@@ -380,6 +390,16 @@ if (inventoryUnicornCursorButton) {
     inventoryUnicornCursorButton.addEventListener("click", function () {
 
         setCursor("unicorn");
+
+    });
+
+}
+
+if (inventoryKuroCursorButton) {
+
+    inventoryKuroCursorButton.addEventListener("click", function () {
+
+        setCursor("kuro");
 
     });
 

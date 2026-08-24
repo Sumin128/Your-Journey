@@ -42,6 +42,13 @@ const unicornCursorButton =
     document.querySelector("#unicorn-cursor-button");
 
 const unicornCursorPrice = 200;
+
+
+const kuroCursorButton =
+    document.querySelector("#kuro-cursor-button");
+
+const kuroCursorPrice = 90;
+
 /* =====================================================
    KUROS LADEN
    Kauf Funktion für den Bärencursor
@@ -142,6 +149,90 @@ function buyUnicornCursor() {
     updateShopPlayer();
 
     updateUnicornCursorButton();
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Kauf Funktion für den Kuro-Cursor
+   ===================================================== */
+
+function buyKuroCursor() {
+
+    if (player.items.kuroCursor) {
+
+        player.activeCursor = "kuro";
+
+        savePlayer();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        applyCursor();
+
+        updateKuroCursorButton();
+
+        return;
+    }
+
+    if (player.feathers < kuroCursorPrice) {
+
+        alert("Du hast nicht genug Federn.");
+
+        return;
+    }
+
+    player.feathers -= kuroCursorPrice;
+
+    player.items.kuroCursor = true;
+
+    player.activeCursor = "kuro";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    updateShopPlayer();
+
+    updateKuroCursorButton();
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Update des Kuro-Cursor Buttons
+   ===================================================== */
+
+function updateKuroCursorButton() {
+
+    if (!kuroCursorButton) {
+        return;
+    }
+
+    if (!player.items.kuroCursor) {
+
+        kuroCursorButton.textContent = "Kaufen";
+        kuroCursorButton.disabled = false;
+
+        return;
+    }
+
+    if (player.activeCursor === "kuro") {
+
+        kuroCursorButton.textContent = "Aktiv";
+        kuroCursorButton.disabled = true;
+
+    } else {
+
+        kuroCursorButton.textContent = "Aktivieren";
+        kuroCursorButton.disabled = false;
+
+    }
 
 }
 
@@ -297,6 +388,7 @@ updateFoxCursorButton();
 
 updateBearCursorButton();
 updateUnicornCursorButton();
+updateKuroCursorButton();
 
 if (foxCursorButton) {
     foxCursorButton.addEventListener("click", buyFoxCursor);
@@ -308,6 +400,10 @@ if (bearCursorButton) {
 
 if (unicornCursorButton) {
     unicornCursorButton.addEventListener("click", buyUnicornCursor);
+}
+
+if (kuroCursorButton) {
+    kuroCursorButton.addEventListener("click", buyKuroCursor);
 }
 
 window.addEventListener(

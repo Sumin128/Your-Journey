@@ -2046,6 +2046,7 @@ border:2px solid var(--yj-color-border);
 .shop-item-two { left: 68%; top: 58.5%; }
 .shop-item-three { left: 30%; top: 76%; }
 .shop-item-four { left: 68%; top: 76%; }
+.shop-item-five { left: 49%; top: 58.5%; }
 
 .shop-hotspot-icon {
     width: 100%;
@@ -2154,7 +2155,8 @@ span.shop-hotspot-icon.shop-hotspot-icon--emoji {
     .shop-item-one,
     .shop-item-two,
     .shop-item-three,
-    .shop-item-four {
+    .shop-item-four,
+    .shop-item-five {
         position: static;
         transform: none;
         width: auto;

@@ -34,6 +34,7 @@
     const toolButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-tool]");
     const fillButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-fill-mode]");
     const stampButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-stamp]");
+    const stampMotifGroup = document.getElementById("stamp-motif-group");
     const undoButton = document.getElementById("paint-undo-button");
     const clearButton = document.getElementById("paint-clear-button");
     const saveButton = document.getElementById("paint-save-button");
@@ -208,6 +209,10 @@
             });
 
             button.classList.add("is-active");
+
+            if (stampMotifGroup) {
+                stampMotifGroup.hidden = currentTool !== "stamp";
+            }
 
             updateCanvasCursor();
 

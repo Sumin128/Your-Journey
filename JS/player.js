@@ -74,7 +74,8 @@ let player = {
 
     foxCursor: false,
     bearCursor: false,
-     unicornCursor: false
+     unicornCursor: false,
+    kuroCursor: false
 },
 
     friends: {
@@ -162,6 +163,12 @@ if (typeof player.items.bearCursor === "undefined") {
 if (typeof player.items.unicornCursor === "undefined") {
 
     player.items.unicornCursor = false;
+
+}
+
+if (typeof player.items.kuroCursor === "undefined") {
+
+    player.items.kuroCursor = false;
 
 }
 
@@ -1078,6 +1085,16 @@ function applyCursor() {
 }
 
 
+    if (
+        player.activeCursor === "kuro" &&
+        player.items &&
+        player.items.kuroCursor === true
+    ) {
+        cursor =
+            "url('Icons/Cursor/kuro_cursor.png') 6 37, auto";
+    }
+
+
     document.documentElement.style.cursor = cursor;
     document.body.style.cursor = cursor;
 }
@@ -1148,6 +1165,25 @@ if (
 ) {
 
     player.activeCursor = "unicorn";
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    return true;
+}
+
+
+// Kuro
+if (
+    cursorName === "kuro" &&
+    player.items &&
+    player.items.kuroCursor
+) {
+
+    player.activeCursor = "kuro";
 
     savePlayer();
 
