@@ -3,6 +3,11 @@
 
   const puzzleApp = document.querySelector('.puzzle-app');
 
+  const puzzleSnapSound = new Audio(
+    new URL('../Sounds/47313572-ui-pop-sound-316482.mp3', document.currentScript.src).href
+  );
+  puzzleSnapSound.preload = 'auto';
+
   const Sound = {
     ctx: null,
     init() {
@@ -17,25 +22,10 @@
         document.getElementById('audioToggle').dataset.enabled !== 'true'
       )
         return;
-      this.init();
-      if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(
-        40,
-        this.ctx.currentTime + 0.08
-      );
-      gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(
-        0.01,
-        this.ctx.currentTime + 0.08
-      );
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.08);
+      puzzleSnapSound.currentTime = 0;
+      puzzleSnapSound.play().catch(function (error) {
+        console.warn('Der Einrast-Sound konnte nicht abgespielt werden.', error);
+      });
     },
     win() {
       if (
@@ -150,7 +140,7 @@
   edgeToggle.addEventListener('click', () => {
     const enabled = edgeToggle.dataset.enabled !== 'true';
     edgeToggle.dataset.enabled = String(enabled);
-    edgeToggle.classList.toggle('muted', !enabled);
+    edgeToggle.classList.toggle('muted', enabled);
     edgeToggle.setAttribute('aria-pressed', String(enabled));
     edgeToggle.setAttribute(
       'aria-label',
@@ -701,7 +691,7 @@
     if (placedEdges !== edgePieces.length) return;
 
     edgeToggle.dataset.enabled = 'false';
-    edgeToggle.classList.add('muted');
+    edgeToggle.classList.remove('muted');
     edgeToggle.setAttribute('aria-pressed', 'false');
     edgeToggle.setAttribute('aria-label', 'Nur Randteile aus');
     edgeToggle.title = 'Nur Randteile aus';
@@ -893,6 +883,7 @@
       }
 
       edgeToggle.dataset.enabled = 'false';
+      edgeToggle.classList.remove('muted');
       updateEdgeVisibility();
       pieces.forEach((piece, index) => {
         piece.locked = true;
