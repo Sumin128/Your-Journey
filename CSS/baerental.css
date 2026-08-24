@@ -177,7 +177,7 @@
 
     color: #ffe7b5;
 
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--yj-font-display);
     font-size: 24px;
     font-weight: bold;
 
@@ -305,7 +305,7 @@
         inset 0 0 35px rgba(111, 63, 24, 0.22),
         inset 0 0 8px rgba(78, 42, 17, 0.25);
 
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--yj-font-display);
 
     font-size: 18px;
     line-height: 1.6;
@@ -355,7 +355,7 @@
     width: 100%;
     min-height: calc(100vh - 120px);
 
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--yj-font-display);
 }
 
 
@@ -785,7 +785,7 @@
 
     color: #ffe2a5;
 
-    font-family: Georgia, "Times New Roman", serif;
+    font-family: var(--yj-font-display);
 
     font-weight: bold;
 

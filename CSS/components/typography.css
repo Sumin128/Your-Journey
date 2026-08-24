@@ -6,16 +6,31 @@
 :where(.yj-page, .yj-panel, .yj-card) h2,
 :where(.yj-page, .yj-panel, .yj-card) h3 {
     color: var(--yj-color-ink);
-    font-family: Georgia, "Times New Roman", serif;
-    letter-spacing: 0.015em;
+    font-family: var(--yj-font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
     text-wrap: balance;
 }
 
+:where(.yj-page, .yj-panel, .yj-card) h1 {
+    background: linear-gradient(135deg, var(--yj-color-ink) 20%, var(--yj-color-accent-dark) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.015em;
+}
+
 .yj-kicker {
-    color: var(--yj-color-ink-soft);
-    font-family: Georgia, "Times New Roman", serif;
-    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    border-radius: var(--yj-radius-pill);
+    background: rgba(244, 165, 49, 0.16);
+    color: var(--yj-color-accent-dark);
+    font-family: var(--yj-font-body);
+    font-size: 0.8rem;
+    font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
-

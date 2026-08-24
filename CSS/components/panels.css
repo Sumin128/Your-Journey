@@ -1,16 +1,16 @@
 .yj-panel {
     width: min(100%, var(--yj-content-width));
-    border: 2px solid var(--yj-color-border);
+    border: none;
     border-radius: var(--yj-radius-lg);
     background: var(--yj-color-paper-soft);
-    box-shadow: var(--yj-shadow-card);
+    box-shadow: 0 0 0 1.5px rgba(227, 178, 60, 0.4) inset, var(--yj-shadow-card);
     color: var(--yj-color-ink);
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
 }
 
 .yj-panel--paper {
     background:
-        radial-gradient(circle at top left, rgba(255, 255, 255, 0.5), transparent 42%),
-        rgba(248, 237, 215, 0.8);
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.6), transparent 42%),
+        rgba(253, 245, 231, 0.82);
 }
-

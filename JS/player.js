@@ -75,7 +75,7 @@ let player = {
 
         kuro: 0,
 
-        olivia: 0,
+        hoppel: 0,
 
         faro: 0
 
@@ -167,7 +167,7 @@ if (typeof player.items.unicornCursor === "undefined") {
 
             kuro: 0,
 
-            olivia: 0,
+            hoppel: 0,
 
             faro: 0
 
@@ -680,14 +680,14 @@ function registerQuizCompletion() {
 
 const animalFriends = [
     { id: "kuro", name: "Kuro" },
-    { id: "olivia", name: "Olivia" },
+    { id: "hoppel", name: "Hoppel" },
     { id: "faro", name: "Faro" },
     { id: "branos", name: "Branos" }
 ];
 
 const visitAllAnimalsAchievement = {
     name: "Alle Tiere besucht",
-    description: "Besuche Kuro, Olivia, Faro und Branos.",
+    description: "Besuche Kuro, Hoppel, Faro und Branos.",
     icon: "🐾"
 };
 
@@ -825,7 +825,7 @@ const puzzleCompletionAchievements = [
 const puzzleGalleryImages = [
     "Übersichtskarte",
     "Kuros Nest",
-    "Olivias Eulenschule",
+    "Hoppels Hasenbau",
     "Faros Fuchsbau",
     "Bärental",
     "Luis"
@@ -973,6 +973,8 @@ function setCursor(cursorName) {
 
         savePlayer();
 
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
         applyCursor();
 
         return true;
@@ -988,6 +990,8 @@ function setCursor(cursorName) {
         player.activeCursor = "fox";
 
         savePlayer();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
 
         applyCursor();
 
@@ -1005,6 +1009,8 @@ if (
 
     savePlayer();
 
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
     applyCursor();
 
     return true;
@@ -1021,6 +1027,8 @@ if (
     player.activeCursor = "unicorn";
 
     savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
     applyCursor();
 
@@ -1089,6 +1097,8 @@ function disableCustomCursor() {
         "default";
 
     savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
     applyCursor();
 

@@ -1,8 +1,7 @@
-@import url("./variables.css?v=2");
-@import url("./typography.css?v=2");
-@import url("./buttons.css?v=2");
-@import url("./cards.css?v=2");
-@import url("./panels.css?v=2");
-@import url("./animations.css?v=2");
-@import url("./responsive.css?v=4");
-
+@import url("./variables.css?v=5");
+@import url("./typography.css?v=4");
+@import url("./buttons.css?v=5");
+@import url("./cards.css?v=4");
+@import url("./panels.css?v=4");
+@import url("./animations.css?v=4");
+@import url("./responsive.css?v=6");

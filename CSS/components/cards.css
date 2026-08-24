@@ -1,26 +1,25 @@
 .yj-card {
-    border: 2px solid var(--yj-color-border);
+    border: none;
     border-radius: var(--yj-radius-lg);
     background:
-        linear-gradient(rgba(255, 247, 234, 0.86), rgba(241, 214, 168, 0.8)),
+        linear-gradient(rgba(255, 253, 248, 0.92), rgba(246, 224, 184, 0.85)),
         var(--yj-color-paper);
-    box-shadow: var(--yj-shadow-card);
+    box-shadow: 0 0 0 1.5px rgba(227, 178, 60, 0.45) inset, var(--yj-shadow-card);
     color: var(--yj-color-ink);
 }
 
 .yj-card--interactive {
-    transition: transform var(--yj-transition), box-shadow var(--yj-transition), filter var(--yj-transition);
+    transition: transform 320ms var(--yj-ease-spring), box-shadow 280ms var(--yj-ease-out), filter var(--yj-transition);
 }
 
 .yj-card--interactive:hover {
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.27);
-    filter: brightness(1.03);
-    transform: translateY(-5px);
+    box-shadow: 0 0 0 1.5px var(--yj-color-accent) inset, 0 4px 8px rgba(52, 33, 15, 0.12), 0 26px 48px -8px rgba(52, 33, 15, 0.35);
+    filter: brightness(1.04) saturate(1.08);
+    transform: translateY(-8px) scale(1.015);
 }
 
 .yj-card--paper {
     background:
-        radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.36), transparent 36%),
-        linear-gradient(135deg, #fff2c9, #efd29a);
+        radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.45), transparent 36%),
+        linear-gradient(135deg, #fff5d6, #f2d7a4);
 }
-

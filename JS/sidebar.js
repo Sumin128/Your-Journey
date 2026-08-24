@@ -37,7 +37,7 @@ const sidebarToggle =
 // "baumrinde" ist der Standard und bekommt bewusst KEIN data-theme-
 // Attribut (nutzt die Basiswerte direkt am #sidebar). Neue Themes
 // hier einfach ergänzen.
-const SIDEBAR_THEMES_WITH_ATTRIBUTE = ["smaragdwald", "zuckerwatte"];
+const SIDEBAR_THEMES_WITH_ATTRIBUTE = ["smaragdwald", "zuckerwatte", "azurblau"];
 
 function getSidebarTheme() {
 

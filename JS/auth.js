@@ -549,7 +549,7 @@ function createAccountIcon() {
     button.type = "button";
     button.title = "Konto";
     button.setAttribute("aria-label", "Konto öffnen");
-    button.textContent = "🔐";
+    button.innerHTML = '<img src="Icons/Sidebar/anmeldung.png" alt="" class="inventory-icon">';
 
     button.addEventListener("click", openAccountPanel);
 

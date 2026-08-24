@@ -55,6 +55,8 @@ function buyBearCursor() {
 
         savePlayer();
 
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
         applyCursor();
 
         updateBearCursorButton();
@@ -76,6 +78,8 @@ function buyBearCursor() {
     player.activeCursor = "bear";
 
     savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
     applyCursor();
 
@@ -99,6 +103,8 @@ function buyUnicornCursor() {
 
         savePlayer();
 
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
         applyCursor();
 
         updateUnicornCursorButton();
@@ -120,6 +126,8 @@ function buyUnicornCursor() {
     player.activeCursor = "unicorn";
 
     savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
     applyCursor();
 
@@ -175,6 +183,8 @@ function buyFoxCursor() {
 
         savePlayer();
 
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
         applyCursor();
 
         updateFoxCursorButton();
@@ -197,6 +207,8 @@ function buyFoxCursor() {
 
     savePlayer();
 
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
     applyCursor();
 
     updateShopPlayer();
@@ -211,6 +223,10 @@ function buyFoxCursor() {
    ===================================================== */ 
 
 function updateFoxCursorButton() {
+
+    if (!foxCursorButton) {
+        return;
+    }
 
     if (!player.items.foxCursor) {
 

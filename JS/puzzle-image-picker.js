@@ -22,9 +22,9 @@
 
     // Die gleichen Bilder wie auf der Galerie-Seite (galerie.html).
     const SITE_IMAGES = [
-        { label: "Übersichtskarte", src: "images/startseite_v3.png" },
+        { label: "Übersichtskarte", src: "images/startseite_v4.png" },
         { label: "Kuros Nest", src: "images/kuros_nest_final.png" },
-        { label: "Olivias Eulenschule", src: "images/eulenschule.png" },
+        { label: "Hoppels Hasenbau", src: "images/eulenschule.png" },
         { label: "Faros Fuchsbau", src: "images/faros_fuchsbau3.png" },
         { label: "Bärental", src: "images/baerenthal.png" },
         { label: "Luis", src: "images/luis_chameleon.png" },

@@ -47,7 +47,7 @@
        Bild warten muss. */
     const STAMP_IMAGE_SOURCES = {
         kuro: "images/Kuro_close.png",
-        olivia: "images/olivia_eule.png",
+        hoppel: "images/olivia_eule.png",
         faro: "images/faro1.png",
         branos: "images/branos.png"
     };

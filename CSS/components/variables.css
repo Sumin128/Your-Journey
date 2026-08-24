@@ -1,34 +1,80 @@
 :root {
-    --yj-color-ink: #3b2416;
+    --yj-color-ink: #34210f;
     --yj-color-ink-soft: #6b4a34;
     --yj-color-wood-dark: #4b260f;
     --yj-color-wood: #96501e;
     --yj-color-wood-light: #bc702d;
     --yj-color-gold: #ffe2a5;
-    --yj-color-paper: #f8edd7;
-    --yj-color-paper-soft: rgba(255, 247, 234, 0.78);
-    --yj-color-border: #c9a227;
-    --yj-color-success: #4caf50;
-    --yj-color-danger: #e53935;
+    --yj-color-paper: #fbf3e3;
+    --yj-color-paper-soft: rgba(255, 252, 246, 0.78);
+    --yj-color-border: #e3b23c;
+    --yj-color-success: #2fbf71;
+    --yj-color-danger: #ef4444;
 
-    /* Einheitlicher Gold-/Amber-Akzent (ersetzt die verstreuten
-       Orangetöne #b87333 / #d8893d / #d97745 aus den Einzelseiten) */
-    --yj-color-accent: #d99a3d;
-    --yj-color-accent-light: #f3d488;
-    --yj-color-accent-dark: #a8641f;
+    /* Kräftigerer, moderner Gold-/Amber-Akzent + frischer Smaragd
+       als zweite Akzentfarbe (Fokus-Ringe, Sekundär-Highlights,
+       Erfolgs-/Like-Momente) - farblich bewusst mutiger als vorher. */
+    --yj-color-accent: #f4a531;
+    --yj-color-accent-light: #ffd77a;
+    --yj-color-accent-dark: #c06a17;
+    --yj-color-accent-2: #23c98f;
+    --yj-color-accent-2-dark: #14996a;
+    --yj-color-magic: #b083f0;
 
     /* Heller, ruhiger Button-Grundton (Eierschale). Der Gold-Ring
        erscheint nur beim Hover, nicht dauerhaft. */
-    --yj-color-button-bg: #fdf8ec;
+    --yj-color-button-bg: #fffdf8;
     --yj-color-button-bg-disabled: #e8e0d2;
 
-    --yj-radius-sm: 10px;
-    --yj-radius-md: 18px;
-    --yj-radius-lg: 24px;
-    --yj-shadow-card: 0 10px 26px rgba(91, 58, 33, 0.22);
-    --yj-shadow-raised: 0 5px 0 var(--yj-color-accent-dark), 0 9px 15px rgba(91, 58, 33, 0.26);
-    --yj-transition: 160ms ease;
-    --yj-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    /* -------------------------------------------------
+       Typografie
+       ------------------------------------------------- */
+    --yj-font-display: "Fredoka", "Baloo 2", "Trebuchet MS", sans-serif;
+    --yj-font-body: "Nunito", "Trebuchet MS", Arial, sans-serif;
+
+    /* -------------------------------------------------
+       Abstands-Skala
+       ------------------------------------------------- */
+    --yj-space-xs: 6px;
+    --yj-space-sm: 12px;
+    --yj-space-md: 20px;
+    --yj-space-lg: 32px;
+    --yj-space-xl: 48px;
+
+    /* Spürbar rundere Formsprache - liest sich sofort "moderner". */
+    --yj-radius-sm: 14px;
+    --yj-radius-md: 24px;
+    --yj-radius-lg: 34px;
+    --yj-radius-xl: 44px;
+    --yj-radius-pill: 999px;
+
+    /* Weiche, mehrstufige Schatten statt eines einzelnen harten Wurfs.
+       Der "Glow" ist bewusst diffus wie Laternen-/Kerzenschein aus dem
+       Mirelon-Artwork, nicht wie ein scharfer Neon-Fokusring. */
+    --yj-shadow-sm: 0 2px 8px rgba(35, 20, 8, 0.22);
+    --yj-shadow-card: 0 1px 2px rgba(35, 20, 8, 0.08), 0 20px 44px -8px rgba(20, 10, 4, 0.4);
+    --yj-shadow-raised: 0 4px 0 var(--yj-color-accent-dark), 0 16px 28px rgba(35, 20, 8, 0.35);
+    --yj-shadow-float: 0 30px 70px -10px rgba(10, 6, 2, 0.55);
+    --yj-shadow-glow: 0 0 32px 4px rgba(255, 190, 100, 0.4), 0 8px 20px -4px rgba(35, 20, 8, 0.4);
+    --yj-shadow-glow-teal: 0 0 32px 4px rgba(120, 214, 170, 0.35), 0 8px 20px -4px rgba(35, 20, 8, 0.4);
+
+    /* Warmes Kerzen-/Laternenlicht statt reinem Neon-Gold. */
+    --yj-gradient-gold: linear-gradient(135deg, #ffe08a 0%, #f4a531 55%, #d97316 100%);
+    --yj-gradient-teal: linear-gradient(135deg, #9fe8c8 0%, #3fb98a 60%, #1f8f68 100%);
+    --yj-gradient-forest:
+        radial-gradient(60% 45% at 50% 8%, rgba(255, 200, 110, 0.18), transparent 65%),
+        radial-gradient(50% 40% at 88% 85%, rgba(70, 130, 90, 0.14), transparent 60%),
+        linear-gradient(180deg, #0c130a 0%, #1a1108 40%, #2c1a0d 70%, #3c2313 100%);
+
+    /* Dunkle Bildrand-Vignette + feines Korn, wie bei den gemalten
+       Mirelon-Artworks - zieht den Blick zur Mitte, wirkt "gefilmt"
+       statt flach. */
+    --yj-vignette:
+        radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(6, 4, 2, 0.55) 100%);
+    --yj-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+
+    --yj-transition: 200ms cubic-bezier(0.23, 1, 0.32, 1);
+    --yj-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --yj-ease-spring: cubic-bezier(0.34, 1.65, 0.64, 1);
     --yj-content-width: 920px;
 }
-
