@@ -24,7 +24,7 @@
     const SITE_IMAGES = [
         { label: "Übersichtskarte", src: "images/startseite_v4.png" },
         { label: "Kuros Nest", src: "images/kuros_nest_final.png" },
-        { label: "Hoppels Hasenbau", src: "images/eulenschule.png" },
+        { label: "Tessas Hasenschule", src: "images/hasenschule.png" },
         { label: "Faros Fuchsbau", src: "images/faros_fuchsbau3.png" },
         { label: "Bärental", src: "images/baerenthal.png" },
         { label: "Luis", src: "images/luis_chameleon.png" },

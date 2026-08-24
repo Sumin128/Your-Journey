@@ -77,6 +77,10 @@ function buyBearCursor() {
 
     player.activeCursor = "bear";
 
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
+
     savePlayer();
 
     window.dispatchEvent(new CustomEvent("player-updated"));
@@ -124,6 +128,10 @@ function buyUnicornCursor() {
     player.items.unicornCursor = true;
 
     player.activeCursor = "unicorn";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
 
     savePlayer();
 
@@ -204,6 +212,10 @@ function buyFoxCursor() {
     player.items.foxCursor = true;
 
     player.activeCursor = "fox";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
 
     savePlayer();
 

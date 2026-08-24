@@ -297,7 +297,7 @@ const inventoryButton =
                 id="inventory-unicorn-cursor"
                 class="inventory-item"
                 type="button">
-                🦄 Einhorn-Cursor
+                <img src="Icons/Cursor/unicorn_cursor.png" alt="" class="inventory-icon--title"> Einhorn-Cursor
             </button>
 
             <button

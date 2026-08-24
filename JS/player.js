@@ -75,7 +75,7 @@ let player = {
 
         kuro: 0,
 
-        hoppel: 0,
+        tessa: 0,
 
         faro: 0
 
@@ -167,7 +167,7 @@ if (typeof player.items.unicornCursor === "undefined") {
 
             kuro: 0,
 
-            hoppel: 0,
+            tessa: 0,
 
             faro: 0
 
@@ -368,6 +368,8 @@ function addFeathers(amount) {
     }
 
 
+    checkFeatherMilestones();
+
     savePlayer();
 
     updatePlayerUI();
@@ -375,6 +377,31 @@ function addFeathers(amount) {
     window.dispatchEvent(
         new CustomEvent("player-updated")
     );
+
+}
+
+
+/* =====================================================
+   FEDERN-MEILENSTEINE
+   ===================================================== */
+
+const featherMilestoneAchievements = [
+    { count: 10, name: "Erste Federn", description: "Verdiene insgesamt 10 Federn.", icon: "🪶" },
+    { count: 100, name: "Federsammler", description: "Verdiene insgesamt 100 Federn.", icon: "🥉" },
+    { count: 1000, name: "Federmeister", description: "Verdiene insgesamt 1000 Federn.", icon: "🏆" }
+];
+
+function checkFeatherMilestones() {
+
+    featherMilestoneAchievements.forEach(function (milestone) {
+
+        if (player.totalFeathersEarned >= milestone.count) {
+
+            addAchievement(milestone.name);
+
+        }
+
+    });
 
 }
 
@@ -672,7 +699,7 @@ function registerQuizCompletion() {
 
 /* =====================================================
    TIER-FREUNDE BESUCHEN
-   Wird auf den Orts-Seiten (Kuros Nest, Eulenschule,
+   Wird auf den Orts-Seiten (Kuros Nest, Hasenschule,
    Fuchsbau, Bärental, ...) aufgerufen. Kommt ein neuer
    Ort/Tier dazu, einfach hier in die Liste eintragen -
    der Erfolg passt sich automatisch an.
@@ -680,14 +707,14 @@ function registerQuizCompletion() {
 
 const animalFriends = [
     { id: "kuro", name: "Kuro" },
-    { id: "hoppel", name: "Hoppel" },
+    { id: "tessa", name: "Tessa" },
     { id: "faro", name: "Faro" },
     { id: "branos", name: "Branos" }
 ];
 
 const visitAllAnimalsAchievement = {
     name: "Alle Tiere besucht",
-    description: "Besuche Kuro, Hoppel, Faro und Branos.",
+    description: "Besuche Kuro, Tessa, Faro und Branos.",
     icon: "🐾"
 };
 
@@ -825,7 +852,7 @@ const puzzleCompletionAchievements = [
 const puzzleGalleryImages = [
     "Übersichtskarte",
     "Kuros Nest",
-    "Hoppels Hasenbau",
+    "Tessas Hasenschule",
     "Faros Fuchsbau",
     "Bärental",
     "Luis"
@@ -901,6 +928,17 @@ function registerPuzzleCompletion(galleryImageLabel) {
 
 
 /* =====================================================
+   KUROS LADEN - KAUF-ERFOLGE (Liste)
+   ===================================================== */
+
+const shopItemAchievements = [
+    { count: 1, name: "Erster Kauf", description: "Kaufe dein erstes Item in Kuros Laden.", icon: "🛍️" },
+    { count: 2, name: "Fleißiger Käufer", description: "Kaufe 2 Items in Kuros Laden.", icon: "🛒" },
+    { count: 3, name: "Sammler", description: "Kaufe alle 3 Cursor in Kuros Laden.", icon: "🎁" }
+];
+
+
+/* =====================================================
    GESAMTKATALOG ALLER ERFOLGE
    Wird von der Erfolge-Seite (erfolge.html) genutzt, um
    alle Erfolge (freigeschaltet oder nicht) anzuzeigen.
@@ -914,7 +952,7 @@ const achievementCatalog = quizCompletionAchievements.concat([
     wordGameMasterAchievement
 ]).concat(puzzleCompletionAchievements).concat([
     puzzleGalleryAchievement
-]);
+]).concat(featherMilestoneAchievements).concat(shopItemAchievements);
 
 
 /* =====================================================
@@ -1121,6 +1159,44 @@ function hasItem(itemName) {
     return Boolean(
         player.items[itemName]
     );
+
+}
+
+
+/* =====================================================
+   KUROS LADEN - KAUF-ERFOLGE
+   Wird von JS/shop.js nach jedem erfolgreichen (neuen)
+   Kauf aufgerufen und zählt, wie viele der Shop-Items
+   der Spieler insgesamt besitzt. Die Erfolgsliste selbst
+   (shopItemAchievements) steht weiter oben beim
+   Gesamtkatalog, damit sie dort schon zur Verfügung steht.
+   ===================================================== */
+
+function countOwnedShopItems() {
+
+    if (!player.items) {
+        return 0;
+    }
+
+    return Object.values(player.items).filter(Boolean).length;
+
+}
+
+function registerShopPurchase() {
+
+    const ownedCount = countOwnedShopItems();
+
+    const unlockedAchievement = shopItemAchievements.find(function (achievement) {
+
+        return achievement.count === ownedCount;
+
+    });
+
+    if (unlockedAchievement) {
+
+        addAchievement(unlockedAchievement.name);
+
+    }
 
 }
 

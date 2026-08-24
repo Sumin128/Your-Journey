@@ -9,10 +9,10 @@ loadPlayer();
 applyCursor();
 
 if (typeof markAnimalVisited === "function") {
-    markAnimalVisited("hoppel");
+    markAnimalVisited("tessa");
 }
 
-function updateHasenbauPlayer() {
+function updateHasenschulePlayer() {
     const featherCount = document.getElementById("feather-count");
     const playerNameDisplay = document.getElementById("player-name-display");
     const playerAvatarDisplay =
@@ -31,8 +31,8 @@ function updateHasenbauPlayer() {
     }
 }
 
-updateHasenbauPlayer();
-window.addEventListener("player-updated", updateHasenbauPlayer);
+updateHasenschulePlayer();
+window.addEventListener("player-updated", updateHasenschulePlayer);
 
 /* 2. ELEMENTE AUS DEM HTML */
 
@@ -295,7 +295,7 @@ function checkWinCondition() {
         registerWordGameWin(currentDifficulty);
     }
 
-    updateHasenbauPlayer();
+    updateHasenschulePlayer();
 
     nextWordButton.style.display = "block";
 

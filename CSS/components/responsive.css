@@ -39,7 +39,7 @@
         flex-direction: column;
     }
 
-    #hoppel-dialog,
+    #tessa-dialog,
     #faro-dialog,
     .bear-character,
     .bear-intro {
@@ -47,7 +47,7 @@
         min-width: 0;
     }
 
-    #hoppel-image,
+    #tessa-image,
     #faro-image {
         max-width: 100%;
     }
