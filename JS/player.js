@@ -597,6 +597,69 @@ function showAchievementToast(achievementName) {
 
 
 /* =====================================================
+   ALLGEMEINE MELDUNGEN (z. B. Shop-Hinweise)
+   Ersetzt hässliche alert()-Popups durch eine kleine,
+   im Mirelon-Stil gehaltene Hinweis-Box.
+   ===================================================== */
+
+function showMirelonToast(message, type) {
+
+    const existing =
+        document.querySelector(".mirelon-toast");
+
+    if (existing) {
+        existing.remove();
+    }
+
+    const toast =
+        document.createElement("div");
+
+    toast.className =
+        "mirelon-toast mirelon-toast--" + (type === "error" ? "error" : "info");
+
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+
+    const icon =
+        document.createElement("span");
+
+    icon.className = "mirelon-toast-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = type === "error" ? "🪶" : "✨";
+
+    const text =
+        document.createElement("span");
+
+    text.className = "mirelon-toast-text";
+    text.textContent = message;
+
+    toast.appendChild(icon);
+    toast.appendChild(text);
+
+    document.body.appendChild(toast);
+
+    setTimeout(function () {
+
+        toast.classList.add("mirelon-toast--show");
+
+    }, 10);
+
+    setTimeout(function () {
+
+        toast.classList.remove("mirelon-toast--show");
+
+        setTimeout(function () {
+
+            toast.remove();
+
+        }, 400);
+
+    }, 3200);
+
+}
+
+
+/* =====================================================
    HIGHSCORE-PUNKTE
    Gemeinsamer Punktestand über alle Spiele hinweg (Quiz,
    Wörterraten, Wer-ist-es, Puzzle) - unabhängig von den

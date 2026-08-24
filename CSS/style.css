@@ -4763,6 +4763,91 @@ justify-content:center;
 
 
 /* =====================================================
+   ALLGEMEINE MELDUNGEN (z. B. "nicht genug Federn")
+   ===================================================== */
+
+.mirelon-toast {
+
+    position: fixed;
+    top: 20px;
+    left: 50%;
+
+    transform: translate(-50%, -30px);
+
+    z-index: 4000;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    max-width: min(420px, 90vw);
+
+    padding: 14px 24px;
+
+    border: 3px solid var(--yj-color-wood-dark);
+    border-radius: var(--yj-radius-pill);
+
+    background:
+        repeating-linear-gradient(2deg, transparent 0 8px, rgba(60, 25, 5, 0.1) 9px, transparent 11px),
+        linear-gradient(180deg, var(--yj-color-wood-light), var(--yj-color-wood) 55%, #713511);
+
+    box-shadow: var(--yj-shadow-raised);
+
+    color: var(--yj-color-gold);
+    font-family: var(--yj-font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    text-shadow: 0 2px 2px rgba(55, 24, 5, 0.85);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: transform 0.35s ease, opacity 0.35s ease;
+
+}
+
+.mirelon-toast--show {
+
+    transform: translate(-50%, 0);
+    opacity: 1;
+
+}
+
+.mirelon-toast-icon {
+
+    flex-shrink: 0;
+
+    font-size: 1.3rem;
+    text-shadow: none;
+
+}
+
+.mirelon-toast--error {
+
+    border-color: var(--yj-color-danger);
+
+    background:
+        repeating-linear-gradient(2deg, transparent 0 8px, rgba(30, 5, 5, 0.15) 9px, transparent 11px),
+        linear-gradient(180deg, #e58e8e, var(--yj-color-danger) 55%, #a02a25);
+
+    color: #fff5f0;
+
+}
+
+@media (max-width: 470px) {
+
+    .mirelon-toast {
+
+        text-align: center;
+        flex-direction: column;
+
+    }
+
+}
+
+
+/* =====================================================
    ERFOLGE-SEITE
    ===================================================== */
 

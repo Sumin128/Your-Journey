@@ -91,7 +91,10 @@ function buyBearCursor() {
 
     if (player.feathers < bearCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (bearCursorPrice - player.feathers) + " 🪶, um den Bären-Cursor zu kaufen.",
+            "error"
+        );
 
         return;
     }
@@ -143,7 +146,10 @@ function buyUnicornCursor() {
 
     if (player.feathers < unicornCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (unicornCursorPrice - player.feathers) + " 🪶, um den Einhorn-Cursor zu kaufen.",
+            "error"
+        );
 
         return;
     }
@@ -194,7 +200,10 @@ function buyKuroCursor() {
 
     if (player.feathers < kuroCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (kuroCursorPrice - player.feathers) + " 🪶, um den Kuro-Cursor zu kaufen.",
+            "error"
+        );
 
         return;
     }
@@ -278,7 +287,10 @@ function buyHasenCursor() {
 
     if (player.feathers < hasenCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (hasenCursorPrice - player.feathers) + " 🪶, um den Hasen-Cursor zu kaufen.",
+            "error"
+        );
 
         return;
     }
@@ -362,7 +374,10 @@ function buyGoldenFeatherCursor() {
 
     if (player.feathers < goldenFeatherCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (goldenFeatherCursorPrice - player.feathers) + " 🪶, um die Goldene Feder zu kaufen.",
+            "error"
+        );
 
         return;
     }
@@ -446,7 +461,10 @@ function buyBlackGoldenFeatherCursor() {
 
     if (player.feathers < blackGoldenFeatherCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (blackGoldenFeatherCursorPrice - player.feathers) + " 🪶, um die Schwarzgoldene Feder zu kaufen.",
+            "error"
+        );
 
         return;
     }
@@ -563,7 +581,10 @@ function buyFoxCursor() {
 
     if (player.feathers < foxCursorPrice) {
 
-        alert("Du hast nicht genug Federn.");
+        showMirelonToast(
+            "Dir fehlen noch " + (foxCursorPrice - player.feathers) + " 🪶, um den Fuchs-Cursor zu kaufen.",
+            "error"
+        );
 
         return;
     }
