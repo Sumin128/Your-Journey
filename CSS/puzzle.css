@@ -165,6 +165,28 @@
     --board-surface-bg: #fff0f1;
 }
 
+.puzzle-app[data-theme='orange'] {
+    --bg: #fff1e5;
+    --panel-2: #fff8f1;
+    --paper-2: #f8dfc8;
+    --wood: #d66a2c;
+    --wood-dark: #98431e;
+    --wood-light: #ee9a5c;
+    --accent: #e8752f;
+    --accent-2: #b94f20;
+    --ink: #48271c;
+    --ink-soft: #806052;
+    --paper-text: #48271c;
+    --line: rgba(152, 67, 30, 0.18);
+    --track: #ecd3c0;
+    --tray-bg: #f9e9da;
+    --preview-bg: #f1dfd1;
+    --overlay: rgba(255, 241, 229, 0.85);
+    --shadow: 0 10px 30px rgba(152, 67, 30, 0.14);
+    --board-frame-bg: linear-gradient(160deg, #f3b276, #d66a2c 70%);
+    --board-surface-bg: #fff3e8;
+}
+
 .puzzle-app h1,
 .puzzle-app h2,
 .puzzle-app h3 {

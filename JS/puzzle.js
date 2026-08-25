@@ -108,6 +108,7 @@
     zuckerwatte: 'images/chameleon_luis_zuckerwatte.png',
     azurblau: 'images/chameleon_luis_blue.png',
     rot: 'images/chameleon_luis_red.png',
+    orange: 'images/chameleon_luis_orange.png',
   };
 
   function setLuisTheme(theme) {

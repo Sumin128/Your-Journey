@@ -1091,7 +1091,7 @@ function registerPuzzleCompletion(galleryImageLabel) {
    dem jeweils aktiven globalen Theme gelöst wurde.
    ===================================================== */
 
-const puzzleLuisThemeIds = ["baumrinde", "smaragdwald", "zuckerwatte", "azurblau", "rot"];
+const puzzleLuisThemeIds = ["baumrinde", "smaragdwald", "zuckerwatte", "azurblau", "rot", "orange"];
 
 const puzzleLuisAchievement = {
     name: "Luis in allen Farben",

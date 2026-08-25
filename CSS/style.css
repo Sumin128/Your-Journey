@@ -596,6 +596,18 @@ main {
 
 }
 
+#sidebar[data-theme="orange"]{
+
+    --sb-bg-top: #C2691C;
+    --sb-bg-bottom: #6B3410;
+    --sb-active-bg: #D97F2E;
+    --sb-accent: #FFB877;
+    --sb-hover-bg: rgba(217, 127, 46, 0.45);
+    --sb-text-muted: #E8C9A8;
+    --sb-divider: rgba(255, 184, 119, 0.25);
+
+}
+
 #sidebar.open{
 
     width:260px;
@@ -3595,6 +3607,12 @@ justify-content:center;
 .settings-theme-swatch--rot {
 
     background: linear-gradient(135deg, #9E2E3F, #4E1620 60%, #F58080 100%);
+
+}
+
+.settings-theme-swatch--orange {
+
+    background: linear-gradient(135deg, #C2691C, #6B3410 60%, #FFB877 100%);
 
 }
 
