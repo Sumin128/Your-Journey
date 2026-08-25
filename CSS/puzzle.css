@@ -589,7 +589,8 @@
 .puzzle-app .board-frame {
     position: relative;
     display: block;
-    width: 716px;
+    width: 100%;
+    max-width: 716px;
     height: auto;
     aspect-ratio: 4 / 3;
     padding: 8px;
@@ -601,7 +602,8 @@
 }
 .puzzle-app .board-frame .board {
     position: relative;
-    width: 700px;
+    width: 100%;
+    max-width: 700px;
     height: auto;
     aspect-ratio: 4 / 3;
     background: var(--board-surface-bg);

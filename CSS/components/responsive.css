@@ -71,23 +71,6 @@
         padding-left: 80px;
     }
 
-    #school-player-bar,
-    #faro-player-bar,
-    #bear-player-bar {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .bear-status {
-        align-items: stretch;
-        flex-direction: column;
-    }
-
-    .bear-stat-box {
-        width: 100%;
-        max-width: 100%;
-    }
-
     #word-display {
         gap: 6px;
     }
@@ -103,5 +86,50 @@
         height: 42px;
         font-size: 0.95rem;
     }
+}
+
+
+/* =====================================================
+   MOBILE-NAV: SEITENINHALT NEU AUSRICHTEN
+   Die Sidebar reserviert unterhalb des neuen Nav-
+   Breakpoints (960px, siehe mobile-nav.css) keinen Platz
+   mehr im Layout - sie liegt als Off-Canvas-Overlay
+   darueber. Statt der bisherigen rail-Reservierung
+   (margin-left/padding-left 70-126px, je nach Seite
+   unterschiedlich) braucht jede Seite nur noch etwas
+   Abstand nach oben fuer die neue fixe Mobile-Topbar
+   (56px hoch). Einzelne Werte (padding-right/-bottom,
+   Hintergrund etc.) aus den bestehenden Regeln oben
+   bleiben unveraendert - hier werden gezielt nur
+   margin-left/padding-left/padding-top ueberschrieben,
+   spaeter im Stylesheet geladen, gewinnt also gegenueber
+   den 760px/470px-Regeln oben fuer genau diese Werte.
+   Baerental hat eine eigene, spaeter geladene CSS-Datei
+   (baerental.css) und wird dort separat behandelt.
+   ===================================================== */
+
+@media (max-width: 960px) {
+
+    main,
+    #home-main,
+    #settings-main,
+    #shop-main,
+    #kuro-main,
+    #faro-main,
+    #hase-main,
+    #puzzle-main,
+    #paint-main,
+    #gallery-main,
+    #achievements-main,
+    #highscore-main {
+
+        margin-left: 0;
+
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 72px;
+
+    }
+
 }
 

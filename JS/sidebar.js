@@ -8,7 +8,20 @@ const sidebar =
 const sidebarToggle =
     document.getElementById("sidebar-toggle");
 
-    if(localStorage.getItem("sidebarOpen") === "true"){
+// Ab hier gilt die kompakte Mobile-Navigation (Topbar +
+// Sidebar als Off-Canvas-Overlay) statt der dauerhaft
+// sichtbaren Desktop-Sidebar. Siehe CSS/components/mobile-nav.css.
+const mirelonMobileNavQuery =
+    window.matchMedia("(max-width: 960px)");
+
+// Der zuletzt gespeicherte Sidebar-Zustand gilt nur auf
+// Desktop - auf Mobile soll die Sidebar immer verborgen
+// starten, unabhaengig davon, ob sie beim letzten Besuch
+// (ggf. auf einem groesseren Bildschirm) offen war.
+if (
+    localStorage.getItem("sidebarOpen") === "true" &&
+    !mirelonMobileNavQuery.matches
+) {
 
     sidebar.classList.add("open");
 
@@ -179,6 +192,11 @@ function updateSidebarPlayer() {
             "sidebar-achievements"
         );
 
+    const mobileFeathers =
+        document.getElementById(
+            "mobile-topbar-feathers"
+        );
+
 
     if (name) {
 
@@ -216,6 +234,14 @@ function updateSidebarPlayer() {
 
     }
 
+
+    if (mobileFeathers) {
+
+        mobileFeathers.textContent =
+            "🪶 " + player.feathers;
+
+    }
+
 }
 
 
@@ -229,20 +255,137 @@ window.addEventListener(
 
 
 
-if (sidebar && sidebarToggle) {
+const sidebarBackdrop =
+    document.createElement("div");
 
-    sidebarToggle.addEventListener("click", function () {
+sidebarBackdrop.id = "sidebar-backdrop";
 
-        sidebar.classList.toggle("open");
+document.body.appendChild(sidebarBackdrop);
 
-        localStorage.setItem(
-            "sidebarOpen",
-            sidebar.classList.contains("open")
-        );
+function setSidebarOpen(isOpen) {
 
-    });
+    if (!sidebar) {
+        return;
+    }
+
+    sidebar.classList.toggle("open", isOpen);
+
+    // Der gespeicherte Zustand ist nur fuer Desktop gedacht -
+    // auf Mobile wird nichts persistiert, damit die Sidebar
+    // beim naechsten Besuch wieder verborgen startet.
+    if (!mirelonMobileNavQuery.matches) {
+
+        localStorage.setItem("sidebarOpen", isOpen);
+
+    }
+
+    sidebarBackdrop.classList.toggle(
+        "is-visible",
+        isOpen && mirelonMobileNavQuery.matches
+    );
 
 }
+
+function toggleSidebar() {
+
+    setSidebarOpen(!sidebar.classList.contains("open"));
+
+}
+
+sidebarBackdrop.addEventListener("click", function () {
+
+    setSidebarOpen(false);
+
+});
+
+// Beim Wechsel ueber den Breakpoint (z. B. Fenster-Resize,
+// Tablet-Rotation) Backdrop-Sichtbarkeit neu abgleichen.
+mirelonMobileNavQuery.addEventListener("change", function () {
+
+    setSidebarOpen(sidebar.classList.contains("open"));
+
+});
+
+if (sidebar && sidebarToggle) {
+
+    sidebarToggle.addEventListener("click", toggleSidebar);
+
+}
+
+
+/* =====================================================
+   MOBILE TOPBAR
+   Wird einmalig injiziert (wie das Inventar-Panel weiter
+   unten) - nur unterhalb des Nav-Breakpoints sichtbar,
+   siehe CSS/components/mobile-nav.css. Nutzt fuer Menue
+   UND Profil dieselbe bestehende Sidebar, statt eine
+   zweite, parallele Profilanzeige zu bauen.
+   ===================================================== */
+
+function createMobileTopbar() {
+
+    if (document.getElementById("mobile-topbar")) {
+        return;
+    }
+
+    const topbar =
+        document.createElement("header");
+
+    topbar.id = "mobile-topbar";
+
+    topbar.innerHTML = `
+        <button
+            id="mobile-menu-button"
+            type="button"
+            aria-label="Menü öffnen">
+            ☰
+        </button>
+
+        <a id="mobile-brand" href="index.html">
+            🌳 Mirelon
+        </a>
+
+        <span id="mobile-topbar-feathers" aria-live="polite">
+            🪶 0
+        </span>
+
+        <button
+            id="mobile-profile-button"
+            type="button"
+            aria-label="Profil öffnen">
+            👤
+        </button>
+    `;
+
+    document.body.insertBefore(topbar, document.body.firstChild);
+
+}
+
+createMobileTopbar();
+
+const mobileMenuButton =
+    document.getElementById("mobile-menu-button");
+
+const mobileProfileButton =
+    document.getElementById("mobile-profile-button");
+
+if (mobileMenuButton) {
+
+    mobileMenuButton.addEventListener("click", toggleSidebar);
+
+}
+
+if (mobileProfileButton) {
+
+    mobileProfileButton.addEventListener("click", toggleSidebar);
+
+}
+
+// Topbar wurde erst nach dem ersten updateSidebarPlayer()-Aufruf
+// erzeugt - einmalig nachziehen, damit die Federanzahl sofort
+// stimmt statt erst beim naechsten "player-updated"-Event.
+updateSidebarPlayer();
+
 
 /* =====================================================
    INVENTAR

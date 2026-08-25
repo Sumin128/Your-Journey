@@ -77,4 +77,18 @@
     --yj-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     --yj-ease-spring: cubic-bezier(0.34, 1.65, 0.64, 1);
     --yj-content-width: 920px;
+
+    /* -------------------------------------------------
+       Mirelon-Aliase (semantische Namen für dieselben
+       Tokens oben) - kein zweites Farbsystem, nur ein
+       leichter zusätzlicher Zugriffspfad.
+       ------------------------------------------------- */
+    --mirelon-cream: var(--yj-color-paper);
+    --mirelon-brown: var(--yj-color-wood);
+    --mirelon-green: var(--yj-color-accent-2);
+    --mirelon-gold: var(--yj-color-accent);
+    --mirelon-radius: var(--yj-radius-lg);
+    --mirelon-shadow: var(--yj-shadow-card);
+    --mirelon-card-bg: var(--yj-color-paper-soft);
+    --mirelon-text: var(--yj-color-ink);
 }

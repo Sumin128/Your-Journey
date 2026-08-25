@@ -1,0 +1,166 @@
+/* =====================================================
+   MIRELON FEDER-BADGE
+   Kompakte, wiederverwendbare Feder-Anzeige - ersetzt die
+   grossen, pro Seite unterschiedlichen Profil-/Federleisten
+   auf den Weltseiten und wird auch in der Mobile-Topbar
+   verwendet.
+   ===================================================== */
+
+.mirelon-feather-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    width: fit-content;
+    margin-bottom: 24px;
+
+    padding: 8px 16px;
+
+    border-radius: var(--yj-radius-pill);
+
+    background: var(--mirelon-card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    box-shadow: var(--yj-shadow-sm);
+
+    color: var(--mirelon-text);
+    font-family: var(--yj-font-display);
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   MOBILE TOPBAR
+   Wird von JS/sidebar.js einmalig injiziert. Nur unterhalb
+   des Sidebar-Breakpoints sichtbar - oberhalb bleibt die
+   bestehende Desktop-Sidebar die einzige Navigation.
+   ===================================================== */
+
+#mobile-topbar {
+    display: none;
+}
+
+@media (max-width: 960px) {
+
+    #mobile-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1100;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        height: 56px;
+        padding: 0 14px;
+
+        background:
+            linear-gradient(180deg, #5C3A24 0%, #40280E 100%);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .3);
+
+        color: var(--yj-color-gold);
+        font-family: var(--yj-font-display);
+        font-weight: 700;
+    }
+
+    #mobile-menu-button,
+    #mobile-profile-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 40px;
+        height: 40px;
+
+        border: none;
+        border-radius: var(--yj-radius-sm);
+
+        background: rgba(255, 255, 255, .08);
+        color: var(--yj-color-gold);
+
+        font-size: 1.2rem;
+        line-height: 1;
+
+        cursor: pointer;
+    }
+
+    #mobile-menu-button:hover,
+    #mobile-profile-button:hover {
+        background: rgba(255, 255, 255, .16);
+    }
+
+    #mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        color: var(--yj-color-gold);
+        text-decoration: none;
+        font-size: .95rem;
+        white-space: nowrap;
+    }
+
+    #mobile-topbar-feathers {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+
+        margin-left: auto;
+
+        font-size: .9rem;
+        white-space: nowrap;
+    }
+}
+
+
+/* =====================================================
+   SIDEBAR ALS OFF-CANVAS AUF MOBILE
+   Ersetzt die alte permanente 70px-Icon-Schiene mit
+   :hover-Ausklappen (auf Touch-Geraeten nicht bedienbar).
+   Die bestehende #sidebar-toggle-Logik (JS/sidebar.js)
+   bleibt unveraendert - sie togglet weiterhin nur die
+   Klasse "open".
+   ===================================================== */
+
+@media (max-width: 960px) {
+
+    #sidebar {
+        width: min(260px, 82vw);
+
+        transform: translateX(-100%);
+
+        border-radius: 0 24px 24px 0;
+
+        transition: transform .35s var(--yj-ease-out);
+    }
+
+    #sidebar.open {
+        transform: translateX(0);
+    }
+
+    #sidebar-backdrop {
+        content: "";
+
+        position: fixed;
+        inset: 0;
+
+        z-index: 999;
+
+        background: rgba(20, 12, 5, .45);
+
+        opacity: 0;
+        pointer-events: none;
+
+        transition: opacity .35s ease;
+    }
+
+    #sidebar-backdrop.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+}
