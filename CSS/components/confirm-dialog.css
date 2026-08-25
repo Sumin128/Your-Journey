@@ -1,0 +1,89 @@
+/* =====================================================
+   MIRELON-BESTÄTIGUNGSDIALOG
+   Wiederverwendbare Box für Ja/Nein-Rückfragen (siehe
+   showMirelonConfirm() in JS/player.js) - ersetzt den
+   browser-eigenen confirm()-Dialog.
+   ===================================================== */
+
+.mirelon-confirm-overlay {
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 5000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.2s ease;
+
+}
+
+.mirelon-confirm-overlay--show {
+
+    opacity: 1;
+    pointer-events: auto;
+
+}
+
+.mirelon-confirm-backdrop {
+
+    position: absolute;
+    inset: 0;
+
+    background: rgba(43, 26, 14, 0.55);
+
+}
+
+.mirelon-confirm-card {
+
+    position: relative;
+
+    width: min(380px, calc(100vw - 32px));
+
+    padding: 28px 26px 24px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-lg);
+
+    background: var(--yj-color-paper);
+    box-shadow: var(--yj-shadow-card);
+
+    color: var(--yj-color-ink);
+    font-family: var(--yj-font-body);
+
+    transform: scale(0.92) translateY(8px);
+
+    transition: transform 0.25s var(--yj-ease-spring);
+
+}
+
+.mirelon-confirm-overlay--show .mirelon-confirm-card {
+
+    transform: scale(1) translateY(0);
+
+}
+
+.mirelon-confirm-text {
+
+    margin: 0 0 22px;
+
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: center;
+
+}
+
+.mirelon-confirm-actions {
+
+    display: flex;
+    justify-content: center;
+
+    gap: 12px;
+
+}

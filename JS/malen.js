@@ -724,9 +724,11 @@
 
     });
 
-    clearButton.addEventListener("click", function () {
+    clearButton.addEventListener("click", async function () {
 
-        const confirmed = confirm("Möchtest du die Zeichenfläche wirklich komplett leeren?");
+        const confirmed = await showMirelonConfirm(
+            "Möchtest du die Zeichenfläche wirklich komplett leeren?"
+        );
 
         if (!confirmed) {
             return;

@@ -861,6 +861,100 @@ function showCharacterBubble(options) {
 
 
 /* =====================================================
+   MIRELON-BESTÄTIGUNGSDIALOG (wiederverwendbar)
+   Ersetzt den hässlichen, browser-eigenen confirm()-Dialog
+   durch eine kleine Box im Mirelon-Stil. Verhält sich wie
+   confirm() - liefert aber ein Promise<boolean> statt
+   synchron zu blockieren, daher mit await aufrufen:
+
+       const ok = await showMirelonConfirm("Wirklich löschen?");
+       if (!ok) return;
+
+   ===================================================== */
+
+function showMirelonConfirm(message, options) {
+
+    return new Promise(function (resolve) {
+
+        const settings = options || {};
+        const okLabel = settings.okLabel || "OK";
+        const cancelLabel = settings.cancelLabel || "Abbrechen";
+
+        const existing = document.querySelector(".mirelon-confirm-overlay");
+
+        if (existing) {
+            existing.remove();
+        }
+
+        const overlay = document.createElement("div");
+
+        overlay.className = "mirelon-confirm-overlay";
+
+        overlay.innerHTML = `
+            <div class="mirelon-confirm-backdrop"></div>
+            <div class="mirelon-confirm-card" role="alertdialog" aria-modal="true">
+                <p class="mirelon-confirm-text"></p>
+                <div class="mirelon-confirm-actions">
+                    <button type="button" class="yj-button yj-button--secondary yj-button--compact mirelon-confirm-cancel"></button>
+                    <button type="button" class="yj-button yj-button--primary yj-button--compact mirelon-confirm-ok"></button>
+                </div>
+            </div>
+        `;
+
+        overlay.querySelector(".mirelon-confirm-text").textContent = message || "";
+        overlay.querySelector(".mirelon-confirm-ok").textContent = okLabel;
+        overlay.querySelector(".mirelon-confirm-cancel").textContent = cancelLabel;
+
+        document.body.appendChild(overlay);
+
+        function close(result) {
+
+            document.removeEventListener("keydown", onKeydown);
+            overlay.classList.remove("mirelon-confirm-overlay--show");
+
+            setTimeout(function () {
+                overlay.remove();
+            }, 200);
+
+            resolve(result);
+
+        }
+
+        function onKeydown(event) {
+
+            if (event.key === "Escape") {
+                close(false);
+            }
+
+        }
+
+        document.addEventListener("keydown", onKeydown);
+
+        overlay.querySelector(".mirelon-confirm-backdrop").addEventListener("click", function () {
+            close(false);
+        });
+
+        overlay.querySelector(".mirelon-confirm-cancel").addEventListener("click", function () {
+            close(false);
+        });
+
+        overlay.querySelector(".mirelon-confirm-ok").addEventListener("click", function () {
+            close(true);
+        });
+
+        setTimeout(function () {
+
+            overlay.classList.add("mirelon-confirm-overlay--show");
+            overlay.querySelector(".mirelon-confirm-ok").focus();
+
+        }, 10);
+
+    });
+
+}
+
+
+/* =====================================================
    LUIS-EASTER-EGG: HÄUFIGE THEME-WECHSEL
    Reagiert humorvoll, wenn innerhalb von 60 Minuten
    mindestens 5 tatsächliche Wechsel des globalen Mirelon-
@@ -1594,7 +1688,7 @@ function applyCursor() {
         player.items.luisCursor === true
     ) {
         cursor =
-            "url('Icons/Cursor/luis_cursor.png') 18 14, auto";
+            "url('Icons/Cursor/luis_cursor.png') 19 5, auto";
     }
 
 
