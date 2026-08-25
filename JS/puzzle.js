@@ -292,7 +292,7 @@
       '--fill',
       (stageIndex / (pieceStages.length - 1)) * 100 + '%'
     );
-    const g = computeGrid(count, 1);
+    const g = computeGrid(count, currentAspect());
     pieceCountLabel.textContent = g.total + ' Teile';
     gridLabel.textContent = g.cols + ' × ' + g.rows;
   }
@@ -413,16 +413,34 @@
     nozzleSelect.title = 'Während eines laufenden Puzzles gesperrt';
     const count =
       pieceStages[parseInt(pieceSlider.value, 10)] || pieceStages[0];
-    const g = computeGrid(count, 1);
+    const imageAspectForGrid = currentAspect();
+    const g = computeGrid(count, imageAspectForGrid);
     rows = g.rows;
     cols = g.cols;
 
+    // Das Brett soll dem tatsaechlichen Seitenverhaeltnis des Bildes
+    // folgen statt immer quadratisch zu sein - sonst passen Zellen und
+    // Rahmen bei hoch- oder querformatigen Bildern nicht zusammen und
+    // Teile am Rand ragen ueber den Rahmen hinaus.
+    // 700px = das max-width der .board-Flaeche in CSS/puzzle.css. Muss mit
+    // der CSS-Grenze uebereinstimmen, sonst rechnet JS mit mehr Platz als
+    // tatsaechlich gerendert wird und Teile am rechten/unteren Rand ragen
+    // ueber den sichtbaren Rahmen hinaus.
     const availW = Math.min(
       window.innerWidth - (window.innerWidth > 880 ? 360 : 56),
-      760
+      700
     );
-    boardW = Math.max(300, availW);
-    boardH = boardW;
+    const maxBoardW = Math.max(300, availW);
+    const maxBoardH = Math.max(300, Math.min(window.innerHeight * 0.7, 900));
+
+    boardW = maxBoardW;
+    boardH = maxBoardW / imageAspectForGrid;
+
+    if (boardH > maxBoardH) {
+      boardH = maxBoardH;
+      boardW = maxBoardH * imageAspectForGrid;
+    }
+
     cellW = boardW / cols;
     cellH = boardH / rows;
 
