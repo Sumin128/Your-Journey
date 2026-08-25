@@ -152,3 +152,46 @@
     }
 
 }
+
+
+/* =====================================================
+   AN EINE FIGUR AUF DER SEITE ANGEHEFTET
+   Wird gesetzt, wenn showCharacterBubble() ein anchorEl
+   bekommt (z. B. Luis' Bild auf der Puzzle-Seite) - dann
+   erscheint die Blase direkt bei dieser Figur statt in
+   der festen Ecke unten rechts. Position (top/left) wird
+   per JS anhand der Figur berechnet, siehe player.js.
+   ===================================================== */
+
+.character-bubble--anchored {
+
+    right: auto;
+    bottom: auto;
+
+    transform-origin: top left;
+    transform: translateY(-8px) scale(0.94);
+
+    padding-right: 30px;
+
+}
+
+.character-bubble--anchored .character-bubble-avatar {
+
+    display: none;
+
+}
+
+.character-bubble--anchored .character-bubble-arrow {
+
+    top: -7px;
+    bottom: auto;
+    left: 28px;
+    right: auto;
+
+}
+
+.character-bubble--anchored.character-bubble--show {
+
+    transform: translateY(0) scale(1);
+
+}

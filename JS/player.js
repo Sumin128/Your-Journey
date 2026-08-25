@@ -698,6 +698,47 @@ const CHARACTER_BUBBLE_DEFAULT_AVATARS = {
 
 let characterBubbleHideTimeoutId = null;
 let characterBubbleRemoveTimeoutId = null;
+let characterBubbleRepositionHandler = null;
+
+function positionCharacterBubbleNearAnchor(bubble, anchorEl) {
+
+    const anchorRect = anchorEl.getBoundingClientRect();
+    const bubbleRect = bubble.getBoundingClientRect();
+
+    const margin = 12;
+    const viewportMargin = 12;
+
+    let left = anchorRect.left;
+    let top = anchorRect.bottom + margin;
+
+    const maxLeft = window.innerWidth - bubbleRect.width - viewportMargin;
+    left = Math.max(viewportMargin, Math.min(left, maxLeft));
+
+    // Passt die Blase unter die Figur nicht mehr in den Viewport,
+    // stattdessen darüber anzeigen.
+    if (top + bubbleRect.height > window.innerHeight - viewportMargin) {
+        top = anchorRect.top - bubbleRect.height - margin;
+    }
+
+    top = Math.max(viewportMargin, top);
+
+    bubble.style.left = left + "px";
+    bubble.style.top = top + "px";
+
+    // Der kleine Pfeil soll weiterhin ungefähr auf die Figur zeigen,
+    // auch wenn die Blase seitlich verschoben werden musste.
+    const arrow = bubble.querySelector(".character-bubble-arrow");
+
+    if (arrow) {
+
+        const arrowLeft =
+            Math.max(16, Math.min(anchorRect.left + anchorRect.width / 2 - left - 7, bubbleRect.width - 30));
+
+        arrow.style.left = arrowLeft + "px";
+
+    }
+
+}
 
 function showCharacterBubble(options) {
 
@@ -706,9 +747,13 @@ function showCharacterBubble(options) {
     const text = settings.text || "";
     const duration = settings.duration || 9000;
 
+    const anchorEl =
+        settings.anchorEl ||
+        (settings.anchorSelector ? document.querySelector(settings.anchorSelector) : null);
+
     let avatarSrc = settings.avatarSrc;
 
-    if (!avatarSrc && typeof CHARACTER_BUBBLE_DEFAULT_AVATARS[character] === "function") {
+    if (!anchorEl && !avatarSrc && typeof CHARACTER_BUBBLE_DEFAULT_AVATARS[character] === "function") {
 
         avatarSrc = CHARACTER_BUBBLE_DEFAULT_AVATARS[character]();
 
@@ -723,9 +768,13 @@ function showCharacterBubble(options) {
     clearTimeout(characterBubbleHideTimeoutId);
     clearTimeout(characterBubbleRemoveTimeoutId);
 
+    window.removeEventListener("resize", characterBubbleRepositionHandler);
+
     const bubble = document.createElement("div");
 
-    bubble.className = "character-bubble character-bubble--" + character;
+    bubble.className =
+        "character-bubble character-bubble--" + character + (anchorEl ? " character-bubble--anchored" : "");
+
     bubble.setAttribute("role", "status");
     bubble.setAttribute("aria-live", "polite");
 
@@ -740,6 +789,18 @@ function showCharacterBubble(options) {
 
     document.body.appendChild(bubble);
 
+    if (anchorEl) {
+
+        positionCharacterBubbleNearAnchor(bubble, anchorEl);
+
+        characterBubbleRepositionHandler = function () {
+            positionCharacterBubbleNearAnchor(bubble, anchorEl);
+        };
+
+        window.addEventListener("resize", characterBubbleRepositionHandler);
+
+    }
+
     function scheduleHide() {
 
         clearTimeout(characterBubbleHideTimeoutId);
@@ -750,6 +811,7 @@ function showCharacterBubble(options) {
 
             characterBubbleRemoveTimeoutId = setTimeout(function () {
 
+                window.removeEventListener("resize", characterBubbleRepositionHandler);
                 bubble.remove();
 
             }, 400);
@@ -783,6 +845,7 @@ function showCharacterBubble(options) {
 
         clearTimeout(characterBubbleHideTimeoutId);
         clearTimeout(characterBubbleRemoveTimeoutId);
+        window.removeEventListener("resize", characterBubbleRepositionHandler);
         bubble.remove();
 
     });
@@ -924,7 +987,8 @@ function showPendingLuisThemeReaction() {
     showCharacterBubble({
         character: "luis",
         text: LUIS_THEME_REACTION_TEXT,
-        duration: 9000
+        duration: 9000,
+        anchorSelector: "#luisMascot"
     });
 
 }
