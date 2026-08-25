@@ -51,7 +51,7 @@
         tessa: "images/tessa_hase.png",
         faro: "images/faro1.png",
         branos: "images/branos.png",
-        luis: "images/luis_chameleon.png"
+        luis: "images/chameleon_luis_green.png"
     };
 
     const stampImages = {};
