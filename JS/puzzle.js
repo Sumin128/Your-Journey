@@ -132,6 +132,14 @@
   // "player-updated"-Event statt einer eigenen Sync-Pipeline.
   window.addEventListener('player-updated', applyGlobalPuzzleTheme);
 
+  // Luis' Kommentar zu haeufigen Theme-Wechseln (siehe
+  // registerThemeChangeForLuisEasterEgg() in JS/player.js) erscheint
+  // erst beim naechsten Besuch hier bei Luis, nicht sofort auf der
+  // Einstellungsseite.
+  if (typeof showPendingLuisThemeReaction === 'function') {
+    showPendingLuisThemeReaction();
+  }
+
   audioToggle.addEventListener('click', () => {
     const enabled = audioToggle.dataset.enabled !== 'true';
     audioToggle.dataset.enabled = String(enabled);

@@ -800,12 +800,23 @@ function showCharacterBubble(options) {
    im player-Objekt, damit savePlayer() dafür keine
    Supabase-Synchronisation auslöst - rein lokales,
    kosmetisches Easter-Egg ohne Belohnung.
+
+   Der Spruch kommt von Luis, also erscheint er auch nur
+   dort, wo Luis tatsächlich zu sehen ist (Luis Puzzle,
+   puzzle.html) - nicht sofort auf der Einstellungsseite,
+   wo der 5. Wechsel passiert. Deshalb wird beim 5. Wechsel
+   nur ein "pending"-Flag gesetzt; showPendingLuisThemeReaction()
+   (von JS/puzzle.js beim Laden aufgerufen) löst die
+   eigentliche Sprechblase erst beim nächsten Besuch der
+   Puzzle-Seite aus und startet dort auch den Cooldown.
    ===================================================== */
 
 const LUIS_THEME_CHANGE_WINDOW_MS = 60 * 60 * 1000;
 const LUIS_THEME_CHANGE_THRESHOLD = 5;
 const LUIS_THEME_CHANGE_TIMESTAMPS_KEY = "mirelonThemeChangeTimestamps";
 const LUIS_THEME_REACTION_LAST_SHOWN_KEY = "mirelonLuisThemeReactionLastShown";
+const LUIS_THEME_REACTION_PENDING_KEY = "mirelonLuisThemeReactionPending";
+const LUIS_THEME_REACTION_TEXT = "Schon wieder?! Meine Schuppen kommen ja gar nicht mehr hinterher!";
 
 function registerThemeChangeForLuisEasterEgg() {
 
@@ -867,7 +878,42 @@ function registerThemeChangeForLuisEasterEgg() {
 
     try {
 
-        localStorage.setItem(LUIS_THEME_REACTION_LAST_SHOWN_KEY, String(now));
+        localStorage.setItem(LUIS_THEME_REACTION_PENDING_KEY, "true");
+
+    } catch (error) {
+
+        // Storage kann in privaten/eingeschränkten Browser-Kontexten fehlen.
+
+    }
+
+}
+
+// Wird von JS/puzzle.js beim Laden von Luis Puzzle aufgerufen. Zeigt
+// die Sprechblase nur, wenn zuvor tatsächlich ein "pending"-Easter-
+// Egg ausgelöst wurde, und startet erst hier (beim tatsächlichen
+// Zeigen) den 60-Minuten-Cooldown.
+function showPendingLuisThemeReaction() {
+
+    let isPending = false;
+
+    try {
+
+        isPending = localStorage.getItem(LUIS_THEME_REACTION_PENDING_KEY) === "true";
+
+    } catch (error) {
+
+        isPending = false;
+
+    }
+
+    if (!isPending) {
+        return;
+    }
+
+    try {
+
+        localStorage.removeItem(LUIS_THEME_REACTION_PENDING_KEY);
+        localStorage.setItem(LUIS_THEME_REACTION_LAST_SHOWN_KEY, String(Date.now()));
 
     } catch (error) {
 
@@ -877,7 +923,7 @@ function registerThemeChangeForLuisEasterEgg() {
 
     showCharacterBubble({
         character: "luis",
-        text: "Schon wieder?! Meine Schuppen kommen ja gar nicht mehr hinterher!",
+        text: LUIS_THEME_REACTION_TEXT,
         duration: 9000
     });
 
