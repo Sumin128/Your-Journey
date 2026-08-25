@@ -48,6 +48,8 @@ let player = {
 
     puzzleGalleryImagesUsed: [],
 
+    puzzleLuisVariantsCompleted: [],
+
     memoryGamesCompleted: {
 
         normal: 0
@@ -206,6 +208,15 @@ if (typeof player.items.blackGoldenFeatherCursor === "undefined") {
     if (typeof player.memoryGamesCompleted.normal !== "number") {
 
         player.memoryGamesCompleted.normal = 0;
+
+    }
+
+
+    /* Falls ältere Speicherstände noch kein puzzleLuisVariantsCompleted haben */
+
+    if (!Array.isArray(player.puzzleLuisVariantsCompleted)) {
+
+        player.puzzleLuisVariantsCompleted = [];
 
     }
 
@@ -1071,6 +1082,57 @@ function registerPuzzleCompletion(galleryImageLabel) {
 
 
 /* =====================================================
+   PUZZLE-ERFOLG "LUIS IN ALLEN FARBEN"
+   Die 5 Puzzle-Design-Varianten entsprechen 1:1 den
+   globalen Mirelon-Designs (siehe SIDEBAR_THEMES_WITH_ATTRIBUTE
+   + "baumrinde" in JS/sidebar.js) - hier dieselben IDs
+   wiederverwendet statt einer eigenen Liste.
+   Wird von JS/puzzle.js aufgerufen, wenn ein Puzzle mit
+   dem jeweils aktiven globalen Theme gelöst wurde.
+   ===================================================== */
+
+const puzzleLuisThemeIds = ["baumrinde", "smaragdwald", "zuckerwatte", "azurblau", "rot"];
+
+const puzzleLuisAchievement = {
+    name: "Luis in allen Farben",
+    description: "Löse mit jeder Luis-Variante mindestens ein Puzzle.",
+    icon: "🦎"
+};
+
+function registerPuzzleLuisVariant(themeId) {
+
+    if (!puzzleLuisThemeIds.includes(themeId)) {
+        return;
+    }
+
+    if (!Array.isArray(player.puzzleLuisVariantsCompleted)) {
+        player.puzzleLuisVariantsCompleted = [];
+    }
+
+    if (!player.puzzleLuisVariantsCompleted.includes(themeId)) {
+
+        player.puzzleLuisVariantsCompleted.push(themeId);
+
+        savePlayer();
+
+    }
+
+    const allVariantsCompleted = puzzleLuisThemeIds.every(function (id) {
+
+        return player.puzzleLuisVariantsCompleted.includes(id);
+
+    });
+
+    if (allVariantsCompleted) {
+
+        addAchievement(puzzleLuisAchievement.name);
+
+    }
+
+}
+
+
+/* =====================================================
    KUROS LADEN - KAUF-ERFOLGE (Liste)
    ===================================================== */
 
@@ -1094,7 +1156,8 @@ const achievementCatalog = quizCompletionAchievements.concat([
     wordGameDifficultyAchievements.schwer,
     wordGameMasterAchievement
 ]).concat(puzzleCompletionAchievements).concat([
-    puzzleGalleryAchievement
+    puzzleGalleryAchievement,
+    puzzleLuisAchievement
 ]).concat(featherMilestoneAchievements).concat(shopItemAchievements).concat(memoryCompletionAchievements);
 
 

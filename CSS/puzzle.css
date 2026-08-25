@@ -55,7 +55,73 @@
     box-sizing: border-box;
 }
 
-.puzzle-app[data-theme='azure-blue'] {
+.puzzle-app[data-theme='smaragdwald'] {
+    --bg: #e8f4ef;
+    --panel-2: #f4faf7;
+    --paper-2: #dcefe7;
+    --wood: #16866a;
+    --wood-dark: #0d5b49;
+    --wood-light: #55b99a;
+    --accent: #149a78;
+    --accent-2: #0d6f59;
+    --ink: #173b35;
+    --ink-soft: #55746c;
+    --paper-text: #173b35;
+    --line: rgba(13, 91, 73, 0.16);
+    --track: #c9ded7;
+    --tray-bg: #e6f2ed;
+    --preview-bg: #e0ece7;
+    --overlay: rgba(232, 244, 239, 0.85);
+    --shadow: 0 10px 30px rgba(13, 91, 73, 0.14);
+    --board-frame-bg: linear-gradient(160deg, #8dd8bf, #16866a 70%);
+    --board-surface-bg: #e9f8f1;
+}
+
+.puzzle-app[data-theme='baumrinde'] {
+    --bg: #f3ece1;
+    --panel-2: #faf5ec;
+    --paper-2: #ecdcc4;
+    --wood: #8a5a2e;
+    --wood-dark: #5c3a1e;
+    --wood-light: #c08a4e;
+    --accent: #a3671f;
+    --accent-2: #7a4a17;
+    --ink: #3d2a16;
+    --ink-soft: #7a6650;
+    --paper-text: #3d2a16;
+    --line: rgba(92, 58, 30, 0.18);
+    --track: #e3d2b8;
+    --tray-bg: #f0e4d1;
+    --preview-bg: #e8dcc8;
+    --overlay: rgba(243, 236, 225, 0.85);
+    --shadow: 0 10px 30px rgba(92, 58, 30, 0.14);
+    --board-frame-bg: linear-gradient(160deg, #d3a465, #8a5a2e 70%);
+    --board-surface-bg: #fbf3e6;
+}
+
+.puzzle-app[data-theme='zuckerwatte'] {
+    --bg: #fbeaf5;
+    --panel-2: #fff5fb;
+    --paper-2: #f6d9ec;
+    --wood: #b0499b;
+    --wood-dark: #6f3a73;
+    --wood-light: #e08fd0;
+    --accent: #c25aa3;
+    --accent-2: #8a3d7c;
+    --ink: #4a1f42;
+    --ink-soft: #85647e;
+    --paper-text: #4a1f42;
+    --line: rgba(111, 58, 115, 0.18);
+    --track: #edc7e0;
+    --tray-bg: #f9e2f1;
+    --preview-bg: #f2d7e9;
+    --overlay: rgba(251, 234, 245, 0.85);
+    --shadow: 0 10px 30px rgba(111, 58, 115, 0.14);
+    --board-frame-bg: linear-gradient(160deg, #e79bd6, #b0499b 70%);
+    --board-surface-bg: #fdf0f9;
+}
+
+.puzzle-app[data-theme='azurblau'] {
     --bg: #e8f1f8;
     --panel-2: #f3f8fc;
     --paper-2: #dcecf7;
@@ -77,29 +143,7 @@
     --board-surface-bg: #e9f5fb;
 }
 
-.puzzle-app[data-theme='orange'] {
-    --bg: #fff1e5;
-    --panel-2: #fff8f1;
-    --paper-2: #f8dfc8;
-    --wood: #d66a2c;
-    --wood-dark: #98431e;
-    --wood-light: #ee9a5c;
-    --accent: #e8752f;
-    --accent-2: #b94f20;
-    --ink: #48271c;
-    --ink-soft: #806052;
-    --paper-text: #48271c;
-    --line: rgba(152, 67, 30, 0.18);
-    --track: #ecd3c0;
-    --tray-bg: #f9e9da;
-    --preview-bg: #f1dfd1;
-    --overlay: rgba(255, 241, 229, 0.85);
-    --shadow: 0 10px 30px rgba(152, 67, 30, 0.14);
-    --board-frame-bg: linear-gradient(160deg, #f3b276, #d66a2c 70%);
-    --board-surface-bg: #fff3e8;
-}
-
-.puzzle-app[data-theme='red'] {
+.puzzle-app[data-theme='rot'] {
     --bg: #f9e9eb;
     --panel-2: #fff5f6;
     --paper-2: #f2d5d9;
@@ -119,30 +163,6 @@
     --shadow: 0 10px 30px rgba(127, 36, 53, 0.14);
     --board-frame-bg: linear-gradient(160deg, #e997a0, #bd4052 70%);
     --board-surface-bg: #fff0f1;
-}
-
-.puzzle-app[data-theme='minimal'] {
-    --bg: #f3f4f2;
-    --panel: #ffffff;
-    --panel-2: #fafafa;
-    --paper: #ffffff;
-    --paper-2: #eeeeec;
-    --wood: #4b5563;
-    --wood-dark: #27303b;
-    --wood-light: #7b8794;
-    --accent: #4b5563;
-    --accent-2: #374151;
-    --ink: #20252b;
-    --ink-soft: #68717b;
-    --paper-text: #20252b;
-    --line: rgba(32, 37, 43, 0.14);
-    --track: #d9dde1;
-    --tray-bg: #f0f1f0;
-    --preview-bg: #e7e9e7;
-    --overlay: rgba(243, 244, 242, 0.88);
-    --shadow: 0 8px 24px rgba(32, 37, 43, 0.09);
-    --board-frame-bg: #b9c0c5;
-    --board-surface-bg: #f7f7f5;
 }
 
 .puzzle-app h1,

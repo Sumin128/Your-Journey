@@ -91,26 +91,28 @@
   const winAgainBtn = document.getElementById('winAgainBtn');
   const winPieceCount = document.getElementById('winPieceCount');
   const nozzleSelect = document.getElementById('nozzleSelect');
-  const themeSelect = document.getElementById('themeSelect');
   const difficultySelect = document.getElementById('difficultySelect');
   const audioToggle = document.getElementById('audioToggle');
   const edgeToggle = document.getElementById('edgeToggle');
   const luisMascot = document.getElementById('luisMascot');
 
-  // Luis traegt zu jedem Oberflaechen-Design die passende Farbe. Die
-  // Bilder sind transparent (nur Chamaeleon + Ast), daher reicht ein
-  // sanftes Aus-/Einblenden statt eines harten Bildwechsels.
+  // Das Puzzle hat kein eigenes Oberflaechen-Design mehr - es uebernimmt
+  // automatisch das globale Mirelon-Design aus den Einstellungen
+  // (player.sidebarTheme, siehe getSidebarTheme() in JS/sidebar.js).
+  // Luis traegt zu jedem Design die passende Farbe. Die Bilder sind
+  // transparent (nur Chamaeleon + Ast), daher reicht ein sanftes
+  // Aus-/Einblenden statt eines harten Bildwechsels.
   const luisThemeImages = {
-    'emerald-green': 'images/chameleon_luis_green.png',
-    'azure-blue': 'images/chameleon_luis_blue.png',
-    orange: 'images/chameleon_luis_orange.png',
-    red: 'images/chameleon_luis_red.png',
-    minimal: 'images/chameleon_luis_grey.png',
+    baumrinde: 'images/chameleon_luis_brown.png',
+    smaragdwald: 'images/chameleon_luis_green.png',
+    zuckerwatte: 'images/chameleon_luis_zuckerwatte.png',
+    azurblau: 'images/chameleon_luis_blue.png',
+    rot: 'images/chameleon_luis_red.png',
   };
 
   function setLuisTheme(theme) {
     if (!luisMascot) return;
-    const nextSrc = luisThemeImages[theme] || luisThemeImages['emerald-green'];
+    const nextSrc = luisThemeImages[theme] || luisThemeImages.baumrinde;
     if (luisMascot.src.endsWith(nextSrc)) return;
     luisMascot.classList.add('is-fading');
     setTimeout(() => {
@@ -119,10 +121,20 @@
     }, 250);
   }
 
-  themeSelect.addEventListener('change', (e) => {
-    puzzleApp.setAttribute('data-theme', e.target.value);
-    setLuisTheme(e.target.value);
-  });
+  function applyGlobalPuzzleTheme() {
+    const theme =
+      typeof getSidebarTheme === 'function' ? getSidebarTheme() : 'baumrinde';
+    puzzleApp.setAttribute('data-theme', theme);
+    setLuisTheme(theme);
+  }
+
+  applyGlobalPuzzleTheme();
+
+  // Aendert sich das globale Theme (z. B. in den Einstellungen in
+  // einem anderen Tab, oder nach dem Laden eines Cloud-Profils),
+  // zieht das Puzzle sofort nach - nutzt das bestehende
+  // "player-updated"-Event statt einer eigenen Sync-Pipeline.
+  window.addEventListener('player-updated', applyGlobalPuzzleTheme);
 
   audioToggle.addEventListener('click', () => {
     const enabled = audioToggle.dataset.enabled !== 'true';
@@ -856,6 +868,9 @@
     }
     if (typeof registerPuzzleCompletion === 'function') {
       registerPuzzleCompletion(sourceGalleryLabel);
+    }
+    if (typeof registerPuzzleLuisVariant === 'function') {
+      registerPuzzleLuisVariant(puzzleApp.getAttribute('data-theme'));
     }
     window.dispatchEvent(
       new CustomEvent('mirelon:puzzle-completed', { detail: completion })
