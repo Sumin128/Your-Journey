@@ -2061,6 +2061,7 @@ main {
 .shop-item-five { left: 81%; top: 58.5%; }
 .shop-item-six { left: 19%; top: 76%; }
 .shop-item-seven { left: 36%; top: 76%; }
+.shop-item-eight { left: 50%; top: 76%; }
 
 .shop-hotspot-icon {
     width: 100%;
@@ -2169,7 +2170,8 @@ span.shop-hotspot-icon.shop-hotspot-icon--emoji {
     .shop-item-four,
     .shop-item-five,
     .shop-item-six,
-    .shop-item-seven {
+    .shop-item-seven,
+    .shop-item-eight {
         position: static;
         transform: none;
         width: auto;

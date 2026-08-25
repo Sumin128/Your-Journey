@@ -449,7 +449,7 @@ const inventoryButton =
                     class="inventory-item"
                     type="button"
                     data-category="cursor">
-                    <span class="inventory-item-icon" aria-hidden="true">🦊</span>
+                    <img src="Icons/Cursor/fox_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
                     <span class="inventory-item-name">Fuchs</span>
                     <span class="inventory-item-status"></span>
                 </button>
@@ -459,7 +459,7 @@ const inventoryButton =
                     class="inventory-item"
                     type="button"
                     data-category="cursor">
-                    <span class="inventory-item-icon" aria-hidden="true">🐻</span>
+                    <img src="Icons/Cursor/bear_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
                     <span class="inventory-item-name">Bär</span>
                     <span class="inventory-item-status"></span>
                 </button>
@@ -511,6 +511,16 @@ const inventoryButton =
                     data-category="cursor">
                     <img src="Icons/Cursor/blackgolden_feather_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
                     <span class="inventory-item-name">Schwarzgoldene Feder</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
+                <button
+                    id="inventory-luis-cursor"
+                    class="inventory-item"
+                    type="button"
+                    data-category="cursor">
+                    <img src="Icons/Cursor/luis_cursor.png" alt="" class="inventory-item-icon inventory-item-icon--img" loading="lazy" decoding="async">
+                    <span class="inventory-item-name">Luis</span>
                     <span class="inventory-item-status"></span>
                 </button>
 
@@ -615,6 +625,7 @@ const INVENTORY_CURSORS = [
     { id: "inventory-hasen-cursor", name: "hasen", label: "Hase", owned: function () { return Boolean(player.items && player.items.hasenCursor); } },
     { id: "inventory-golden-feather-cursor", name: "goldenfeather", label: "Goldene Feder", owned: function () { return Boolean(player.items && player.items.goldenFeatherCursor); } },
     { id: "inventory-blackgolden-feather-cursor", name: "blackgoldenfeather", label: "Schwarzgoldene Feder", owned: function () { return Boolean(player.items && player.items.blackGoldenFeatherCursor); } },
+    { id: "inventory-luis-cursor", name: "luis", label: "Luis", owned: function () { return Boolean(player.items && player.items.luisCursor); } },
     { id: "inventory-default-cursor", name: "default", label: "Standard", owned: function () { return true; } },
 ];
 
@@ -701,6 +712,9 @@ const inventoryBearCursorButton =
     const inventoryBlackGoldenFeatherCursorButton =
     document.getElementById("inventory-blackgolden-feather-cursor");
 
+    const inventoryLuisCursorButton =
+    document.getElementById("inventory-luis-cursor");
+
 const inventoryDefaultCursorButton =
     document.getElementById("inventory-default-cursor");
 
@@ -771,6 +785,16 @@ if (inventoryBlackGoldenFeatherCursorButton) {
     inventoryBlackGoldenFeatherCursorButton.addEventListener("click", function () {
 
         setCursor("blackgoldenfeather");
+
+    });
+
+}
+
+if (inventoryLuisCursorButton) {
+
+    inventoryLuisCursorButton.addEventListener("click", function () {
+
+        setCursor("luis");
 
     });
 

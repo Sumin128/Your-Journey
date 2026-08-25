@@ -78,7 +78,8 @@ let player = {
     kuroCursor: false,
     hasenCursor: false,
     goldenFeatherCursor: false,
-    blackGoldenFeatherCursor: false
+    blackGoldenFeatherCursor: false,
+    luisCursor: false
 },
 
     friends: {
@@ -190,6 +191,12 @@ if (typeof player.items.goldenFeatherCursor === "undefined") {
 if (typeof player.items.blackGoldenFeatherCursor === "undefined") {
 
     player.items.blackGoldenFeatherCursor = false;
+
+}
+
+if (typeof player.items.luisCursor === "undefined") {
+
+    player.items.luisCursor = false;
 
 }
 
@@ -1581,6 +1588,16 @@ function applyCursor() {
     }
 
 
+    if (
+        player.activeCursor === "luis" &&
+        player.items &&
+        player.items.luisCursor === true
+    ) {
+        cursor =
+            "url('Icons/Cursor/luis_cursor.png') 18 14, auto";
+    }
+
+
     document.documentElement.style.cursor = cursor;
     document.body.style.cursor = cursor;
 }
@@ -1727,6 +1744,25 @@ if (
 ) {
 
     player.activeCursor = "blackgoldenfeather";
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    return true;
+}
+
+
+// Luis
+if (
+    cursorName === "luis" &&
+    player.items &&
+    player.items.luisCursor
+) {
+
+    player.activeCursor = "luis";
 
     savePlayer();
 

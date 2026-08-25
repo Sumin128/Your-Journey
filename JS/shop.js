@@ -67,6 +67,12 @@ const blackGoldenFeatherCursorButton =
 
 const blackGoldenFeatherCursorPrice = 300;
 
+
+const luisCursorButton =
+    document.querySelector("#luis-cursor-button");
+
+const luisCursorPrice = 500;
+
 /* =====================================================
    KUROS LADEN
    Kauf Funktion für den Bärencursor
@@ -526,6 +532,93 @@ function updateBlackGoldenFeatherCursorButton() {
 
 /* =====================================================
    KUROS LADEN
+   Kauf Funktion für den Luis-Cursor
+   ===================================================== */
+
+function buyLuisCursor() {
+
+    if (player.items.luisCursor) {
+
+        player.activeCursor = "luis";
+
+        savePlayer();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        applyCursor();
+
+        updateLuisCursorButton();
+
+        return;
+    }
+
+    if (player.feathers < luisCursorPrice) {
+
+        showMirelonToast(
+            "Dir fehlen noch " + (luisCursorPrice - player.feathers) + " 🪶, um den Luis-Cursor zu kaufen.",
+            "error"
+        );
+
+        return;
+    }
+
+    player.feathers -= luisCursorPrice;
+
+    player.items.luisCursor = true;
+
+    player.activeCursor = "luis";
+
+    if (typeof registerShopPurchase === "function") {
+        registerShopPurchase();
+    }
+
+    savePlayer();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
+    applyCursor();
+
+    updateShopPlayer();
+
+    updateLuisCursorButton();
+
+}
+
+/* =====================================================
+   KUROS LADEN
+   Update des Luis-Cursor Buttons
+   ===================================================== */
+
+function updateLuisCursorButton() {
+
+    if (!luisCursorButton) {
+        return;
+    }
+
+    if (!player.items.luisCursor) {
+
+        luisCursorButton.textContent = "Kaufen";
+        luisCursorButton.disabled = false;
+
+        return;
+    }
+
+    if (player.activeCursor === "luis") {
+
+        luisCursorButton.textContent = "Aktiv";
+        luisCursorButton.disabled = true;
+
+    } else {
+
+        luisCursorButton.textContent = "Aktivieren";
+        luisCursorButton.disabled = false;
+
+    }
+
+}
+
+/* =====================================================
+   KUROS LADEN
    Update des Bärencursor Buttons
    ===================================================== */
 
@@ -683,6 +776,7 @@ updateKuroCursorButton();
 updateHasenCursorButton();
 updateGoldenFeatherCursorButton();
 updateBlackGoldenFeatherCursorButton();
+updateLuisCursorButton();
 
 if (foxCursorButton) {
     foxCursorButton.addEventListener("click", buyFoxCursor);
@@ -710,6 +804,10 @@ if (goldenFeatherCursorButton) {
 
 if (blackGoldenFeatherCursorButton) {
     blackGoldenFeatherCursorButton.addEventListener("click", buyBlackGoldenFeatherCursor);
+}
+
+if (luisCursorButton) {
+    luisCursorButton.addEventListener("click", buyLuisCursor);
 }
 
 window.addEventListener(
