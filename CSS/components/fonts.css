@@ -1,0 +1,146 @@
+/* =====================================================
+   LOKAL GEHOSTETE SCHRIFTARTEN
+   Ersetzt die bisherige Einbindung über fonts.googleapis.com/
+   fonts.gstatic.com - der Browser laedt die Schriften jetzt
+   direkt von Mirelon statt von Google. Aussehen/Gewichte/
+   Fallbacks bleiben unveraendert (siehe --yj-font-display/
+   --yj-font-body in variables.css sowie die Puzzle-spezifischen
+   font-family-Deklarationen in puzzle.css).
+
+   Fraunces, Fredoka, Nunito und Work Sans sind bei Google Fonts
+   variable Schriftschnitte - eine einzelne Datei deckt mehrere
+   Gewichte ab. Google selbst liefert dafuer pro genutztem
+   Gewicht ein eigenes @font-face mit identischer Datei-URL aus;
+   das wird hier 1:1 nachgebildet, damit sich am Rendering nichts
+   aendert.
+
+   Lizenz: alle fuenf Schriften stehen unter der SIL Open Font
+   License 1.1 (Self-Hosting ausdruecklich erlaubt), Lizenztext
+   jeweils als OFL.txt neben der Font-Datei in Fonts/<schrift>/.
+   ===================================================== */
+
+/* ---------- Fredoka (--yj-font-display) ---------- */
+
+@font-face {
+    font-family: "Fredoka";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../Fonts/fredoka/fredoka-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Fredoka";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("../../Fonts/fredoka/fredoka-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Fredoka";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("../../Fonts/fredoka/fredoka-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Fredoka";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("../../Fonts/fredoka/fredoka-latin-variable.woff2") format("woff2");
+}
+
+
+/* ---------- Nunito (--yj-font-body) ---------- */
+
+@font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../Fonts/nunito/nunito-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("../../Fonts/nunito/nunito-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("../../Fonts/nunito/nunito-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Nunito";
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src: url("../../Fonts/nunito/nunito-latin-variable.woff2") format("woff2");
+}
+
+
+/* ---------- Fraunces (nur Luis Puzzle - Ueberschriften) ---------- */
+
+@font-face {
+    font-family: "Fraunces";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("../../Fonts/fraunces/fraunces-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Fraunces";
+    font-style: normal;
+    font-weight: 650;
+    font-display: swap;
+    src: url("../../Fonts/fraunces/fraunces-latin-variable.woff2") format("woff2");
+}
+
+
+/* ---------- Work Sans (nur Luis Puzzle - Fliesstext) ---------- */
+
+@font-face {
+    font-family: "Work Sans";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../Fonts/work-sans/work-sans-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Work Sans";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("../../Fonts/work-sans/work-sans-latin-variable.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Work Sans";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("../../Fonts/work-sans/work-sans-latin-variable.woff2") format("woff2");
+}
+
+
+/* ---------- JetBrains Mono (nur Luis Puzzle - Teile-/Groessenangaben) ---------- */
+
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("../../Fonts/jetbrains-mono/jetbrains-mono-latin-500.woff2") format("woff2");
+}
