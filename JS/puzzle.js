@@ -83,10 +83,7 @@
   const progressWrap = document.getElementById('progressWrap');
   const progressText = document.getElementById('progressText');
   const progressFill = document.getElementById('progressFill');
-  const vorlageBtn = document.getElementById('vorlageToggleBtn');
   const ghostBtn = document.getElementById('ghostToggleBtn');
-  const vorlagePanel = document.getElementById('vorlagePanel');
-  const vorlageImg = document.getElementById('vorlageImg');
   const winOverlay = document.getElementById('winOverlay');
   const winAgainBtn = document.getElementById('winAgainBtn');
   const winPieceCount = document.getElementById('winPieceCount');
@@ -227,7 +224,6 @@
         thumbImg.src = imageSource;
         ghostImg.src = imageSource;
         thumbPrev.classList.add('show');
-        vorlageImg.src = imageSource;
         buildBtn.disabled = false;
         uploadStatus.textContent = 'Bild bereit: ' + label;
         uploadStatus.classList.add('ready');
@@ -649,7 +645,6 @@
 
     emptyMsg.style.display = 'none';
     resetBtn.style.display = 'block';
-    vorlageBtn.style.display = 'flex';
     ghostBtn.style.display = 'flex';
     progressWrap.style.display = 'block';
     updateProgress();
@@ -953,9 +948,6 @@
   winAgainBtn.addEventListener('click', () => {
     winOverlay.classList.remove('show');
     buildPuzzle();
-  });
-  vorlageBtn.addEventListener('click', () => {
-    vorlagePanel.classList.toggle('hidden');
   });
   ghostBtn.addEventListener('click', () => {
     ghostImg.classList.toggle('show');
