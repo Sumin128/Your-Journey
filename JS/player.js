@@ -671,6 +671,220 @@ function showMirelonToast(message, type) {
 
 
 /* =====================================================
+   CHARAKTER-SPRECHBLASE (wiederverwendbar)
+   Generische kleine Sprechblase für spontane Reaktionen
+   einzelner Mirelon-Figuren - rein kosmetisch, vergibt
+   keine Federn, Erfolge oder Fortschritt. Aktuell nur für
+   Luis genutzt (siehe Easter-Egg weiter unten), aber so
+   gebaut, dass sich später z. B. Branos, Kuro, Faro oder
+   Tessa über dieselbe Funktion melden können - dafür
+   einfach in CHARACTER_BUBBLE_DEFAULT_AVATARS einen
+   weiteren Charakter ergänzen bzw. beim Aufruf ein
+   avatarSrc mitgeben.
+   ===================================================== */
+
+const CHARACTER_BUBBLE_DEFAULT_AVATARS = {
+
+    luis: function () {
+
+        const theme =
+            typeof getSidebarTheme === "function" ? getSidebarTheme() : "baumrinde";
+
+        return LUIS_THEME_IMAGES[theme] || LUIS_THEME_IMAGES.baumrinde;
+
+    }
+
+};
+
+let characterBubbleHideTimeoutId = null;
+let characterBubbleRemoveTimeoutId = null;
+
+function showCharacterBubble(options) {
+
+    const settings = options || {};
+    const character = settings.character || "luis";
+    const text = settings.text || "";
+    const duration = settings.duration || 9000;
+
+    let avatarSrc = settings.avatarSrc;
+
+    if (!avatarSrc && typeof CHARACTER_BUBBLE_DEFAULT_AVATARS[character] === "function") {
+
+        avatarSrc = CHARACTER_BUBBLE_DEFAULT_AVATARS[character]();
+
+    }
+
+    const existingBubble = document.querySelector(".character-bubble");
+
+    if (existingBubble) {
+        existingBubble.remove();
+    }
+
+    clearTimeout(characterBubbleHideTimeoutId);
+    clearTimeout(characterBubbleRemoveTimeoutId);
+
+    const bubble = document.createElement("div");
+
+    bubble.className = "character-bubble character-bubble--" + character;
+    bubble.setAttribute("role", "status");
+    bubble.setAttribute("aria-live", "polite");
+
+    bubble.innerHTML = `
+        <button type="button" class="character-bubble-close" aria-label="Schließen">✕</button>
+        <p class="character-bubble-text"></p>
+        <span class="character-bubble-arrow" aria-hidden="true"></span>
+        ${avatarSrc ? '<img class="character-bubble-avatar" src="' + avatarSrc + '" alt="">' : ""}
+    `;
+
+    bubble.querySelector(".character-bubble-text").textContent = text;
+
+    document.body.appendChild(bubble);
+
+    function scheduleHide() {
+
+        clearTimeout(characterBubbleHideTimeoutId);
+
+        characterBubbleHideTimeoutId = setTimeout(function () {
+
+            bubble.classList.remove("character-bubble--show");
+
+            characterBubbleRemoveTimeoutId = setTimeout(function () {
+
+                bubble.remove();
+
+            }, 400);
+
+        }, duration);
+
+    }
+
+    setTimeout(function () {
+
+        bubble.classList.add("character-bubble--show");
+        scheduleHide();
+
+    }, 10);
+
+    // Solange Maus oder Fokus auf der Sprechblase liegen, den
+    // automatischen Timer pausieren statt sie wegzuschieben.
+    bubble.addEventListener("mouseenter", function () {
+        clearTimeout(characterBubbleHideTimeoutId);
+    });
+
+    bubble.addEventListener("mouseleave", scheduleHide);
+
+    bubble.addEventListener("focusin", function () {
+        clearTimeout(characterBubbleHideTimeoutId);
+    });
+
+    bubble.addEventListener("focusout", scheduleHide);
+
+    bubble.querySelector(".character-bubble-close").addEventListener("click", function () {
+
+        clearTimeout(characterBubbleHideTimeoutId);
+        clearTimeout(characterBubbleRemoveTimeoutId);
+        bubble.remove();
+
+    });
+
+}
+
+
+/* =====================================================
+   LUIS-EASTER-EGG: HÄUFIGE THEME-WECHSEL
+   Reagiert humorvoll, wenn innerhalb von 60 Minuten
+   mindestens 5 tatsächliche Wechsel des globalen Mirelon-
+   Designs stattfinden (siehe setSidebarTheme() in
+   JS/sidebar.js, das diese Funktion bei jedem echten
+   Wechsel aufruft). Die Zeitstempel liegen bewusst NICHT
+   im player-Objekt, damit savePlayer() dafür keine
+   Supabase-Synchronisation auslöst - rein lokales,
+   kosmetisches Easter-Egg ohne Belohnung.
+   ===================================================== */
+
+const LUIS_THEME_CHANGE_WINDOW_MS = 60 * 60 * 1000;
+const LUIS_THEME_CHANGE_THRESHOLD = 5;
+const LUIS_THEME_CHANGE_TIMESTAMPS_KEY = "mirelonThemeChangeTimestamps";
+const LUIS_THEME_REACTION_LAST_SHOWN_KEY = "mirelonLuisThemeReactionLastShown";
+
+function registerThemeChangeForLuisEasterEgg() {
+
+    const now = Date.now();
+
+    let timestamps = [];
+
+    try {
+
+        timestamps = JSON.parse(localStorage.getItem(LUIS_THEME_CHANGE_TIMESTAMPS_KEY) || "[]");
+
+        if (!Array.isArray(timestamps)) {
+            timestamps = [];
+        }
+
+    } catch (error) {
+
+        timestamps = [];
+
+    }
+
+    timestamps.push(now);
+
+    timestamps = timestamps.filter(function (timestamp) {
+
+        return typeof timestamp === "number" && (now - timestamp) < LUIS_THEME_CHANGE_WINDOW_MS;
+
+    });
+
+    try {
+
+        localStorage.setItem(LUIS_THEME_CHANGE_TIMESTAMPS_KEY, JSON.stringify(timestamps));
+
+    } catch (error) {
+
+        // Storage kann in privaten/eingeschränkten Browser-Kontexten fehlen.
+
+    }
+
+    if (timestamps.length < LUIS_THEME_CHANGE_THRESHOLD) {
+        return;
+    }
+
+    let lastShown = 0;
+
+    try {
+
+        lastShown = Number(localStorage.getItem(LUIS_THEME_REACTION_LAST_SHOWN_KEY)) || 0;
+
+    } catch (error) {
+
+        lastShown = 0;
+
+    }
+
+    if ((now - lastShown) < LUIS_THEME_CHANGE_WINDOW_MS) {
+        return;
+    }
+
+    try {
+
+        localStorage.setItem(LUIS_THEME_REACTION_LAST_SHOWN_KEY, String(now));
+
+    } catch (error) {
+
+        // Storage kann in privaten/eingeschränkten Browser-Kontexten fehlen.
+
+    }
+
+    showCharacterBubble({
+        character: "luis",
+        text: "Schon wieder?! Meine Schuppen kommen ja gar nicht mehr hinterher!",
+        duration: 9000
+    });
+
+}
+
+
+/* =====================================================
    HIGHSCORE-PUNKTE
    Gemeinsamer Punktestand über alle Spiele hinweg (Quiz,
    Wörterraten, Wer-ist-es, Puzzle) - unabhängig von den
@@ -1091,7 +1305,21 @@ function registerPuzzleCompletion(galleryImageLabel) {
    dem jeweils aktiven globalen Theme gelöst wurde.
    ===================================================== */
 
-const puzzleLuisThemeIds = ["baumrinde", "smaragdwald", "zuckerwatte", "azurblau", "rot", "orange"];
+// Einzige Quelle der Wahrheit fuer die Luis-Farbvariante pro
+// globalem Mirelon-Theme - wird sowohl fuer den Puzzle-Erfolg
+// als auch fuer das Luis-Sprechblasen-Easter-Egg genutzt (siehe
+// showCharacterBubble()/CHARACTER_BUBBLE_DEFAULT_AVATARS weiter
+// unten), damit es keine zweite, abweichende Zuordnung gibt.
+const LUIS_THEME_IMAGES = {
+    baumrinde: "images/chameleon_luis_brown.png",
+    smaragdwald: "images/chameleon_luis_green.png",
+    zuckerwatte: "images/chameleon_luis_zuckerwatte.png",
+    azurblau: "images/chameleon_luis_blue.png",
+    rot: "images/chameleon_luis_red.png",
+    orange: "images/chameleon_luis_orange.png"
+};
+
+const puzzleLuisThemeIds = Object.keys(LUIS_THEME_IMAGES);
 
 const puzzleLuisAchievement = {
     name: "Luis in allen Farben",

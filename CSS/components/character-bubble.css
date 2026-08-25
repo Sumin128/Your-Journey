@@ -1,0 +1,154 @@
+/* =====================================================
+   CHARAKTER-SPRECHBLASE
+   Wiederverwendbare kleine Sprechblase für spontane
+   Reaktionen einzelner Mirelon-Figuren (siehe
+   showCharacterBubble() in JS/player.js). Reines
+   HTML/CSS, kein Bild für die Blase selbst - nur der
+   kleine Charakter-Avatar ist ein Bild.
+   ===================================================== */
+
+.character-bubble {
+
+    position: fixed;
+    right: 20px;
+    bottom: 96px;
+
+    z-index: 1900;
+
+    width: min(300px, calc(100vw - 40px));
+
+    display: flex;
+    align-items: center;
+
+    padding: 14px 30px 14px 16px;
+
+    background: var(--yj-color-paper-soft);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border-radius: var(--yj-radius-md);
+    box-shadow: var(--yj-shadow-card);
+
+    color: var(--yj-color-ink);
+    font-family: var(--yj-font-body);
+
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+    transform-origin: bottom right;
+
+    pointer-events: none;
+
+    transition: opacity 0.3s var(--yj-ease-out), transform 0.3s var(--yj-ease-spring);
+
+}
+
+.character-bubble--show {
+
+    opacity: 1;
+    transform: translateY(0) scale(1);
+
+    pointer-events: auto;
+
+}
+
+.character-bubble-text {
+
+    margin: 0;
+
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.4;
+
+}
+
+.character-bubble-close {
+
+    position: absolute;
+    top: 8px;
+    right: 8px;
+
+    width: 22px;
+    height: 22px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(52, 33, 15, 0.1);
+    color: var(--yj-color-ink);
+
+    font-size: 0.65rem;
+    line-height: 1;
+
+    cursor: pointer;
+
+}
+
+.character-bubble-close:hover {
+
+    background: rgba(52, 33, 15, 0.2);
+
+}
+
+.character-bubble-close:focus-visible {
+
+    outline: 2px solid var(--yj-color-accent);
+    outline-offset: 2px;
+
+}
+
+.character-bubble-arrow {
+
+    position: absolute;
+    bottom: -7px;
+    right: 34px;
+
+    width: 14px;
+    height: 14px;
+
+    background: var(--yj-color-paper-soft);
+
+    transform: rotate(45deg);
+    border-radius: 3px;
+
+}
+
+.character-bubble-avatar {
+
+    position: absolute;
+    right: -10px;
+    bottom: -12px;
+
+    width: 44px;
+    height: 44px;
+
+    object-fit: contain;
+
+    padding: 4px;
+
+    background: var(--yj-color-paper-soft);
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: 50%;
+
+    box-shadow: var(--yj-shadow-sm);
+
+}
+
+@media (max-width: 470px) {
+
+    .character-bubble {
+
+        right: 12px;
+        left: 12px;
+
+        width: auto;
+
+        bottom: 84px;
+
+    }
+
+}

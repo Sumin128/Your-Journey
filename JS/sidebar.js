@@ -83,6 +83,11 @@ function setSidebarTheme(theme) {
             ? theme
             : "baumrinde";
 
+    // Ein Klick auf das bereits aktive Theme zählt nicht als
+    // Wechsel (weder für den Cloud-Sync-Aufwand unten noch für
+    // das Luis-Easter-Egg).
+    const isActualChange = validTheme !== player.sidebarTheme;
+
     player.sidebarTheme = validTheme;
 
     savePlayer();
@@ -90,6 +95,12 @@ function setSidebarTheme(theme) {
     applySidebarTheme(validTheme);
 
     window.dispatchEvent(new CustomEvent("player-updated"));
+
+    if (isActualChange && typeof registerThemeChangeForLuisEasterEgg === "function") {
+
+        registerThemeChangeForLuisEasterEgg();
+
+    }
 
 }
 

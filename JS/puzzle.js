@@ -99,21 +99,16 @@
   // Das Puzzle hat kein eigenes Oberflaechen-Design mehr - es uebernimmt
   // automatisch das globale Mirelon-Design aus den Einstellungen
   // (player.sidebarTheme, siehe getSidebarTheme() in JS/sidebar.js).
-  // Luis traegt zu jedem Design die passende Farbe. Die Bilder sind
-  // transparent (nur Chamaeleon + Ast), daher reicht ein sanftes
-  // Aus-/Einblenden statt eines harten Bildwechsels.
-  const luisThemeImages = {
-    baumrinde: 'images/chameleon_luis_brown.png',
-    smaragdwald: 'images/chameleon_luis_green.png',
-    zuckerwatte: 'images/chameleon_luis_zuckerwatte.png',
-    azurblau: 'images/chameleon_luis_blue.png',
-    rot: 'images/chameleon_luis_red.png',
-    orange: 'images/chameleon_luis_orange.png',
-  };
-
+  // Luis traegt zu jedem Design die passende Farbe. Die Zuordnung
+  // Theme -> Luis-Bild liegt zentral in LUIS_THEME_IMAGES
+  // (JS/player.js), damit es keine zweite, abweichende Zuordnung
+  // gibt (wird auch vom Puzzle-Erfolg und dem Luis-Sprechblasen-
+  // Easter-Egg genutzt). Die Bilder sind transparent (nur
+  // Chamaeleon + Ast), daher reicht ein sanftes Aus-/Einblenden
+  // statt eines harten Bildwechsels.
   function setLuisTheme(theme) {
     if (!luisMascot) return;
-    const nextSrc = luisThemeImages[theme] || luisThemeImages.baumrinde;
+    const nextSrc = LUIS_THEME_IMAGES[theme] || LUIS_THEME_IMAGES.baumrinde;
     if (luisMascot.src.endsWith(nextSrc)) return;
     luisMascot.classList.add('is-fading');
     setTimeout(() => {
