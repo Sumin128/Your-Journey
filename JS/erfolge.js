@@ -31,22 +31,25 @@ function renderAchievements() {
     achievementCatalog.forEach(function (achievement) {
 
         const isUnlocked = player.achievements.includes(achievement.name);
+        const isHiddenSecret = Boolean(achievement.secret) && !isUnlocked;
 
         const card = document.createElement("div");
 
         card.className =
             "achievement-card " +
-            (isUnlocked ? "achievement-card--unlocked" : "achievement-card--locked");
+            (isUnlocked ? "achievement-card--unlocked" : "achievement-card--locked") +
+            (isHiddenSecret ? " achievement-card--secret" : "");
 
         const icon = document.createElement("div");
         icon.className = "achievement-card-icon";
         icon.textContent = isUnlocked ? achievement.icon : "🔒";
 
         const name = document.createElement("h2");
-        name.textContent = achievement.name;
+        name.textContent = isHiddenSecret ? "???" : achievement.name;
 
         const description = document.createElement("p");
-        description.textContent = achievement.description;
+        description.textContent =
+            isHiddenSecret ? "Ein geheimer Erfolg wartet darauf, entdeckt zu werden." : achievement.description;
 
         const status = document.createElement("span");
         status.className = "achievement-card-status";

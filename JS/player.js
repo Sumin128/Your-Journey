@@ -1434,7 +1434,11 @@ const puzzleLuisThemeIds = Object.keys(LUIS_THEME_IMAGES);
 const puzzleLuisAchievement = {
     name: "Luis in allen Farben",
     description: "Löse mit jeder Luis-Variante mindestens ein Puzzle.",
-    icon: "🦎"
+    icon: "🦎",
+    // Geheimer Erfolg: auf der Erfolge-Seite (erfolge.html) wird
+    // Name/Beschreibung erst nach dem Freischalten angezeigt, siehe
+    // JS/erfolge.js.
+    secret: true
 };
 
 function registerPuzzleLuisVariant(themeId) {
