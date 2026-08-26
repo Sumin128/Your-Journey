@@ -8,6 +8,10 @@
   );
   puzzleSnapSound.preload = 'auto';
 
+  if (typeof markAnimalVisited === 'function') {
+    markAnimalVisited('luis');
+  }
+
   const Sound = {
     ctx: null,
     init() {

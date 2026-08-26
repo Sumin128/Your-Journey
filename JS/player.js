@@ -1227,12 +1227,13 @@ const animalFriends = [
     { id: "kuro", name: "Kuro" },
     { id: "tessa", name: "Tessa" },
     { id: "faro", name: "Faro" },
-    { id: "branos", name: "Branos" }
+    { id: "branos", name: "Branos" },
+    { id: "luis", name: "Luis" }
 ];
 
 const visitAllAnimalsAchievement = {
     name: "Alle Tiere besucht",
-    description: "Besuche Kuro, Tessa, Faro und Branos.",
+    description: "Besuche Kuro, Tessa, Faro, Branos und Luis.",
     icon: "🐾"
 };
 
