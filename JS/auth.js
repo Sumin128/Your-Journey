@@ -237,18 +237,137 @@ async function pullProfileFromCloud() {
             pushProfileToCloud();
         }
 
+    } else {
+
+        /* player_data ist leer (frischer Account - gerade erst
+           registriert, oder die erste Sitzung nach E-Mail-
+           Bestätigung): der oben gesetzte frische Standard-
+           Spielstand bleibt zunächst stehen. Bewusst KEIN
+           automatisches Hochladen eines vorherigen lokalen Standes
+           mehr (das war der eigentliche Account-Wechsel-Bug).
+           Stattdessen: falls ein Gast-Spielstand mit echtem
+           Fortschritt existiert, EINMAL pro Sitzung bewusst fragen,
+           ob er übernommen werden soll - nie automatisch. */
+
+        await maybeOfferGuestProgressClaim();
+
     }
 
-    /* Sonst (player_data ist leer, z. B. gerade erst registriert):
-       der oben gesetzte frische Standard-Spielstand bleibt einfach
-       stehen. Bewusst KEIN automatisches Hochladen eines vorherigen
-       lokalen Standes mehr (das war der eigentliche Account-Wechsel-
-       Bug) und auch keine automatische Übernahme eines eventuell
-       vorhandenen Gast-Spielstands - das soll später eine bewusste
-       "Gastfortschritt übernehmen?"-Funktion werden, keine stille
-       Automatik. */
-
     window.dispatchEvent(new CustomEvent("player-updated"));
+
+}
+
+
+/* =====================================================
+   GASTFORTSCHRITT EINMALIG ÜBERNEHMEN (bei Registrierung)
+   Wird nur aus pullProfileFromCloud() heraus aufgerufen, wenn der
+   Cloud-Stand des gerade eingeloggten Nutzers leer ist (frischer
+   Account). Fragt NUR, wenn ein lokaler Gast-Spielstand mit echtem
+   Fortschritt existiert - sonst passiert nichts. Die eigentliche
+   Absicherung (nur auf einem wirklich leeren Account, nur einmal pro
+   Account für immer, Plausibilitätsgrenze für Münzen) läuft
+   serverseitig in claim_guest_progress() - siehe
+   supabase_migration_guest_progress_claim.sql. Der Gast-Spielstand
+   in localStorage wird dabei NIE gelöscht, egal wie sich der Nutzer
+   entscheidet.
+   ===================================================== */
+
+/* Verhindert, dass derselbe Nutzer innerhalb einer Sitzung mehrfach
+   gefragt wird (z. B. wenn pullProfileFromCloud() aus irgendeinem
+   Grund mehrfach läuft, solange der Account noch leer ist). Setzt
+   sich beim ersten Aufruf, unabhängig vom Ergebnis - ein neuer
+   Seitenaufruf setzt das natürlich zurück. */
+let guestProgressOfferHandledThisSession = false;
+
+function guestSaveHasRealProgress(guestPlayer) {
+
+    if (!guestPlayer) {
+        return false;
+    }
+
+    return Boolean(
+        (typeof guestPlayer.coins === "number" && guestPlayer.coins > 0) ||
+        (typeof guestPlayer.feathers === "number" && guestPlayer.feathers > 0) ||
+        (Array.isArray(guestPlayer.achievements) && guestPlayer.achievements.length > 0) ||
+        guestPlayer.name
+    );
+
+}
+
+async function maybeOfferGuestProgressClaim() {
+
+    if (guestProgressOfferHandledThisSession) {
+        return;
+    }
+
+    guestProgressOfferHandledThisSession = true;
+
+    const guestSaveRaw = localStorage.getItem("player");
+
+    if (!guestSaveRaw) {
+        return;
+    }
+
+    let guestPlayer;
+
+    try {
+        guestPlayer = JSON.parse(guestSaveRaw);
+    } catch (parseError) {
+        return;
+    }
+
+    if (!guestSaveHasRealProgress(guestPlayer)) {
+        return;
+    }
+
+    if (typeof showMirelonConfirm !== "function") {
+        return;
+    }
+
+    const wantsClaim = await showMirelonConfirm(
+        "Du hast als Gast schon Fortschritt gesammelt (Münzen, Erfolge, Inventar). " +
+        "Möchtest du diesen Fortschritt einmalig in dein neues Konto übernehmen? " +
+        "Dein lokaler Gast-Spielstand bleibt in jedem Fall unverändert erhalten.",
+        {
+            okLabel: "Ja, Fortschritt übernehmen",
+            cancelLabel: "Nein, neu starten"
+        }
+    );
+
+    if (!wantsClaim) {
+
+        /* Nein: frischer Account-Spielstand bleibt (schon gesetzt),
+           der Gast-Spielstand wird NICHT gelöscht. */
+
+        return;
+
+    }
+
+    const rpcResult = await supabaseClient.rpc("claim_guest_progress", {
+        guest_data: guestPlayer
+    });
+
+    if (rpcResult.error) {
+
+        if (typeof showMirelonToast === "function") {
+            showMirelonToast(
+                "Dein Fortschritt konnte nicht übernommen werden: " + rpcResult.error.message,
+                "error"
+            );
+        }
+
+        return;
+
+    }
+
+    /* Vorgabe: nach der Übernahme den Cloud-Stand erneut laden und
+       anzeigen, statt dem RPC-Rückgabewert lokal blind zu vertrauen. */
+
+    await pullProfileFromCloud();
+
+    if (typeof showMirelonToast === "function") {
+        showMirelonToast("Dein Fortschritt wurde übernommen! 🎉", "info");
+    }
 
 }
 
@@ -292,24 +411,18 @@ async function signUpAccount(email, password, parentalConsent) {
 
     currentSession = data.session;
 
-    /* Neuer Account startet immer frisch - NICHT mit dem bisherigen
-       Gast-Spielstand (das wäre eine unbeabsichtigte automatische
-       Übernahme). Eine bewusste "Gastfortschritt übernehmen?"-Funktion
-       kann das später als eigene, vom Nutzer gewählte Aktion anbieten. */
+    /* pullProfileFromCloud() übernimmt hier alles Weitere: player auf
+       einen frischen Standard-Spielstand zurücksetzen (NICHT den
+       bisherigen Gast-Spielstand automatisch übernehmen - das wäre
+       eine unbeabsichtigte automatische Übernahme), den (leeren)
+       Cloud-Stand abrufen und - weil er leer ist - bei vorhandenem,
+       echtem Gast-Fortschritt einmalig fragen, ob dieser bewusst
+       übernommen werden soll (siehe maybeOfferGuestProgressClaim()
+       unten). Funktioniert damit auch für Accounts, die erst nach
+       E-Mail-Bestätigung (nicht sofort hier) ihre erste Sitzung
+       bekommen - dort läuft derselbe Code über signInAccount(). */
 
-    player = createDefaultPlayer();
-
-    await pushProfileToCloud();
-
-    /* Statt nur updatePlayerUI()/applyCursor() direkt aufzurufen: das
-       "player-updated"-Event feuern, damit ALLE Anzeigen (Sidebar,
-       Kuros Laden, Erfolge, ...) konsistent auffrischen - genau wie
-       an jeder anderen Stelle im Spiel. Löst zwar über den eigenen
-       Listener weiter unten noch einen zweiten, harmlosen Push aus
-       (derselbe frische Stand ist schon oben hochgeladen), das ist
-       hier kein Problem. */
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
+    await pullProfileFromCloud();
 
     updateAuthUI();
 

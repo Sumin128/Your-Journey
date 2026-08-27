@@ -1,5 +1,5 @@
 -- ============================================================
--- Your Journey – Datenbank-Schema für Supabase (v5)
+-- Your Journey – Datenbank-Schema für Supabase (v6)
 -- ============================================================
 -- Anleitung: Im Supabase-Dashboard links auf "SQL Editor" klicken,
 -- "New query", diesen kompletten Inhalt einfügen, "Run" klicken.
@@ -9,8 +9,10 @@
 -- player_data-Spalte, die zum kompletten player-Objekt aus
 -- JS/player.js passt; v3/v4/v5 sperren das direkte UPDATE von
 -- player_data und erzwingen stattdessen geprüfte, atomare Funktionen
--- inkl. Anti-Replay-Schutz für Münzen - siehe
--- supabase_migration_security_player_data.sql).
+-- inkl. Anti-Replay-Schutz für Münzen (siehe
+-- supabase_migration_security_player_data.sql); v6 ergänzt die
+-- einmalige Gastfortschritt-Übernahme (siehe
+-- supabase_migration_guest_progress_claim.sql).
 -- ============================================================
 
 -- Eine Zeile pro Spieler, verknüpft mit dem Auth-Account (auth.users).
@@ -370,3 +372,81 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
     after insert on auth.users
     for each row execute function public.handle_new_user();
+
+
+-- ============================================================
+-- v6: einmalige Gastfortschritt-Übernahme bei der Registrierung -
+-- siehe supabase_migration_guest_progress_claim.sql für die
+-- vollständige Begründung. Dieser Abschnitt hier ist identisch zu
+-- dieser Migration, nur als Teil des Gesamt-Schemas dokumentiert.
+-- ============================================================
+
+alter table public.profiles
+    add column if not exists guest_progress_claimed_at timestamptz;
+
+create or replace function public.claim_guest_progress(guest_data jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    current_data jsonb;
+    current_claimed_at timestamptz;
+    guest_coins numeric;
+    guest_total numeric;
+    max_claimable_coins constant numeric := 5000;
+begin
+    if auth.uid() is null then
+        raise exception 'Nicht angemeldet';
+    end if;
+
+    select player_data, guest_progress_claimed_at
+    into current_data, current_claimed_at
+    from public.profiles
+    where id = auth.uid()
+    for update;
+
+    if current_claimed_at is not null then
+        raise exception 'Gastfortschritt wurde für dieses Konto bereits übernommen';
+    end if;
+
+    if current_data is null then
+        current_data := '{}'::jsonb;
+    end if;
+
+    if current_data ? 'coins' then
+        raise exception 'Dieser Account hat bereits eigenen Fortschritt - Gastfortschritt kann nicht mehr übernommen werden';
+    end if;
+
+    guest_coins := coalesce(
+        (guest_data->>'coins')::numeric,
+        (guest_data->>'feathers')::numeric,
+        0
+    );
+    guest_total := coalesce(
+        (guest_data->>'totalCoinsEarned')::numeric,
+        (guest_data->>'totalFeathersEarned')::numeric,
+        guest_coins
+    );
+
+    if guest_coins < 0 or guest_total < 0 then
+        raise exception 'Ungültige Münzen im Gast-Spielstand';
+    end if;
+
+    if guest_coins > max_claimable_coins or guest_total > max_claimable_coins then
+        raise exception 'Gast-Spielstand enthält unplausibel viele Münzen (max %)', max_claimable_coins;
+    end if;
+
+    update public.profiles
+    set player_data = guest_data,
+        guest_progress_claimed_at = now(),
+        updated_at = now()
+    where id = auth.uid();
+
+    return jsonb_build_object('claimed', true);
+end;
+$$;
+
+revoke all on function public.claim_guest_progress(jsonb) from public;
+grant execute on function public.claim_guest_progress(jsonb) to authenticated;
