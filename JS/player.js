@@ -446,6 +446,21 @@ function updatePlayerUI() {
    7. MÜNZEN
    ===================================================== */
 
+/*
+   Groesste echte Einzel-Belohnung im Spiel: 10 Münzen (Memory,
+   Stufe "extraschwer"). Der Cap unten liegt grosszuegig darueber,
+   damit kein normaler Spielzug je gekappt wird - verhindert aber,
+   dass addCoins() ueber die Browser-Konsole mit einer riesigen Zahl
+   aufgerufen wird und sofort tausende Münzen gutschreibt. Das ist
+   nur eine erste Bremse gegen den offensichtlichsten Missbrauch -
+   die eigentliche, verlässliche Prüfung läuft serverseitig in
+   sync_player_data() (siehe supabase_schema.sql), da player.coins
+   als globale Variable ohnehin von jedem direkt in der Konsole
+   veränderbar bleibt (das lässt sich clientseitig grundsätzlich
+   nicht vollständig verhindern).
+*/
+const MAX_SINGLE_COIN_REWARD = 20;
+
 function addCoins(amount) {
 
     if (amount <= 0) {
@@ -454,9 +469,11 @@ function addCoins(amount) {
 
     }
 
-    player.coins += amount;
+    const cappedAmount = Math.min(amount, MAX_SINGLE_COIN_REWARD);
 
-    player.totalCoinsEarned += amount;
+    player.coins += cappedAmount;
+
+    player.totalCoinsEarned += cappedAmount;
 
 
     /*
@@ -590,6 +607,25 @@ function setSoundOn(value) {
 function addAchievement(achievementName) {
 
     if (!achievementName) {
+
+        return;
+
+    }
+
+
+    /*
+       Nur echte, im Spiel definierte Erfolge zulassen (siehe
+       achievementCatalog weiter unten) - sonst könnte jeder über
+       die Browser-Konsole beliebige, frei erfundene Erfolge
+       freischalten (z. B. addAchievement("Hack")).
+    */
+
+    if (
+        typeof achievementCatalog !== "undefined" &&
+        !achievementCatalog.some(function (achievement) {
+            return achievement.name === achievementName;
+        })
+    ) {
 
         return;
 

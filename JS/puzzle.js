@@ -988,35 +988,48 @@
     setTimeout(() => winOverlay.classList.add('show'), 300);
   }
 
-  window.MirelonTest = {
-    solvePuzzle() {
-      if (!pieces.length) {
-        console.warn('Erst ein Bild laden und das Puzzle erstellen.');
-        return;
-      }
+  // Test-Hilfsfunktion fuer die lokale Entwicklung (Playwright-Tests) -
+  // aendert nur die Darstellung (Teile werden ohne pruefbare Wirkung an
+  // ihre Zielposition gesetzt, onWin()/Belohnungen werden NICHT
+  // ausgeloest), ist aber trotzdem ein Testwerkzeug und hat auf der
+  // Live-Seite nichts zu suchen. Da diese Datei kein Build-Tool wie Vite
+  // hat (kein import.meta.env.DEV verfuegbar), wird stattdessen der
+  // Hostname geprueft: nur auf localhost/127.0.0.1 (lokaler Testserver)
+  // wird die Funktion ueberhaupt registriert.
+  const isLocalDevHost =
+    location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-      edgeToggle.dataset.enabled = 'false';
-      edgeToggle.classList.remove('muted');
-      updateEdgeVisibility();
-      pieces.forEach((piece, index) => {
-        piece.locked = true;
-        piece.angle = 0;
-        piece.el.className = 'piece snapped';
-        piece.el.style.position = 'absolute';
-        piece.el.style.margin = '0';
-        piece.el.style.left = piece.bx0 + 'px';
-        piece.el.style.top = piece.by0 + 'px';
-        piece.el.style.zIndex = index + 1;
-        piece.el.style.transform = 'rotate(0deg)';
-        boardEl.appendChild(piece.el);
-      });
+  if (isLocalDevHost) {
+    window.MirelonTest = {
+      solvePuzzle() {
+        if (!pieces.length) {
+          console.warn('Erst ein Bild laden und das Puzzle erstellen.');
+          return;
+        }
 
-      placedCount = pieces.length;
-      updateProgress();
-      winOverlay.classList.remove('show');
-      console.info('Testansicht geladen: Alle Puzzle-Teile wurden platziert.');
-    },
-  };
+        edgeToggle.dataset.enabled = 'false';
+        edgeToggle.classList.remove('muted');
+        updateEdgeVisibility();
+        pieces.forEach((piece, index) => {
+          piece.locked = true;
+          piece.angle = 0;
+          piece.el.className = 'piece snapped';
+          piece.el.style.position = 'absolute';
+          piece.el.style.margin = '0';
+          piece.el.style.left = piece.bx0 + 'px';
+          piece.el.style.top = piece.by0 + 'px';
+          piece.el.style.zIndex = index + 1;
+          piece.el.style.transform = 'rotate(0deg)';
+          boardEl.appendChild(piece.el);
+        });
+
+        placedCount = pieces.length;
+        updateProgress();
+        winOverlay.classList.remove('show');
+        console.info('Testansicht geladen: Alle Puzzle-Teile wurden platziert.');
+      },
+    };
+  }
 
   buildBtn.addEventListener('click', () => {
     winOverlay.classList.remove('show');

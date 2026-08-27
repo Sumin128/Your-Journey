@@ -48,13 +48,28 @@ async function pushProfileToCloud() {
         return;
     }
 
-    await supabaseClient
-        .from("profiles")
-        .update({
-            player_data: player,
-            updated_at: new Date().toISOString()
-        })
-        .eq("id", currentSession.user.id);
+    /* Läuft über die sync_player_data()-Funktion (siehe
+       supabase_schema.sql) statt über ein direktes UPDATE auf
+       profiles.player_data. Ein direktes UPDATE würde es jedem
+       angemeldeten Nutzer erlauben, per Browser-Konsole/REST-API
+       einen beliebigen player_data-Wert zu setzen (z. B. Münzen
+       oder Erfolge frei erfinden) - die Funktion prüft den neuen
+       Stand serverseitig gegen den alten, bevor gespeichert wird. */
+
+    const rpcResult = await supabaseClient.rpc("sync_player_data", {
+        new_data: player
+    });
+
+    if (rpcResult.error) {
+
+        // Sync ist ein Hintergrund-Vorgang - darf das Spiel nicht
+        // sichtbar stoeren, aber der Fehler soll wenigstens in der
+        // Konsole auftauchen (z. B. falls die Plausibilitaetspruefung
+        // in sync_player_data() einen Wert ablehnt).
+
+        console.warn("Spielstand konnte nicht mit der Cloud synchronisiert werden:", rpcResult.error);
+
+    }
 
 }
 
