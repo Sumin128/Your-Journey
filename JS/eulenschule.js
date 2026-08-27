@@ -372,7 +372,10 @@ function checkWinCondition() {
 
     window.dispatchEvent(
         new CustomEvent("mirelon:earn-coins", {
-            detail: { amount: difficultySettings[currentDifficulty].coins }
+            detail: {
+                amount: difficultySettings[currentDifficulty].coins,
+                reason: "word_" + currentDifficulty
+            }
         })
     );
 

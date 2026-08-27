@@ -74,6 +74,63 @@ async function pushProfileToCloud() {
 }
 
 
+/* =====================================================
+   MÜNZEN SERVERSEITIG GUTSCHREIBEN
+   Unabhängig vom lokalen, optimistischen Update in
+   JS/player.js (dort nur für die sofortige Anzeige) - hier
+   läuft die eigentliche, maßgebliche Gutschrift über
+   earn_coins() (siehe supabase_migration_security_player_data.sql).
+   Der Server bekommt nur den "reason" (welche Aktion war es),
+   NIE einen vom Client berechneten Betrag - der Betrag steht
+   serverseitig fest. Für Gäste ohne Konto passiert hier nichts,
+   deren Münzen bleiben rein lokal (kein Server zum Absichern da).
+   ===================================================== */
+
+window.addEventListener("mirelon:earn-coins", async function (event) {
+
+    if (!supabaseClient || !currentSession) {
+        return;
+    }
+
+    const reason =
+        event && event.detail && typeof event.detail.reason === "string"
+            ? event.detail.reason
+            : null;
+
+    if (!reason) {
+        return;
+    }
+
+    const rpcResult = await supabaseClient.rpc("earn_coins", { reason: reason });
+
+    if (rpcResult.error) {
+
+        console.warn("Münzen konnten nicht serverseitig gutgeschrieben werden:", rpcResult.error);
+
+        return;
+
+    }
+
+    /* Server ist die Wahrheit: den zurückgegebenen Stand als
+       korrigierenden Abgleich übernehmen, statt dem lokalen,
+       optimistischen Wert aus player.js blind zu vertrauen. */
+
+    const authoritative = rpcResult.data;
+
+    if (authoritative && typeof authoritative.coins === "number") {
+
+        player.coins = authoritative.coins;
+        player.totalCoinsEarned = authoritative.totalCoinsEarned;
+        player.goldenFeathers = authoritative.goldenFeathers;
+
+        savePlayer();
+        updatePlayerUI();
+
+    }
+
+});
+
+
 async function pullProfileFromCloud() {
 
     if (!supabaseClient || !currentSession) {

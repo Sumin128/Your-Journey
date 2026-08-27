@@ -312,7 +312,7 @@ function checkAnswer(isCorrect, button) {
         button.classList.add("correct");
         score++;
         window.dispatchEvent(
-            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1 } })
+            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1, reason: "quiz_correct" } })
         );
 
         if (typeof playCorrectSound === "function") {

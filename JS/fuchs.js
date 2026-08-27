@@ -495,7 +495,7 @@ function checkSoundAnswer(isCorrect, button) {
         button.classList.add("correct");
 
         window.dispatchEvent(
-            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1 } })
+            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1, reason: "fox_correct" } })
         );
         updateFaroPlayer();
 

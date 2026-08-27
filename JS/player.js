@@ -1509,8 +1509,18 @@ function registerMemoryCompletion(difficulty) {
         memoryReward = 10;
     }
 
+    /*
+       "amount" ist nur fuer die optimistische, sofortige Anzeige im
+       Browser (siehe grantCoins() weiter oben) - massgeblich ist der
+       serverseitig festgelegte Betrag zum selben "reason" in
+       earn_coins() (siehe supabase_migration_security_player_data.sql).
+       Beide Betraege muessen inhaltlich uebereinstimmen, der Client
+       kann den Server-Betrag aber nicht beeinflussen.
+    */
     window.dispatchEvent(
-        new CustomEvent("mirelon:earn-coins", { detail: { amount: memoryReward } })
+        new CustomEvent("mirelon:earn-coins", {
+            detail: { amount: memoryReward, reason: "memory_" + level }
+        })
     );
 
     awardHighscorePoints();

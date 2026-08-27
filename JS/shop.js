@@ -77,14 +77,32 @@ const luisCursorPrice = 500;
 
 /* =====================================================
    KUROS LADEN
-   Kauf Funktion für den Bärencursor
+   Gemeinsame Kauf-Funktion für alle Cursor-Items.
+
+   Für eingeloggte Nutzer läuft der eigentliche Kauf atomar über die
+   purchase_item()-Funktion (siehe
+   supabase_migration_security_player_data.sql): Preis nachschlagen,
+   Guthaben prüfen, Münzen abziehen, Item gutschreiben - alles
+   serverseitig in einem Schritt, der Client kann diesen Vorgang
+   nicht in zwei separate, für sich manipulierbare Schritte
+   zerlegen. Erst wenn der Server Erfolg meldet, wird das Item
+   lokal als gekauft übernommen (mit dem vom Server zurückgegebenen
+   Münzstand, nicht mit einer selbst gerechneten Differenz).
+
+   Für Gäste ohne Konto (kein Server zum Absichern vorhanden) bleibt
+   der Kauf wie bisher rein lokal.
    ===================================================== */
 
-function buyBearCursor() {
+async function purchaseCursorItem(options) {
 
-    if (player.items.bearCursor) {
+    const itemKey = options.itemKey;
+    const price = options.price;
+    const cursorName = options.cursorName;
+    const updateButton = options.updateButton;
 
-        player.activeCursor = "bear";
+    if (player.items[itemKey]) {
+
+        player.activeCursor = cursorName;
 
         savePlayer();
 
@@ -92,26 +110,55 @@ function buyBearCursor() {
 
         applyCursor();
 
-        updateBearCursorButton();
+        updateButton();
 
         return;
+
     }
 
-    if (player.coins < bearCursorPrice) {
+    if (player.coins < price) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (bearCursorPrice - player.coins) + " 🪙, um den Bären-Cursor zu kaufen.",
+            "Dir fehlen noch " + (price - player.coins) + " 🪙, um dieses Item zu kaufen.",
             "error"
         );
 
         return;
+
     }
 
-    player.coins -= bearCursorPrice;
+    const isLoggedIn =
+        typeof supabaseClient !== "undefined" && supabaseClient &&
+        typeof currentSession !== "undefined" && currentSession;
 
-    player.items.bearCursor = true;
+    if (isLoggedIn) {
 
-    player.activeCursor = "bear";
+        const rpcResult = await supabaseClient.rpc("purchase_item", { item_key: itemKey });
+
+        if (rpcResult.error) {
+
+            showMirelonToast(
+                "Kauf fehlgeschlagen: " + rpcResult.error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+        if (rpcResult.data && typeof rpcResult.data.coins === "number") {
+            player.coins = rpcResult.data.coins;
+        }
+
+    } else {
+
+        player.coins -= price;
+
+    }
+
+    player.items[itemKey] = true;
+
+    player.activeCursor = cursorName;
 
     if (typeof registerShopPurchase === "function") {
         registerShopPurchase();
@@ -125,7 +172,24 @@ function buyBearCursor() {
 
     updateShopPlayer();
 
-    updateBearCursorButton();
+    updateButton();
+
+}
+
+
+/* =====================================================
+   KUROS LADEN
+   Kauf Funktion für den Bärencursor
+   ===================================================== */
+
+function buyBearCursor() {
+
+    purchaseCursorItem({
+        itemKey: "bearCursor",
+        price: bearCursorPrice,
+        cursorName: "bear",
+        updateButton: updateBearCursorButton
+    });
 
 }
 
@@ -137,50 +201,12 @@ function buyBearCursor() {
 
 function buyUnicornCursor() {
 
-    if (player.items.unicornCursor) {
-
-        player.activeCursor = "unicorn";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateUnicornCursorButton();
-
-        return;
-    }
-
-    if (player.coins < unicornCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (unicornCursorPrice - player.coins) + " 🪙, um den Einhorn-Cursor zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= unicornCursorPrice;
-
-    player.items.unicornCursor = true;
-
-    player.activeCursor = "unicorn";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateUnicornCursorButton();
+    purchaseCursorItem({
+        itemKey: "unicornCursor",
+        price: unicornCursorPrice,
+        cursorName: "unicorn",
+        updateButton: updateUnicornCursorButton
+    });
 
 }
 
@@ -191,50 +217,12 @@ function buyUnicornCursor() {
 
 function buyKuroCursor() {
 
-    if (player.items.kuroCursor) {
-
-        player.activeCursor = "kuro";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateKuroCursorButton();
-
-        return;
-    }
-
-    if (player.coins < kuroCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (kuroCursorPrice - player.coins) + " 🪙, um den Kuro-Cursor zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= kuroCursorPrice;
-
-    player.items.kuroCursor = true;
-
-    player.activeCursor = "kuro";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateKuroCursorButton();
+    purchaseCursorItem({
+        itemKey: "kuroCursor",
+        price: kuroCursorPrice,
+        cursorName: "kuro",
+        updateButton: updateKuroCursorButton
+    });
 
 }
 
@@ -278,50 +266,12 @@ function updateKuroCursorButton() {
 
 function buyHasenCursor() {
 
-    if (player.items.hasenCursor) {
-
-        player.activeCursor = "hasen";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateHasenCursorButton();
-
-        return;
-    }
-
-    if (player.coins < hasenCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (hasenCursorPrice - player.coins) + " 🪙, um den Hasen-Cursor zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= hasenCursorPrice;
-
-    player.items.hasenCursor = true;
-
-    player.activeCursor = "hasen";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateHasenCursorButton();
+    purchaseCursorItem({
+        itemKey: "hasenCursor",
+        price: hasenCursorPrice,
+        cursorName: "hasen",
+        updateButton: updateHasenCursorButton
+    });
 
 }
 
@@ -365,50 +315,12 @@ function updateHasenCursorButton() {
 
 function buyGoldenFeatherCursor() {
 
-    if (player.items.goldenFeatherCursor) {
-
-        player.activeCursor = "goldenfeather";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateGoldenFeatherCursorButton();
-
-        return;
-    }
-
-    if (player.coins < goldenFeatherCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (goldenFeatherCursorPrice - player.coins) + " 🪙, um die Goldene Feder zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= goldenFeatherCursorPrice;
-
-    player.items.goldenFeatherCursor = true;
-
-    player.activeCursor = "goldenfeather";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateGoldenFeatherCursorButton();
+    purchaseCursorItem({
+        itemKey: "goldenFeatherCursor",
+        price: goldenFeatherCursorPrice,
+        cursorName: "goldenfeather",
+        updateButton: updateGoldenFeatherCursorButton
+    });
 
 }
 
@@ -452,50 +364,12 @@ function updateGoldenFeatherCursorButton() {
 
 function buyBlackGoldenFeatherCursor() {
 
-    if (player.items.blackGoldenFeatherCursor) {
-
-        player.activeCursor = "blackgoldenfeather";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateBlackGoldenFeatherCursorButton();
-
-        return;
-    }
-
-    if (player.coins < blackGoldenFeatherCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (blackGoldenFeatherCursorPrice - player.coins) + " 🪙, um die Schwarzgoldene Feder zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= blackGoldenFeatherCursorPrice;
-
-    player.items.blackGoldenFeatherCursor = true;
-
-    player.activeCursor = "blackgoldenfeather";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateBlackGoldenFeatherCursorButton();
+    purchaseCursorItem({
+        itemKey: "blackGoldenFeatherCursor",
+        price: blackGoldenFeatherCursorPrice,
+        cursorName: "blackgoldenfeather",
+        updateButton: updateBlackGoldenFeatherCursorButton
+    });
 
 }
 
@@ -539,50 +413,12 @@ function updateBlackGoldenFeatherCursorButton() {
 
 function buyLuisCursor() {
 
-    if (player.items.luisCursor) {
-
-        player.activeCursor = "luis";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateLuisCursorButton();
-
-        return;
-    }
-
-    if (player.coins < luisCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (luisCursorPrice - player.coins) + " 🪙, um den Luis-Cursor zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= luisCursorPrice;
-
-    player.items.luisCursor = true;
-
-    player.activeCursor = "luis";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateLuisCursorButton();
+    purchaseCursorItem({
+        itemKey: "luisCursor",
+        price: luisCursorPrice,
+        cursorName: "luis",
+        updateButton: updateLuisCursorButton
+    });
 
 }
 
@@ -659,50 +495,12 @@ function updateBearCursorButton() {
 
 function buyFoxCursor() {
 
-    if (player.items.foxCursor) {
-
-        player.activeCursor = "fox";
-
-        savePlayer();
-
-        window.dispatchEvent(new CustomEvent("player-updated"));
-
-        applyCursor();
-
-        updateFoxCursorButton();
-
-        return;
-    }
-
-    if (player.coins < foxCursorPrice) {
-
-        showMirelonToast(
-            "Dir fehlen noch " + (foxCursorPrice - player.coins) + " 🪙, um den Fuchs-Cursor zu kaufen.",
-            "error"
-        );
-
-        return;
-    }
-
-    player.coins -= foxCursorPrice;
-
-    player.items.foxCursor = true;
-
-    player.activeCursor = "fox";
-
-    if (typeof registerShopPurchase === "function") {
-        registerShopPurchase();
-    }
-
-    savePlayer();
-
-    window.dispatchEvent(new CustomEvent("player-updated"));
-
-    applyCursor();
-
-    updateShopPlayer();
-
-    updateFoxCursorButton();
+    purchaseCursorItem({
+        itemKey: "foxCursor",
+        price: foxCursorPrice,
+        cursorName: "fox",
+        updateButton: updateFoxCursorButton
+    });
 
 }
 
