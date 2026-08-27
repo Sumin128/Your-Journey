@@ -296,6 +296,17 @@ if (typeof player.items.luisCursor === "undefined") {
     }
 
 
+    /* Alte Schlüssel entfernen, damit sie nicht weiter mitgespeichert
+       werden (unten wird direkt gesichert, siehe Funktionsende). */
+
+    const hadLegacyFeatherKeys =
+        typeof loadedPlayer.feathers !== "undefined" ||
+        typeof loadedPlayer.totalFeathersEarned !== "undefined";
+
+    delete player.feathers;
+    delete player.totalFeathersEarned;
+
+
     if (typeof player.goldenFeathers !== "number") {
 
         player.goldenFeathers = 0;
@@ -330,6 +341,16 @@ if (typeof player.items.luisCursor === "undefined") {
     }
 
 
+    /* Bereinigten Speicherstand direkt sichern statt auf die nächste
+       beliebige Änderung zu warten, sonst bleiben die alten Federn-
+       Schlüssel in einem ungenutzten Speicherstand (lokal wie in der
+       Supabase-Cloud) einfach liegen. */
+
+    if (hadLegacyFeatherKeys) {
+
+        savePlayer();
+
+    }
 
 }
 

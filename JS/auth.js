@@ -110,9 +110,25 @@ async function pullProfileFromCloud() {
 
         }
 
+        /* Alte Schlüssel entfernen, damit sie nicht länger mitgespeichert
+           werden. Direkt zurück in die Cloud schreiben (statt auf die
+           nächste beliebige Änderung zu warten), damit player_data dort
+           auch wirklich bereinigt wird. */
+
+        const hadLegacyFeatherKeys =
+            typeof cloudData.feathers !== "undefined" ||
+            typeof cloudData.totalFeathersEarned !== "undefined";
+
+        delete player.feathers;
+        delete player.totalFeathersEarned;
+
         savePlayer();
         updatePlayerUI();
         applyCursor();
+
+        if (hadLegacyFeatherKeys) {
+            pushProfileToCloud();
+        }
 
     } else {
 
