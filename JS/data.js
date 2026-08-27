@@ -12,7 +12,7 @@
 const welcomeMessages = [
 
     "Heute wartet ein neues Abenteuer auf dich!",
-    "Bereit, Federn zu sammeln?",
+    "Bereit, Münzen zu sammeln?",
     "Ich freue mich, dass du wieder da bist!",
     "Mal sehen, wie viele Fragen du heute schaffst!",
     "Gemeinsam schaffen wir das!",
@@ -27,7 +27,7 @@ const kuro = {
 
     welcome: [
         "Heute wartet ein neues Abenteuer auf dich!",
-        "Bereit, Federn zu sammeln?",
+        "Bereit, Münzen zu sammeln?",
         "Ich freue mich, dass du wieder da bist!",
         "Mal sehen, wie viele Fragen du heute schaffst!",
         "Gemeinsam schaffen wir das!",
@@ -37,7 +37,7 @@ const kuro = {
     ],
 
     correct: [
-        "Super gemacht! 🪶",
+        "Super gemacht! 🪙",
         "Genau richtig!",
         "Klasse! Weiter so!",
         "Das war richtig!",

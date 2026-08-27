@@ -311,7 +311,7 @@ function checkAnswer(isCorrect, button) {
 
         button.classList.add("correct");
         score++;
-        addFeathers(1);
+        addCoins(1);
 
         if (typeof playCorrectSound === "function") {
             playCorrectSound();

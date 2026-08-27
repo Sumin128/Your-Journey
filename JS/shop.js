@@ -1,6 +1,6 @@
 /* =====================================================
    KUROS LADEN
-   Zeigt den gespeicherten Spieler und seine Federn an
+   Zeigt den gespeicherten Spieler und seine Münzen an
    ===================================================== */
 
 function updateShopPlayer() {
@@ -8,7 +8,9 @@ function updateShopPlayer() {
     const playerName = document.getElementById("shop-player-name");
 
     if (featherCount) {
-        featherCount.textContent = player.feathers + " Federn";
+        featherCount.innerHTML =
+            '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
+            player.coins + " Münzen";
     }
 
     if (playerName) {
@@ -95,17 +97,17 @@ function buyBearCursor() {
         return;
     }
 
-    if (player.feathers < bearCursorPrice) {
+    if (player.coins < bearCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (bearCursorPrice - player.feathers) + " 🪶, um den Bären-Cursor zu kaufen.",
+            "Dir fehlen noch " + (bearCursorPrice - player.coins) + " 🪙, um den Bären-Cursor zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= bearCursorPrice;
+    player.coins -= bearCursorPrice;
 
     player.items.bearCursor = true;
 
@@ -150,17 +152,17 @@ function buyUnicornCursor() {
         return;
     }
 
-    if (player.feathers < unicornCursorPrice) {
+    if (player.coins < unicornCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (unicornCursorPrice - player.feathers) + " 🪶, um den Einhorn-Cursor zu kaufen.",
+            "Dir fehlen noch " + (unicornCursorPrice - player.coins) + " 🪙, um den Einhorn-Cursor zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= unicornCursorPrice;
+    player.coins -= unicornCursorPrice;
 
     player.items.unicornCursor = true;
 
@@ -204,17 +206,17 @@ function buyKuroCursor() {
         return;
     }
 
-    if (player.feathers < kuroCursorPrice) {
+    if (player.coins < kuroCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (kuroCursorPrice - player.feathers) + " 🪶, um den Kuro-Cursor zu kaufen.",
+            "Dir fehlen noch " + (kuroCursorPrice - player.coins) + " 🪙, um den Kuro-Cursor zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= kuroCursorPrice;
+    player.coins -= kuroCursorPrice;
 
     player.items.kuroCursor = true;
 
@@ -291,17 +293,17 @@ function buyHasenCursor() {
         return;
     }
 
-    if (player.feathers < hasenCursorPrice) {
+    if (player.coins < hasenCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (hasenCursorPrice - player.feathers) + " 🪶, um den Hasen-Cursor zu kaufen.",
+            "Dir fehlen noch " + (hasenCursorPrice - player.coins) + " 🪙, um den Hasen-Cursor zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= hasenCursorPrice;
+    player.coins -= hasenCursorPrice;
 
     player.items.hasenCursor = true;
 
@@ -378,17 +380,17 @@ function buyGoldenFeatherCursor() {
         return;
     }
 
-    if (player.feathers < goldenFeatherCursorPrice) {
+    if (player.coins < goldenFeatherCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (goldenFeatherCursorPrice - player.feathers) + " 🪶, um die Goldene Feder zu kaufen.",
+            "Dir fehlen noch " + (goldenFeatherCursorPrice - player.coins) + " 🪙, um die Goldene Feder zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= goldenFeatherCursorPrice;
+    player.coins -= goldenFeatherCursorPrice;
 
     player.items.goldenFeatherCursor = true;
 
@@ -465,17 +467,17 @@ function buyBlackGoldenFeatherCursor() {
         return;
     }
 
-    if (player.feathers < blackGoldenFeatherCursorPrice) {
+    if (player.coins < blackGoldenFeatherCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (blackGoldenFeatherCursorPrice - player.feathers) + " 🪶, um die Schwarzgoldene Feder zu kaufen.",
+            "Dir fehlen noch " + (blackGoldenFeatherCursorPrice - player.coins) + " 🪙, um die Schwarzgoldene Feder zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= blackGoldenFeatherCursorPrice;
+    player.coins -= blackGoldenFeatherCursorPrice;
 
     player.items.blackGoldenFeatherCursor = true;
 
@@ -552,17 +554,17 @@ function buyLuisCursor() {
         return;
     }
 
-    if (player.feathers < luisCursorPrice) {
+    if (player.coins < luisCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (luisCursorPrice - player.feathers) + " 🪶, um den Luis-Cursor zu kaufen.",
+            "Dir fehlen noch " + (luisCursorPrice - player.coins) + " 🪙, um den Luis-Cursor zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= luisCursorPrice;
+    player.coins -= luisCursorPrice;
 
     player.items.luisCursor = true;
 
@@ -672,17 +674,17 @@ function buyFoxCursor() {
         return;
     }
 
-    if (player.feathers < foxCursorPrice) {
+    if (player.coins < foxCursorPrice) {
 
         showMirelonToast(
-            "Dir fehlen noch " + (foxCursorPrice - player.feathers) + " 🪶, um den Fuchs-Cursor zu kaufen.",
+            "Dir fehlen noch " + (foxCursorPrice - player.coins) + " 🪙, um den Fuchs-Cursor zu kaufen.",
             "error"
         );
 
         return;
     }
 
-    player.feathers -= foxCursorPrice;
+    player.coins -= foxCursorPrice;
 
     player.items.foxCursor = true;
 

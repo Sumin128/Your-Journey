@@ -227,8 +227,9 @@ function updateSidebarPlayer() {
 
     if (feathers) {
 
-        feathers.textContent =
-            "🪶 " + player.feathers + " Federn";
+        feathers.innerHTML =
+            '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
+            player.coins + " Münzen";
 
     }
 
@@ -248,8 +249,9 @@ function updateSidebarPlayer() {
 
     if (mobileFeathers) {
 
-        mobileFeathers.textContent =
-            "🪶 " + player.feathers;
+        mobileFeathers.innerHTML =
+            '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
+            player.coins;
 
     }
 
@@ -357,7 +359,7 @@ function createMobileTopbar() {
         </a>
 
         <span id="mobile-topbar-feathers" aria-live="polite">
-            🪶 0
+            <img src="images/muenze.png" alt="" class="coin-icon"> 0
         </span>
 
         <button
@@ -393,7 +395,7 @@ if (mobileProfileButton) {
 }
 
 // Topbar wurde erst nach dem ersten updateSidebarPlayer()-Aufruf
-// erzeugt - einmalig nachziehen, damit die Federanzahl sofort
+// erzeugt - einmalig nachziehen, damit die Münzenanzahl sofort
 // stimmt statt erst beim naechsten "player-updated"-Event.
 updateSidebarPlayer();
 

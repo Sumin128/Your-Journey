@@ -4,7 +4,7 @@
 
    Wichtig: Die App funktioniert weiterhin komplett OHNE
    Konto - dieses Modul kommt nur oben drauf und synchronisiert
-   Federn, Erfolge und Inventar, falls sich jemand freiwillig
+   Münzen, Erfolge und Inventar, falls sich jemand freiwillig
    registriert. Ohne Konto bleibt alles wie bisher rein lokal
    in localStorage (siehe JS/player.js).
 
@@ -85,6 +85,30 @@ async function pullProfileFromCloud() {
            Stand zeigen. */
 
         player = Object.assign({}, player, cloudData);
+
+        /* Umstellung Federn -> Münzen: falls die Cloud noch einen
+           alten Speicherstand ohne player.coins hat (siehe gleiche
+           Migration in loadPlayer(), JS/player.js), hier genauso
+           nachziehen - sonst verliert ein Spieler beim ersten Login
+           auf einem neuen Gerät seinen Münzen-Stand. */
+
+        if (
+            typeof cloudData.coins !== "number" &&
+            typeof cloudData.feathers === "number"
+        ) {
+
+            player.coins = cloudData.feathers;
+
+        }
+
+        if (
+            typeof cloudData.totalCoinsEarned !== "number" &&
+            typeof cloudData.totalFeathersEarned === "number"
+        ) {
+
+            player.totalCoinsEarned = cloudData.totalFeathersEarned;
+
+        }
 
         savePlayer();
         updatePlayerUI();
@@ -359,7 +383,7 @@ function createAccountPanel() {
                 Du musst dich nicht registrieren, um zu spielen. Ohne Konto
                 wird dein Fortschritt nur auf diesem Gerät gespeichert und
                 kann verloren gehen. Mit einem kostenlosen Konto bleiben
-                Federn, Erfolge und Inventar dauerhaft erhalten.
+                Münzen, Erfolge und Inventar dauerhaft erhalten.
             </p>
 
             <div id="account-logged-in" data-auth-only hidden>
@@ -860,7 +884,7 @@ async function initAuth() {
 document.addEventListener("DOMContentLoaded", initAuth);
 
 
-/* Nach jeder lokalen Änderung (Federn, Erfolge, ...)
+/* Nach jeder lokalen Änderung (Münzen, Erfolge, ...)
    automatisch in die Cloud sichern, falls angemeldet. */
 
 window.addEventListener("player-updated", function () {

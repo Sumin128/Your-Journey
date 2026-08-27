@@ -19,7 +19,9 @@ function updateHasenschulePlayer() {
     document.getElementById("player-avatar");
 
     if (featherCount) {
-        featherCount.textContent = "🪶 " + player.feathers + " Federn";
+        featherCount.innerHTML =
+            '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
+            player.coins + " Münzen";
     }
 
     if (playerNameDisplay) {
@@ -148,9 +150,9 @@ if (typeof words === "undefined" || words.length === 0) {
 }
 
 const difficultySettings = {
-    leicht: { label: "🌼 Leicht", lives: 7, hints: 2, feathers: 2, maxLength: 5 },
-    mittel: { label: "🌳 Mittel", lives: 5, hints: 1, feathers: 3, minLength: 6, maxLength: 8 },
-    schwer: { label: "🔥 Schwer", lives: 4, hints: 0, feathers: 5, minLength: 9 }
+    leicht: { label: "🌼 Leicht", lives: 7, hints: 2, coins: 2, maxLength: 5 },
+    mittel: { label: "🌳 Mittel", lives: 5, hints: 1, coins: 3, minLength: 6, maxLength: 8 },
+    schwer: { label: "🔥 Schwer", lives: 4, hints: 0, coins: 5, minLength: 9 }
 };
 
 function getWordsForDifficulty(level) {
@@ -368,7 +370,7 @@ function checkWinCondition() {
 
     gameFinished = true;
 
-    addFeathers(difficultySettings[currentDifficulty].feathers);
+    addCoins(difficultySettings[currentDifficulty].coins);
 
     if (typeof registerWordGameWin === "function") {
         registerWordGameWin(currentDifficulty);

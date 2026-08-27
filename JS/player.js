@@ -30,11 +30,11 @@ let player = {
 
     avatar: "",
 
-    feathers: 0,
+    coins: 0,
 
     goldenFeathers: 0,
 
-    totalFeathersEarned: 0,
+    totalCoinsEarned: 0,
 
     achievements: [],
 
@@ -254,16 +254,44 @@ if (typeof player.items.luisCursor === "undefined") {
     }
 
 
-    if (typeof player.feathers !== "number") {
+    /* Umstellung Federn -> Münzen: alte Speicherstände hatten die
+       Werte noch unter player.feathers/totalFeathersEarned. Wichtig:
+       hier gegen loadedPlayer (den rohen, ungemergten Speicherstand)
+       prüfen statt gegen player - nach dem Object.assign oben hat
+       player.coins durch den Standard-Spieler nämlich immer schon
+       eine Zahl (0), auch wenn der Speicherstand selbst noch keine
+       Münzen kannte, und der Migrations-Check würde nie greifen. */
 
-        player.feathers = 0;
+    if (
+        typeof loadedPlayer.coins !== "number" &&
+        typeof loadedPlayer.feathers === "number"
+    ) {
+
+        player.coins = loadedPlayer.feathers;
 
     }
 
 
-    if (typeof player.totalFeathersEarned !== "number") {
+    if (
+        typeof loadedPlayer.totalCoinsEarned !== "number" &&
+        typeof loadedPlayer.totalFeathersEarned === "number"
+    ) {
 
-        player.totalFeathersEarned = player.feathers;
+        player.totalCoinsEarned = loadedPlayer.totalFeathersEarned;
+
+    }
+
+
+    if (typeof player.coins !== "number") {
+
+        player.coins = 0;
+
+    }
+
+
+    if (typeof player.totalCoinsEarned !== "number") {
+
+        player.totalCoinsEarned = player.coins;
 
     }
 
@@ -308,7 +336,7 @@ if (typeof player.items.luisCursor === "undefined") {
 
 /* =====================================================
    4. SPIELERANZEIGE AKTUALISIEREN
-   Aktualisiert Name, Avatar, Federn und Erfolge.
+   Aktualisiert Name, Avatar, Münzen und Erfolge.
    Funktioniert auf jeder Seite, auf der diese IDs existieren.
    ===================================================== */
 
@@ -348,12 +376,13 @@ function updatePlayerUI() {
     });
 
 
-    /* FEDERN */
+    /* MÜNZEN */
 
     featherDisplays.forEach(function(display) {
 
-        display.textContent =
-            "🪶 " + player.feathers + " Federn";
+        display.innerHTML =
+            '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
+            player.coins + " Münzen";
 
     });
 
@@ -393,10 +422,10 @@ function updatePlayerUI() {
 
 
 /* =====================================================
-   7. FEDERN
+   7. MÜNZEN
    ===================================================== */
 
-function addFeathers(amount) {
+function addCoins(amount) {
 
     if (amount <= 0) {
 
@@ -404,20 +433,22 @@ function addFeathers(amount) {
 
     }
 
-    player.feathers += amount;
+    player.coins += amount;
 
-    player.totalFeathersEarned += amount;
+    player.totalCoinsEarned += amount;
 
 
     /*
        Goldene Feder:
-       Für jeweils 100 insgesamt verdiente Federn
-       bekommt der Spieler eine goldene Feder.
+       Für jeweils 100 insgesamt verdiente Münzen
+       bekommt der Spieler eine goldene Feder (eigenständiger
+       Cursor-Bonus, unabhängig vom Währungsnamen - siehe
+       player.items.goldenFeatherCursor).
     */
 
     const earnedGoldenFeathers =
         Math.floor(
-            player.totalFeathersEarned / 100
+            player.totalCoinsEarned / 100
         );
 
 
@@ -432,7 +463,7 @@ function addFeathers(amount) {
     }
 
 
-    checkFeatherMilestones();
+    checkCoinMilestones();
 
     savePlayer();
 
@@ -446,20 +477,20 @@ function addFeathers(amount) {
 
 
 /* =====================================================
-   FEDERN-MEILENSTEINE
+   MÜNZEN-MEILENSTEINE
    ===================================================== */
 
-const featherMilestoneAchievements = [
-    { count: 10, name: "Erste Federn", description: "Verdiene insgesamt 10 Federn.", icon: "🪶" },
-    { count: 100, name: "Federsammler", description: "Verdiene insgesamt 100 Federn.", icon: "🥉" },
-    { count: 1000, name: "Federmeister", description: "Verdiene insgesamt 1000 Federn.", icon: "🏆" }
+const coinMilestoneAchievements = [
+    { count: 10, name: "Erste Münzen", description: "Verdiene insgesamt 10 Münzen.", icon: "🪙" },
+    { count: 100, name: "Münzensammler", description: "Verdiene insgesamt 100 Münzen.", icon: "🥉" },
+    { count: 1000, name: "Münzenmeister", description: "Verdiene insgesamt 1000 Münzen.", icon: "🏆" }
 ];
 
-function checkFeatherMilestones() {
+function checkCoinMilestones() {
 
-    featherMilestoneAchievements.forEach(function (milestone) {
+    coinMilestoneAchievements.forEach(function (milestone) {
 
-        if (player.totalFeathersEarned >= milestone.count) {
+        if (player.totalCoinsEarned >= milestone.count) {
 
             addAchievement(milestone.name);
 
@@ -471,10 +502,10 @@ function checkFeatherMilestones() {
 
 
 /* =====================================================
-   8. FEDERN AUSGEBEN
+   8. MÜNZEN AUSGEBEN
    ===================================================== */
 
-function spendFeathers(amount) {
+function spendCoins(amount) {
 
     if (amount <= 0) {
 
@@ -483,14 +514,14 @@ function spendFeathers(amount) {
     }
 
 
-    if (player.feathers < amount) {
+    if (player.coins < amount) {
 
         return false;
 
     }
 
 
-    player.feathers -= amount;
+    player.coins -= amount;
 
     savePlayer();
 
@@ -643,7 +674,7 @@ function showMirelonToast(message, type) {
 
     icon.className = "mirelon-toast-icon";
     icon.setAttribute("aria-hidden", "true");
-    icon.textContent = type === "error" ? "🪶" : "✨";
+    icon.textContent = type === "error" ? "🪙" : "✨";
 
     const text =
         document.createElement("span");
@@ -681,7 +712,7 @@ function showMirelonToast(message, type) {
    CHARAKTER-SPRECHBLASE (wiederverwendbar)
    Generische kleine Sprechblase für spontane Reaktionen
    einzelner Mirelon-Figuren - rein kosmetisch, vergibt
-   keine Federn, Erfolge oder Fortschritt. Aktuell nur für
+   keine Münzen, Erfolge oder Fortschritt. Aktuell nur für
    Luis genutzt (siehe Easter-Egg weiter unten), aber so
    gebaut, dass sich später z. B. Branos, Kuro, Faro oder
    Tessa über dieselbe Funktion melden können - dafür
@@ -1099,7 +1130,7 @@ function showPendingLuisThemeReaction() {
    HIGHSCORE-PUNKTE
    Gemeinsamer Punktestand über alle Spiele hinweg (Quiz,
    Wörterraten, Wer-ist-es, Puzzle) - unabhängig von den
-   Federn. Jeder Sieg gibt den gleichen festen Punktewert.
+   Münzen. Jeder Sieg gibt den gleichen festen Punktewert.
    Speist die globale Bestenliste (bestenliste.html/highscore.js)
    über eine eigene Supabase-Tabelle (siehe
    supabase_schema_highscores.sql). Der eigentliche Punktestand
@@ -1392,7 +1423,7 @@ function registerMemoryCompletion(difficulty) {
         memoryReward = 10;
     }
 
-    addFeathers(memoryReward);
+    addCoins(memoryReward);
 
     awardHighscorePoints();
 
@@ -1602,7 +1633,7 @@ const achievementCatalog = quizCompletionAchievements.concat([
 ]).concat(puzzleCompletionAchievements).concat([
     puzzleGalleryAchievement,
     puzzleLuisAchievement
-]).concat(featherMilestoneAchievements).concat(shopItemAchievements).concat(memoryCompletionAchievements);
+]).concat(coinMilestoneAchievements).concat(shopItemAchievements).concat(memoryCompletionAchievements);
 
 
 /* =====================================================
@@ -2009,7 +2040,7 @@ function initPlayer() {
 
 
     /*
-       2. Name, Avatar, Federn und Erfolge anzeigen
+       2. Name, Avatar, Münzen und Erfolge anzeigen
     */
 
     updatePlayerUI();

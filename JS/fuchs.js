@@ -87,8 +87,9 @@ function updateFaroPlayer() {
 
     if (featherCount) {
 
-        featherCount.textContent =
-            "🪶 " + player.feathers + " Federn";
+        featherCount.innerHTML =
+            '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
+            player.coins + " Münzen";
 
     }
 
@@ -493,12 +494,12 @@ function checkSoundAnswer(isCorrect, button) {
 
         button.classList.add("correct");
 
-        addFeathers(1);
+        addCoins(1);
         updateFaroPlayer();
 
         if (soundMessage) {
             soundMessage.textContent =
-                "Faro sagt: Genau richtig! +1 Feder";
+                "Faro sagt: Genau richtig! +1 Münze";
         }
 
     } else {

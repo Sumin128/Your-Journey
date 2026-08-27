@@ -9,6 +9,16 @@
     box-sizing: border-box;
 }
 
+/* Münze: kleines Icon, das überall neben der Münzen-Anzahl steht
+   (Sidebar, Mobile-Topbar, Kuros Laden, Welt-Seiten) */
+.coin-icon {
+    display: inline-block;
+    width: 1.1em;
+    height: 1.1em;
+    object-fit: contain;
+    vertical-align: -0.2em;
+}
+
 html {
     scroll-behavior: smooth;
 }
@@ -4741,7 +4751,7 @@ justify-content:center;
 
 
 /* =====================================================
-   ALLGEMEINE MELDUNGEN (z. B. "nicht genug Federn")
+   ALLGEMEINE MELDUNGEN (z. B. "nicht genug Münzen")
    ===================================================== */
 
 .mirelon-toast {
