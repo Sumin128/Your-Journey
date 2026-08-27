@@ -24,7 +24,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/puzzle.css?v=5">
+        href="CSS/puzzle.css?v=7">
 
     <title>Luis Puzzle – Mirelon</title>
 
@@ -421,18 +421,22 @@
 
                     <!-- STAGE -->
                     <div class="stage">
-                        <div class="board-frame">
-                            <div class="board" id="board">
-                                <img id="ghostImg" class="ghost-bg" alt="Schattenbild">
-                                <div class="empty-msg" id="emptyMsg">
-                                    Lade links ein Bild hoch und klicke auf<br>„Puzzle erstellen".
+                        <div class="tray-zone tray-top" id="trayTop"></div>
+
+                        <div class="stage-middle">
+                            <div class="board-frame">
+                                <div class="board" id="board">
+                                    <img id="ghostImg" class="ghost-bg" alt="Schattenbild">
+                                    <div class="empty-msg" id="emptyMsg">
+                                        Lade links ein Bild hoch und klicke auf<br>„Puzzle erstellen".
+                                    </div>
                                 </div>
                             </div>
+
+                            <div class="tray-zone tray-right" id="trayRight"></div>
                         </div>
 
-                        <div class="tray-panel">
-                            <div class="tray" id="tray"></div>
-                        </div>
+                        <div class="tray-zone tray-bottom" id="trayBottom"></div>
                     </div>
 
                 </div>
@@ -486,7 +490,7 @@
     <script src="JS/auth.js?v=1"></script>
     <script src="JS/sidebar.js?v=9"></script>
     <script src="JS/bugreport.js?v=1"></script>
-    <script src="JS/puzzle.js?v=11"></script>
+    <script src="JS/puzzle.js?v=13"></script>
     <script src="JS/puzzle-image-picker.js?v=2"></script>
 
 

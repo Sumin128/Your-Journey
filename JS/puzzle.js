@@ -83,7 +83,11 @@
   const boardFrameEl = document.querySelector('.board-frame');
   const ghostImg = document.getElementById('ghostImg');
   const emptyMsg = document.getElementById('emptyMsg');
-  const trayEl = document.getElementById('tray');
+  const stageEl = document.querySelector('.stage');
+  const trayTopEl = document.getElementById('trayTop');
+  const trayRightEl = document.getElementById('trayRight');
+  const trayBottomEl = document.getElementById('trayBottom');
+  const trayZoneEls = [trayTopEl, trayRightEl, trayBottomEl];
   const progressWrap = document.getElementById('progressWrap');
   const progressText = document.getElementById('progressText');
   const progressFill = document.getElementById('progressFill');
@@ -285,6 +289,25 @@
     return sourceImg ? sourceImg.naturalWidth / sourceImg.naturalHeight : 4 / 3;
   }
 
+  // Verfuegbare Brettbreite: statt Bildschirmbreite minus geschaetzter
+  // Konstanten (Sidebar, Einstellungsleiste, Paddings...) wird die
+  // tatsaechlich gerenderte Breite der .stage direkt gemessen - das ist
+  // robust gegenueber jeder Layout-Verschachtelung, ohne Sidebar-/Panel-
+  // Breiten von Hand nachrechnen zu muessen. Davon wird nur noch die
+  // rechte Teile-Spalte abgezogen (200px + 14px Abstand, siehe
+  // .tray-right in puzzle.css), falls diese bei der aktuellen Breite
+  // ueberhaupt sichtbar ist. 700 = das max-width der .board-Flaeche in
+  // CSS - muss uebereinstimmen, sonst rechnet JS mit mehr Platz als
+  // tatsaechlich gerendert wird.
+  function getBoardAvailWidth() {
+    const trayRightVisible = getComputedStyle(trayRightEl).display !== 'none';
+    const trayRightReserve = trayRightVisible ? 214 : 0;
+    return Math.max(
+      300,
+      Math.min(stageEl.clientWidth - trayRightReserve, 700)
+    );
+  }
+
   function updateGridLabel() {
     const stageIndex = parseInt(pieceSlider.value, 10);
     const count = pieceStages[stageIndex] || pieceStages[0];
@@ -422,16 +445,11 @@
     // folgen statt immer quadratisch zu sein - sonst passen Zellen und
     // Rahmen bei hoch- oder querformatigen Bildern nicht zusammen und
     // Teile am Rand ragen ueber den Rahmen hinaus.
-    // 700px = das max-width der .board-Flaeche in CSS/puzzle.css. Muss mit
-    // der CSS-Grenze uebereinstimmen, sonst rechnet JS mit mehr Platz als
-    // tatsaechlich gerendert wird und Teile am rechten/unteren Rand ragen
-    // ueber den sichtbaren Rahmen hinaus.
-    const availW = Math.min(
-      window.innerWidth - (window.innerWidth > 880 ? 360 : 56),
-      700
-    );
-    const maxBoardW = Math.max(300, availW);
-    const maxBoardH = Math.max(300, Math.min(window.innerHeight * 0.7, 900));
+    const maxBoardW = getBoardAvailWidth();
+    // Bewusst niedriger als die volle Fensterhoehe, damit oberhalb und
+    // unterhalb des Bretts noch sichtbar Platz fuer lose Teile bleibt
+    // und man moeglichst nicht scrollen muss.
+    const maxBoardH = Math.max(300, Math.min(window.innerHeight * 0.6, 760));
 
     boardW = maxBoardW;
     boardH = maxBoardW / imageAspectForGrid;
@@ -484,7 +502,9 @@
 
     const oldPieces = document.querySelectorAll('canvas.piece');
     oldPieces.forEach((p) => p.remove());
-    trayEl.innerHTML = '';
+    trayZoneEls.forEach((zone) => {
+      zone.innerHTML = '';
+    });
     pieces = [];
     placedCount = 0;
     hasWon = false;
@@ -643,8 +663,7 @@
     }
 
     list.sort(() => Math.random() - 0.5);
-    list.forEach((p) => trayEl.appendChild(p.el));
-    layoutTrayPieces(list);
+    distributeTrayPieces(list);
     updateEdgeVisibility();
 
     emptyMsg.style.display = 'none';
@@ -654,35 +673,93 @@
     updateProgress();
   }
 
-  function layoutTrayPieces(list) {
+  // Verteilt die losen Teile auf die Vorratsflaechen rund um das Brett
+  // (oben/rechts/unten), gewichtet nach deren Breite - die volle Breite
+  // von oben/unten bekommt automatisch mehr Teile als die schmale
+  // rechte Spalte. Ist die rechte Spalte per Media Query ausgeblendet
+  // (schmaler Bildschirm, siehe .tray-right in puzzle.css), bekommt sie
+  // hier auch keine Teile zugewiesen. Bei wenigen Teilen (z. B. 12) ist
+  // ein einzelnes Teil oft breiter als die schmale rechte Spalte - dann
+  // faellt die Spalte ebenfalls weg, statt Teile ueber ihren Rand
+  // hinausragen zu lassen.
+  function distributeTrayPieces(list) {
     const padding = 12;
-    const width = Math.max(1, trayEl.clientWidth - padding * 2);
-    const columns = Math.max(4, Math.ceil(Math.sqrt(list.length * 1.6)));
-    const rowsInTray = Math.ceil(list.length / columns);
-    const columnStep = width / columns;
+    const piecesFitInRightColumn =
+      list.length > 0 &&
+      list[0].bw + padding * 2 <= trayRightEl.clientWidth;
+    const zones = trayZoneEls
+      .filter((zone) => getComputedStyle(zone).display !== 'none')
+      .filter((zone) => zone !== trayRightEl || piecesFitInRightColumn)
+      .map((zone) => ({ el: zone, weight: Math.max(1, zone.clientWidth) }));
+    const totalWeight = zones.reduce((sum, zone) => sum + zone.weight, 0);
+
+    let index = 0;
+    zones.forEach((zone, i) => {
+      const isLast = i === zones.length - 1;
+      const count = isLast
+        ? list.length - index
+        : Math.round((list.length * zone.weight) / totalWeight);
+      layoutTrayPieces(zone.el, list.slice(index, index + count), {
+        // Die rechte Spalte soll die volle, per Flexbox gestreckte Hoehe
+        // neben dem Brett ausnutzen statt sich eng um ihren Inhalt zu
+        // schrumpfen (das machen oben/unten, da deren Zeilenhoehe im
+        // Layout frei ist).
+        stretchToFit: zone.el === trayRightEl,
+      });
+      index += count;
+    });
+  }
+
+  function layoutTrayPieces(trayZone, list, options) {
+    const stretchToFit = Boolean(options && options.stretchToFit);
+    trayZone.innerHTML = '';
+    list.forEach((piece) => trayZone.appendChild(piece.el));
+
+    const padding = 12;
+    const width = Math.max(1, trayZone.clientWidth - padding * 2);
+    const largestPieceWidth = Math.max(...list.map((piece) => piece.bw), 80);
     const largestPieceHeight = Math.max(
       ...list.map((piece) => piece.bh),
       80
     );
-    const rowStep = Math.max(70, largestPieceHeight * 0.58);
-    const trayHeight = Math.max(
-      320,
-      padding * 2 +
-        largestPieceHeight +
-        rowStep * Math.max(0, rowsInTray - 1)
+    // Aufgeraeumtes Raster statt zufaelligem Teile-Haufen: Spalten- und
+    // Zeilenabstand richten sich nach der tatsaechlichen Teilegroesse.
+    // Ein leichter Ueberlapp (statt vollem Abstand) haelt die Flaeche
+    // kompakt genug, um bei vielen Teilen nicht uebermaessig zu wachsen -
+    // die Teile bleiben trotzdem klar einzeln erkennbar/greifbar.
+    const columns = Math.max(
+      1,
+      Math.min(
+        list.length,
+        Math.floor(width / (largestPieceWidth * 0.82)) || 1
+      )
     );
-    trayEl.style.height = Math.ceil(trayHeight) + 'px';
-    const height = trayHeight - padding * 2;
+    const rowsInTray = Math.ceil(list.length / columns) || 1;
+    const columnStep = width / columns;
+    const rowStep = largestPieceHeight * 0.76;
+
+    if (!stretchToFit) {
+      const trayHeight = Math.max(
+        100,
+        padding * 2 +
+          largestPieceHeight +
+          rowStep * Math.max(0, rowsInTray - 1)
+      );
+      trayZone.style.height = Math.ceil(trayHeight) + 'px';
+    }
 
     list.forEach((piece, index) => {
       const column = index % columns;
       const row = Math.floor(index / columns);
-      const jitterX = (Math.random() - 0.5) * columnStep * 0.45;
-      const jitterY = (Math.random() - 0.5) * rowStep * 0.45;
-      const maxX = Math.max(padding, trayEl.clientWidth - piece.bw - padding);
+      const jitterX = (Math.random() - 0.5) * columnStep * 0.18;
+      const jitterY = (Math.random() - 0.5) * rowStep * 0.18;
+      const maxX = Math.max(
+        padding,
+        trayZone.clientWidth - piece.bw - padding
+      );
       const maxY = Math.max(
         padding,
-        trayEl.clientHeight - piece.bh - padding
+        trayZone.clientHeight - piece.bh - padding
       );
       const left = Math.min(
         maxX,

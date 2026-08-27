@@ -33,7 +33,7 @@
 
     box-sizing: border-box;
     width: 100%;
-    max-width: 1180px;
+    max-width: 1300px;
     margin: 0 auto;
 
     background:
@@ -195,7 +195,7 @@
 }
 
 .puzzle-app .wrap {
-    max-width: 1180px;
+    max-width: 1300px;
     margin: 0 auto;
 }
 
@@ -290,8 +290,9 @@
         height: auto;
         aspect-ratio: 4 / 3;
     }
-    .puzzle-app .tray {
-        min-height: 280px;
+    .puzzle-app .tray-top,
+    .puzzle-app .tray-bottom {
+        min-height: 180px;
     }
 }
 
@@ -621,11 +622,25 @@
     margin-top: 14px;
 }
 
-/* Stage & Board */
+/* Stage & Board
+   Der Vorrat an losen Teilen liegt auf drei Seiten des Spielfelds
+   (oben/rechts/unten), damit Spielfeld und Vorrat gleichzeitig sichtbar
+   sind und man zum Teileholen nicht mehr die Seite scrollen muss. Wird
+   der Bildschirm schmaler, blendet die Media Query weiter unten die
+   rechte Spalte aus - die Teile verteilen sich dann nur noch oben/unten
+   (siehe distributeTrayPieces() in JS/puzzle.js). */
 .puzzle-app .stage {
-    position: relative;
-    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     width: 100%;
+    min-width: 0;
+}
+.puzzle-app .stage-middle {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    align-items: stretch;
 }
 
 .puzzle-app .board-frame {
@@ -636,7 +651,8 @@
     height: auto;
     aspect-ratio: 4 / 3;
     padding: 8px;
-    margin: 0 auto;
+    margin: 0;
+    flex-shrink: 0;
     border-radius: 16px;
     background: var(--board-frame-bg);
     box-shadow: var(--shadow);
@@ -687,34 +703,30 @@
     font-weight: 500;
 }
 
-.puzzle-app .tray-panel {
-    margin-top: 22px;
-    width: min(760px, 100%);
-    max-width: 760px;
-    margin-left: auto;
-    margin-right: auto;
-    background: transparent;
-    padding: 0;
-}
-.puzzle-app .tray-panel .tray-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: var(--accent-2);
-    font-weight: 650;
-    margin-bottom: 12px;
-}
-.puzzle-app .tray {
-    display: block;
-    background: var(--tray-bg);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 28px 22px;
-    min-height: 320px;
-    height: auto;
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+.puzzle-app .tray-zone {
+    /* Kein sichtbarer Kasten mehr - die losen Teile liegen direkt auf
+       der Seite, nur ihre Position (oben/rechts/unten ums Brett) kommt
+       von diesem Container. */
     position: relative;
-    overflow: hidden;
+    padding: 20px 16px;
+    min-height: 90px;
+    /* visible statt hidden: ein Teil darf hier nie unerreichbar
+       verschwinden, auch wenn das Packing bei sehr vielen Teilen und
+       wenig Höhe leicht über den Rahmen hinausragt. */
+    overflow: visible;
+}
+.puzzle-app .tray-top,
+.puzzle-app .tray-bottom {
+    width: 100%;
+}
+.puzzle-app .tray-right {
+    width: 200px;
+    flex: 0 0 200px;
+}
+@media (max-width: 1050px) {
+    .puzzle-app .tray-right {
+        display: none;
+    }
 }
 
 /* Puzzleteile: Grundzustand (aus animations.css) + Positionierung */
