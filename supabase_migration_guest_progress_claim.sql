@@ -39,26 +39,45 @@
 -- gerade erst geschlossene Sicherheitslücke wieder öffnen (beliebiger
 -- Coins-Wert vom Client).
 --
--- claim_guest_progress() erlaubt deshalb einmalig einen vollständigen
--- Datensatz vom Client, ist dafür aber streng gegen Missbrauch
--- abgesichert:
---   1) Nur auf einem wirklich leeren/frischen Account (kein "coins"-
+-- claim_guest_progress() übernimmt deshalb NICHT den kompletten
+-- Client-Datensatz blind, sondern baut die wertvollen Felder aus
+-- guest_data neu und geprüft zusammen (siehe Funktionskörper); nur
+-- unkritische Felder (Name, Avatar, Erfolge, besuchte Tiere, ...)
+-- werden unverändert aus guest_data übernommen. Zusätzlich streng
+-- gegen Missbrauch abgesichert:
+--   1) guest_data muss ein echtes JSON-Objekt sein.
+--   2) Nur auf einem wirklich leeren/frischen Account (kein "coins"-
 --      Schlüssel in player_data) - kein Import in einen Account mit
 --      bereits vorhandenem Fortschritt, kein Überschreiben eines
---      vorhandenen Cloud-Standes.
---   2) Nur EINMAL pro Account, für immer: guest_progress_claimed_at
+--      vorhandenen Cloud-Standes. Die profiles-Zeile muss dafür
+--      tatsächlich existieren (sonst Fehler statt scheinbarem
+--      Erfolg).
+--   3) Nur EINMAL pro Account, für immer: guest_progress_claimed_at
 --      wird beim ersten Erfolg gesetzt und danach für jeden weiteren
 --      Aufruf geprüft - unabhängig davon, was in player_data steht
 --      (robuster als sich nur auf "player_data ist leer" zu
 --      verlassen, das könnte sich sonst durch unglückliche
 --      Gastdaten-Formen umgehen lassen).
---   3) Eine grosszügige, aber endliche Plausibilitätsgrenze für
---      Münzen (siehe max_claimable_coins) - kein Schutz gegen jeden
---      erdenklichen Missbrauch, aber eine günstige zusätzliche
+--   4) coins/totalCoinsEarned: grosszügige, aber endliche
+--      Plausibilitätsgrenze (max_claimable_coins) - kein Schutz gegen
+--      jeden erdenklichen Missbrauch, aber eine günstige zusätzliche
 --      Bremse gegen offensichtlich manipulierte Werte, ähnlich der
 --      "erste Synchronisierung"-Vertrauensentscheidung, die
 --      sync_player_data()/earn_coins() für brandneue Accounts
 --      ohnehin schon treffen.
+--   5) goldenFeathers wird NIE vom Client übernommen, sondern hier
+--      genau wie in earn_coins() aus totalCoinsEarned berechnet.
+--   6) items: nur bekannte Cursor-Item-Schlüssel (dieselbe Liste wie
+--      player.items in JS/player.js), jeweils nur als echter
+--      Boolean-Wert - jeder unbekannte oder falsch typisierte
+--      Schlüssel wird ignoriert bzw. als false übernommen.
+--   7) consumables: Verbrauchsitems existieren im Spiel noch gar
+--      nicht (siehe use_consumable_item() in
+--      supabase_migration_security_player_data.sql - vorbereitet,
+--      aber noch nicht verdrahtet) - deshalb hier bewusst nicht vom
+--      Client übernommen, sondern immer leer gesetzt. Sobald es
+--      echte Verbrauchsitems gibt, kann das analog zu items() um
+--      eine Whitelist mit Maximalmengen erweitert werden.
 -- ============================================================
 
 alter table public.profiles
@@ -75,6 +94,18 @@ declare
     current_claimed_at timestamptz;
     guest_coins numeric;
     guest_total numeric;
+    computed_golden_feathers numeric;
+    sanitized_items jsonb := '{}'::jsonb;
+    sanitized_data jsonb;
+    item_key text;
+    -- Dieselbe Liste wie player.items in JS/player.js - nur diese
+    -- Schlüssel duerfen ueberhaupt in items landen, alles andere vom
+    -- Client wird ignoriert.
+    allowed_item_keys constant text[] := array[
+        'foxCursor', 'bearCursor', 'unicornCursor', 'kuroCursor',
+        'hasenCursor', 'goldenFeatherCursor', 'blackGoldenFeatherCursor',
+        'luisCursor'
+    ];
     -- Grosszügig genug für einen Spieler, der wirklich lange als Gast
     -- gespielt hat, aber endlich - verhindert den offensichtlichsten
     -- Missbrauch (lokal auf eine riesige Zahl gesetzte Gast-Münzen vor
@@ -85,11 +116,19 @@ begin
         raise exception 'Nicht angemeldet';
     end if;
 
+    if guest_data is null or jsonb_typeof(guest_data) is distinct from 'object' then
+        raise exception 'guest_data muss ein JSON-Objekt sein';
+    end if;
+
     select player_data, guest_progress_claimed_at
     into current_data, current_claimed_at
     from public.profiles
     where id = auth.uid()
     for update;
+
+    if not found then
+        raise exception 'Profil nicht gefunden';
+    end if;
 
     if current_claimed_at is not null then
         raise exception 'Gastfortschritt wurde für dieses Konto bereits übernommen';
@@ -106,6 +145,8 @@ begin
     if current_data ? 'coins' then
         raise exception 'Dieser Account hat bereits eigenen Fortschritt - Gastfortschritt kann nicht mehr übernommen werden';
     end if;
+
+    -- ---- coins / totalCoinsEarned: geprüft und begrenzt ----
 
     guest_coins := coalesce(
         (guest_data->>'coins')::numeric,
@@ -126,8 +167,37 @@ begin
         raise exception 'Gast-Spielstand enthält unplausibel viele Münzen (max %)', max_claimable_coins;
     end if;
 
+    -- ---- goldenFeathers: nie vom Client, immer serverseitig berechnet ----
+
+    computed_golden_feathers := floor(guest_total / 100);
+
+    -- ---- items: nur bekannte Schlüssel, nur echte Booleans ----
+
+    foreach item_key in array allowed_item_keys loop
+
+        if jsonb_typeof(guest_data->'items'->item_key) = 'boolean' then
+            sanitized_items := sanitized_items || jsonb_build_object(item_key, guest_data->'items'->item_key);
+        else
+            sanitized_items := sanitized_items || jsonb_build_object(item_key, false);
+        end if;
+
+    end loop;
+
+    -- ---- Zusammensetzen: unkritische Felder aus guest_data
+    -- übernehmen (alte Federn-Schlüssel entfernt), wertvolle Felder
+    -- werden mit den oben geprüften/berechneten Werten überschrieben -
+    -- consumables bewusst immer leer (siehe Kommentar oben). ----
+
+    sanitized_data := (guest_data - 'feathers' - 'totalFeathersEarned') || jsonb_build_object(
+        'coins', guest_coins,
+        'totalCoinsEarned', guest_total,
+        'goldenFeathers', computed_golden_feathers,
+        'items', sanitized_items,
+        'consumables', '{}'::jsonb
+    );
+
     update public.profiles
-    set player_data = guest_data,
+    set player_data = sanitized_data,
         guest_progress_claimed_at = now(),
         updated_at = now()
     where id = auth.uid();

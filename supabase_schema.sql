@@ -395,10 +395,23 @@ declare
     current_claimed_at timestamptz;
     guest_coins numeric;
     guest_total numeric;
+    computed_golden_feathers numeric;
+    sanitized_items jsonb := '{}'::jsonb;
+    sanitized_data jsonb;
+    item_key text;
+    allowed_item_keys constant text[] := array[
+        'foxCursor', 'bearCursor', 'unicornCursor', 'kuroCursor',
+        'hasenCursor', 'goldenFeatherCursor', 'blackGoldenFeatherCursor',
+        'luisCursor'
+    ];
     max_claimable_coins constant numeric := 5000;
 begin
     if auth.uid() is null then
         raise exception 'Nicht angemeldet';
+    end if;
+
+    if guest_data is null or jsonb_typeof(guest_data) is distinct from 'object' then
+        raise exception 'guest_data muss ein JSON-Objekt sein';
     end if;
 
     select player_data, guest_progress_claimed_at
@@ -406,6 +419,10 @@ begin
     from public.profiles
     where id = auth.uid()
     for update;
+
+    if not found then
+        raise exception 'Profil nicht gefunden';
+    end if;
 
     if current_claimed_at is not null then
         raise exception 'Gastfortschritt wurde für dieses Konto bereits übernommen';
@@ -438,8 +455,28 @@ begin
         raise exception 'Gast-Spielstand enthält unplausibel viele Münzen (max %)', max_claimable_coins;
     end if;
 
+    computed_golden_feathers := floor(guest_total / 100);
+
+    foreach item_key in array allowed_item_keys loop
+
+        if jsonb_typeof(guest_data->'items'->item_key) = 'boolean' then
+            sanitized_items := sanitized_items || jsonb_build_object(item_key, guest_data->'items'->item_key);
+        else
+            sanitized_items := sanitized_items || jsonb_build_object(item_key, false);
+        end if;
+
+    end loop;
+
+    sanitized_data := (guest_data - 'feathers' - 'totalFeathersEarned') || jsonb_build_object(
+        'coins', guest_coins,
+        'totalCoinsEarned', guest_total,
+        'goldenFeathers', computed_golden_feathers,
+        'items', sanitized_items,
+        'consumables', '{}'::jsonb
+    );
+
     update public.profiles
-    set player_data = guest_data,
+    set player_data = sanitized_data,
         guest_progress_claimed_at = now(),
         updated_at = now()
     where id = auth.uid();
