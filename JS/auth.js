@@ -143,6 +143,17 @@ async function pullProfileFromCloud() {
         return;
     }
 
+    /* WICHTIG (Account-Wechsel-Bug): player wird hier IMMER zuerst auf
+       einen frischen Standard-Spielstand zurückgesetzt, bevor irgendwas
+       vom Server geladen wird - egal was vorher in player stand (ein
+       Gast-Spielstand, oder sogar noch die Daten eines anderen, gerade
+       abgemeldeten Accounts auf demselben Gerät). Ohne dieses Reset
+       würde Object.assign(player, cloudData) weiter unten den alten
+       Stand als Grundlage nehmen und - falls die Cloud für diesen Nutzer
+       leer ist - dessen fremde Felder einfach stehen lassen. */
+
+    player = createDefaultPlayer();
+
     const { data, error } =
         await supabaseClient
             .from("profiles")
@@ -151,18 +162,39 @@ async function pullProfileFromCloud() {
             .single();
 
     if (error || !data) {
+
+        /* Netzwerk-/Serverfehler: der eigentliche Cloud-Stand ist
+           unbekannt (könnte durchaus echte Daten enthalten, die
+           gerade nur nicht abrufbar waren) - deshalb hier bewusst
+           NICHT "player-updated" feuern, das würde über den eigenen
+           Listener weiter unten sofort einen Push auslösen und damit
+           im schlimmsten Fall echte Cloud-Daten mit dem gerade erst
+           gesetzten frischen Default überschreiben. Nur die Anzeige
+           lokal auffrischen; ein späterer erfolgreicher Sync-Versuch
+           holt den echten Stand nach. */
+
+        if (typeof updatePlayerUI === "function") {
+            updatePlayerUI();
+        }
+
+        if (typeof applyCursor === "function") {
+            applyCursor();
+        }
+
         return;
+
     }
 
     const cloudData = data.player_data || {};
 
     if (Object.keys(cloudData).length > 0) {
 
-        /* Konto existiert schon und hat Daten:
-           Cloud-Stand gewinnt, damit alle Geräte denselben
-           Stand zeigen. */
+        /* Konto existiert schon und hat Daten: Cloud-Stand
+           gewinnt, damit alle Geräte denselben Stand zeigen.
+           Basis ist ein frischer Default (siehe oben), nicht
+           der vorherige player-Zustand. */
 
-        player = Object.assign({}, player, cloudData);
+        player = Object.assign(createDefaultPlayer(), cloudData);
 
         /* Umstellung Federn -> Münzen: falls die Cloud noch einen
            alten Speicherstand ohne player.coins hat (siehe gleiche
@@ -188,10 +220,11 @@ async function pullProfileFromCloud() {
 
         }
 
-        /* Alte Schlüssel entfernen, damit sie nicht länger mitgespeichert
-           werden. Direkt zurück in die Cloud schreiben (statt auf die
-           nächste beliebige Änderung zu warten), damit player_data dort
-           auch wirklich bereinigt wird. */
+        /* Alte Schlüssel entfernen, damit sie nicht länger
+           mitgespeichert werden. Direkt zurück in die Cloud
+           schreiben (statt auf die nächste beliebige Änderung zu
+           warten), damit player_data dort auch wirklich bereinigt
+           wird. */
 
         const hadLegacyFeatherKeys =
             typeof cloudData.feathers !== "undefined" ||
@@ -200,22 +233,22 @@ async function pullProfileFromCloud() {
         delete player.feathers;
         delete player.totalFeathersEarned;
 
-        savePlayer();
-        updatePlayerUI();
-        applyCursor();
-
         if (hadLegacyFeatherKeys) {
             pushProfileToCloud();
         }
 
-    } else {
-
-        /* Erstes Login nach Registrierung, Cloud ist noch leer:
-           aktuellen lokalen Stand hochladen. */
-
-        await pushProfileToCloud();
-
     }
+
+    /* Sonst (player_data ist leer, z. B. gerade erst registriert):
+       der oben gesetzte frische Standard-Spielstand bleibt einfach
+       stehen. Bewusst KEIN automatisches Hochladen eines vorherigen
+       lokalen Standes mehr (das war der eigentliche Account-Wechsel-
+       Bug) und auch keine automatische Übernahme eines eventuell
+       vorhandenen Gast-Spielstands - das soll später eine bewusste
+       "Gastfortschritt übernehmen?"-Funktion werden, keine stille
+       Automatik. */
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
 }
 
@@ -259,7 +292,25 @@ async function signUpAccount(email, password, parentalConsent) {
 
     currentSession = data.session;
 
+    /* Neuer Account startet immer frisch - NICHT mit dem bisherigen
+       Gast-Spielstand (das wäre eine unbeabsichtigte automatische
+       Übernahme). Eine bewusste "Gastfortschritt übernehmen?"-Funktion
+       kann das später als eigene, vom Nutzer gewählte Aktion anbieten. */
+
+    player = createDefaultPlayer();
+
     await pushProfileToCloud();
+
+    /* Statt nur updatePlayerUI()/applyCursor() direkt aufzurufen: das
+       "player-updated"-Event feuern, damit ALLE Anzeigen (Sidebar,
+       Kuros Laden, Erfolge, ...) konsistent auffrischen - genau wie
+       an jeder anderen Stelle im Spiel. Löst zwar über den eigenen
+       Listener weiter unten noch einen zweiten, harmlosen Push aus
+       (derselbe frische Stand ist schon oben hochgeladen), das ist
+       hier kein Problem. */
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+
     updateAuthUI();
 
     return { success: true };
@@ -302,6 +353,22 @@ async function signOutAccount() {
     await supabaseClient.auth.signOut();
 
     currentSession = null;
+
+    /* Account-Wechsel-Bug: den Account-Stand sofort aus player
+       entfernen und durch den vorhandenen lokalen Gast-Spielstand
+       ersetzen (oder einen frischen Default, falls es noch nie
+       einen gab - loadPlayer() deckt beide Fälle ab). Niemals
+       Account-Daten nach dem Logout sichtbar lassen oder unbemerkt
+       auf den nächsten Login/Account übertragen. currentSession ist
+       hier schon null, savePlayer() (von loadPlayer() ggf. intern
+       aufgerufen) schreibt deshalb wieder normal in den Gast-
+       Speicherplatz, nicht in den - inzwischen verlassenen - Account. */
+
+    if (typeof loadPlayer === "function") {
+        loadPlayer();
+    }
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
 
     updateAuthUI();
 

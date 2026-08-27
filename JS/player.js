@@ -22,77 +22,92 @@ const AVATAR_PLACEHOLDER =
 
 /* =====================================================
    1. STANDARD-SPIELER
+   Als Funktion statt als einmaliges Objekt-Literal: createDefaultPlayer()
+   liefert bei jedem Aufruf eine FRISCHE, unabhaengige Kopie (JSON-Hin-
+   und-Rueck-Klon, damit auch die verschachtelten Objekte wie items/
+   friends nicht versehentlich als gemeinsame Referenz geteilt werden).
+   Wird gebraucht, um beim Login/Logout/Account-Wechsel garantiert NIE
+   auf einem vorherigen Spielstand (Gast oder anderer Account) aufzu-
+   bauen, sondern immer bei einem echten, sauberen Nullpunkt zu starten -
+   siehe loadPlayer() hier und pullProfileFromCloud()/signOutAccount()/
+   signUpAccount() in JS/auth.js.
    ===================================================== */
 
-let player = {
+function createDefaultPlayer() {
 
-    name: "",
+    return {
 
-    avatar: "",
+        name: "",
 
-    coins: 0,
+        avatar: "",
 
-    goldenFeathers: 0,
+        coins: 0,
 
-    totalCoinsEarned: 0,
+        goldenFeathers: 0,
 
-    achievements: [],
+        totalCoinsEarned: 0,
 
-    quizzesCompleted: 0,
+        achievements: [],
 
-    visitedAnimals: [],
+        quizzesCompleted: 0,
 
-    wordGameWins: [],
+        visitedAnimals: [],
 
-    puzzlesCompleted: 0,
+        wordGameWins: [],
 
-    puzzleGalleryImagesUsed: [],
+        puzzlesCompleted: 0,
 
-    puzzleLuisVariantsCompleted: [],
+        puzzleGalleryImagesUsed: [],
 
-    memoryGamesCompleted: {
+        puzzleLuisVariantsCompleted: [],
 
-        normal: 0
+        memoryGamesCompleted: {
 
-    },
+            normal: 0
 
-    highscorePoints: 0,
+        },
 
-    berries: 0,
+        highscorePoints: 0,
 
-    activeCursor: "default",
+        berries: 0,
 
-    sidebarTheme: "baumrinde",
+        activeCursor: "default",
 
-    settings: {
+        sidebarTheme: "baumrinde",
 
-        soundOn: true
+        settings: {
 
-    },
+            soundOn: true
 
-    items: {
+        },
 
-    foxCursor: false,
-    bearCursor: false,
-     unicornCursor: false,
-    kuroCursor: false,
-    hasenCursor: false,
-    goldenFeatherCursor: false,
-    blackGoldenFeatherCursor: false,
-    luisCursor: false
-},
+        items: {
 
-    friends: {
+            foxCursor: false,
+            bearCursor: false,
+            unicornCursor: false,
+            kuroCursor: false,
+            hasenCursor: false,
+            goldenFeatherCursor: false,
+            blackGoldenFeatherCursor: false,
+            luisCursor: false
+        },
 
-        kuro: 0,
+        friends: {
 
-        tessa: 0,
+            kuro: 0,
 
-        faro: 0
+            tessa: 0,
 
-    }
+            faro: 0
 
-};
+        }
+
+    };
+
+}
+
+let player = createDefaultPlayer();
 
 
 /* =====================================================
@@ -100,6 +115,21 @@ let player = {
    ===================================================== */
 
 function savePlayer() {
+
+    /* Waehrend ein Account eingeloggt ist, NICHT in den lokalen
+       Gast-Speicherplatz schreiben - sonst wuerde der naechste
+       Logout (der genau diesen Speicherplatz wieder laedt, siehe
+       signOutAccount() in JS/auth.js) den Account-Stand statt des
+       echten Gast-Standes zurueckbekommen. Der Account-Stand lebt
+       waehrend der Sitzung nur im Speicher (player-Variable) und
+       wird ausschliesslich in die Cloud gesichert (pushProfileToCloud()
+       in JS/auth.js, ueber das "player-updated"-Event angestossen). */
+
+    if (typeof isLoggedIn === "function" && isLoggedIn()) {
+
+        return;
+
+    }
 
     localStorage.setItem(
         "player",
@@ -120,6 +150,14 @@ function loadPlayer() {
 
     if (!savedPlayer) {
 
+        /* Kein Gast-Spielstand vorhanden - player MUSS trotzdem auf
+           einen frischen Default zurueckgesetzt werden (nicht einfach
+           stehen lassen), sonst wuerde z. B. nach einem Logout ohne
+           vorherigen Gast-Spielstand weiterhin der Account-Stand
+           sichtbar bleiben. */
+
+        player = createDefaultPlayer();
+
         return;
 
     }
@@ -130,14 +168,16 @@ function loadPlayer() {
 
 
     /*
-       Object.assign sorgt dafür,
-       dass neue Eigenschaften aus unserem
-       Standard-Spieler erhalten bleiben.
+       Object.assign auf einem frischen createDefaultPlayer() (nicht
+       auf dem aktuellen player!) sorgt dafuer, dass neue Eigenschaften
+       aus unserem Standard-Spieler erhalten bleiben, OHNE jemals auf
+       einem vorherigen Zustand (Account-Daten eines anderen Nutzers,
+       o. ae.) aufzubauen - player wird hier garantiert komplett neu
+       aufgebaut.
     */
 
     player = Object.assign(
-        {},
-        player,
+        createDefaultPlayer(),
         loadedPlayer
     );
 
