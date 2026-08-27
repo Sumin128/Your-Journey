@@ -316,7 +316,11 @@
                 Dein Spielername, Avatar und Spielfortschritt werden ausschließlich
                 lokal in deinem Browser gespeichert (localStorage). Diese Daten
                 verlassen dein Gerät nicht und werden nicht an einen Server
-                übertragen.
+                übertragen – mit einer Ausnahme: Registrierst du dich später für
+                ein Konto und bestätigst dabei ausdrücklich, deinen bisherigen
+                Gast-Spielstand zu übernehmen (siehe Punkt 3), wird dieser lokale
+                Spielstand einmalig auf unseren Server übertragen. Das passiert
+                nur nach deiner ausdrücklichen Bestätigung, nie automatisch.
             </p>
 
             <h2>3. Optionales Konto (Supabase)</h2>
@@ -328,15 +332,28 @@
                  Datenbank-Anbieter <em><strong>Supabase</strong></em>
                   (Supabase Inc., Server-Standort Frankfurt am Main, Deutschland/EU).
                    Gespeichert werden dabei ausschließlich E-Mail-Adresse, ein Passwort (verschlüsselt),
-                    der Spielfortschritt (Münzen, Erfolge, Inventar, Avatar-Wahl, Sidebar-Design) sowie mit
+                    der Spielfortschritt (Münzen, Erfolge, Inventar, Avatar-Wahl, Sidebar-Design), technische
+                    Zeitangaben zur Missbrauchsvermeidung (z. B. wann zuletzt eine Belohnung gutgeschrieben wurde)
+                    sowie mit
                     dem Malwerkzeug selbst erstellte Bilder – keine weiteren personenbezogenen Daten, insbesondere
                      keine hochgeladenen Fotos. Die im Malwerkzeug erstellten Bilder
                       werden als Bilddatei über Supabase Storage (ebenfalls Server-Standort Frankfurt am Main)
                        gespeichert, damit sie beim nächsten Besuch wieder angezeigt werden können. Es werden keine
                         Fotos oder Kamerabilder hochgeladen, sondern ausschließlich mit dem Werkzeug selbst gezeichnete
-                         Bilder. Die Registrierung richtet sich an Erziehungsberechtigte, die damit 
+                         Bilder. Die Registrierung richtet sich an Erziehungsberechtigte, die damit
                          ein Konto für ihr Kind anlegen; beim Registrieren wird eine entsprechende
                           Einwilligung abgefragt.
+            </p>
+
+            <p>
+                Wurde vorher ohne Konto (als Gast) gespielt, fragen wir bei der
+                Registrierung einmalig, ob der bisherige, bis dahin nur lokal
+                gespeicherte Gast-Spielstand (siehe Punkt 2) in das neue Konto
+                übernommen werden soll. Diese Übertragung erfolgt nur nach
+                ausdrücklicher Bestätigung, ausschließlich für ein neues, noch
+                leeres Konto und nur einmalig – lehnt man ab, bleibt der
+                Gast-Spielstand unverändert lokal auf dem Gerät erhalten und wird
+                nicht übertragen.
             </p>
 
             <h2>4. Bug-Melder</h2>
