@@ -101,7 +101,13 @@ window.addEventListener("mirelon:earn-coins", async function (event) {
         return;
     }
 
-    const rpcResult = await supabaseClient.rpc("earn_coins", { reason: reason });
+    /* Der SQL-Parameter heißt "p_reason" (nicht "reason") - siehe
+       Kommentar in supabase_migration_security_player_data.sql:
+       sonst wäre er dort mit der gleichnamigen Tabellenspalte
+       reward_cooldowns.reason mehrdeutig. Der Name muss hier exakt
+       passen, supabase-js übergibt RPC-Parameter benannt. */
+
+    const rpcResult = await supabaseClient.rpc("earn_coins", { p_reason: reason });
 
     if (rpcResult.error) {
 

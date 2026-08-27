@@ -1,5 +1,5 @@
 -- ============================================================
--- Your Journey – Datenbank-Schema für Supabase (v4)
+-- Your Journey – Datenbank-Schema für Supabase (v5)
 -- ============================================================
 -- Anleitung: Im Supabase-Dashboard links auf "SQL Editor" klicken,
 -- "New query", diesen kompletten Inhalt einfügen, "Run" klicken.
@@ -7,9 +7,10 @@
 -- eine ältere Version dieses Skripts ausgeführt hattest - v2 räumt
 -- die alten Einzel-Spalten auf und ersetzt sie durch eine einzige
 -- player_data-Spalte, die zum kompletten player-Objekt aus
--- JS/player.js passt; v3/v4 sperren das direkte UPDATE von
--- player_data und erzwingen stattdessen geprüfte Funktionen -
--- siehe supabase_migration_security_player_data.sql).
+-- JS/player.js passt; v3/v4/v5 sperren das direkte UPDATE von
+-- player_data und erzwingen stattdessen geprüfte, atomare Funktionen
+-- inkl. Anti-Replay-Schutz für Münzen - siehe
+-- supabase_migration_security_player_data.sql).
 -- ============================================================
 
 -- Eine Zeile pro Spieler, verknüpft mit dem Auth-Account (auth.users).
@@ -43,15 +44,26 @@ create policy "profiles_select_own"
     using (auth.uid() = id);
 
 -- ============================================================
--- v4: "wertvolle" Felder in player_data (coins, totalCoinsEarned,
+-- v4/v5: "wertvolle" Felder in player_data (coins, totalCoinsEarned,
 -- goldenFeathers, items, consumables) sind ueber den allgemeinen
--- UPDATE-Weg gar nicht mehr veraenderbar - siehe
+-- UPDATE-Weg gar nicht mehr veraenderbar, und earn_coins() hat eine
+-- Anti-Replay-Pruefung (reward_cooldowns) gegen wiederholtes
+-- Einloesen desselben Grundes - siehe
 -- supabase_migration_security_player_data.sql fuer die vollstaendige
--- Begruendung und die vier Funktionen (sync_player_data,
--- earn_coins, purchase_item, use_consumable_item). Dieser Abschnitt
--- hier ist identisch zu dieser Migration, nur als Teil des
--- Gesamt-Schemas dokumentiert.
+-- Begruendung und alle Funktionen (sync_player_data, earn_coins,
+-- purchase_item, use_consumable_item). Dieser Abschnitt hier ist
+-- identisch zu dieser Migration, nur als Teil des Gesamt-Schemas
+-- dokumentiert.
 -- ============================================================
+
+create table if not exists public.reward_cooldowns (
+    user_id uuid not null references auth.users (id) on delete cascade,
+    reason text not null,
+    last_claimed_at timestamptz not null default now(),
+    primary key (user_id, reason)
+);
+
+alter table public.reward_cooldowns enable row level security;
 
 drop policy if exists "profiles_update_own" on public.profiles;
 
@@ -108,7 +120,7 @@ begin
 end;
 $$;
 
-create or replace function public.earn_coins(reason text)
+create or replace function public.earn_coins(p_reason text)
 returns jsonb
 language plpgsql
 security definer
@@ -116,6 +128,7 @@ set search_path = public
 as $$
 declare
     reward int;
+    cooldown_seconds int;
     current_data jsonb;
     current_coins numeric;
     current_total numeric;
@@ -128,7 +141,7 @@ begin
         raise exception 'Nicht angemeldet';
     end if;
 
-    reward := case reason
+    reward := case p_reason
         when 'quiz_correct' then 1
         when 'fox_correct' then 1
         when 'memory_normal' then 1
@@ -141,7 +154,29 @@ begin
     end;
 
     if reward is null then
-        raise exception 'Unbekannter Belohnungsgrund: %', reason;
+        raise exception 'Unbekannter Belohnungsgrund: %', p_reason;
+    end if;
+
+    cooldown_seconds := case p_reason
+        when 'quiz_correct' then 1
+        when 'fox_correct' then 1
+        when 'word_leicht' then 3
+        when 'word_mittel' then 3
+        when 'word_schwer' then 3
+        when 'memory_normal' then 5
+        when 'memory_schwer' then 5
+        when 'memory_extraschwer' then 5
+        else 3
+    end;
+
+    insert into public.reward_cooldowns as rc (user_id, reason, last_claimed_at)
+    values (auth.uid(), p_reason, now())
+    on conflict (user_id, reason) do update
+        set last_claimed_at = excluded.last_claimed_at
+        where rc.last_claimed_at <= now() - (cooldown_seconds || ' seconds')::interval;
+
+    if not found then
+        raise exception 'Zu schnell hintereinander - bitte % Sekunde(n) warten', cooldown_seconds;
     end if;
 
     select player_data into current_data

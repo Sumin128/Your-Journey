@@ -1,5 +1,5 @@
 -- ============================================================
--- Your Journey – Security-Migration: profiles.player_data (v2)
+-- Your Journey – Security-Migration: profiles.player_data (v3)
 -- (2026-08-27)
 -- ============================================================
 -- Eigenständige, idempotente Migration NUR für die
@@ -7,6 +7,9 @@
 --
 -- Fasst nur an:
 --   - die Policy "profiles_update_own" auf public.profiles
+--   - die neue Tabelle public.reward_cooldowns (nur fuer die
+--     Anti-Replay-Pruefung in earn_coins(), siehe unten - kein
+--     Client-Zugriff, keine eigenen Policies noetig)
 --   - die Funktionen public.sync_player_data(jsonb),
 --     public.earn_coins(text), public.purchase_item(text),
 --     public.use_consumable_item(text)
@@ -15,6 +18,11 @@
 -- Fasst NICHT an: die Tabelle profiles selbst (keine Spalten-
 -- Aenderung), die Select-Policy, den handle_new_user()-Trigger,
 -- keine anderen Tabellen oder Funktionen, keine bestehenden Daten.
+-- purchase_item() und use_consumable_item() sind gegenueber v2
+-- unveraendert (nur earn_coins() bekommt die Anti-Replay-Pruefung,
+-- da nur dort der Client per Definition beliebig oft denselben
+-- Grund behaupten kann - ein Kauf ist durch den Preis/Kontostand
+-- schon von selbst begrenzt, ein Verbrauchsitem durch den Bestand).
 --
 -- Kann gefahrlos mehrfach ausgefuehrt werden.
 --
@@ -47,6 +55,49 @@
 -- besuchte Tiere, Fortschrittszaehler, Sidebar-Design, ...) laufen
 -- weiterhin unveraendert ueber sync_player_data().
 -- ============================================================
+
+
+-- ============================================================
+-- WARUM v3: earn_coins(reason) prüfte bisher nur, OB der Grund
+-- gueltig ist, nicht WIE OFT er hintereinander behauptet wird - ein
+-- angemeldeter Nutzer haette z. B. per Konsole
+-- supabaseClient.rpc('earn_coins', {p_reason: 'memory_extraschwer'})
+-- (10 Münzen) in einer Schleife tausendfach aufrufen koennen, ohne
+-- je wirklich zu spielen.
+--
+-- Jetzt: eine neue Tabelle reward_cooldowns merkt sich pro (Nutzer,
+-- Grund) den Zeitpunkt der letzten Gutschrift. earn_coins() lehnt
+-- einen Aufruf ab, wenn derselbe Grund innerhalb eines kurzen,
+-- grosszuegigen Mindestabstands erneut behauptet wird - der Abstand
+-- richtet sich danach, wie schnell diese Aktion im Spiel
+-- realistischerweise passieren kann (siehe cooldown_seconds unten).
+-- Die Pruefung UND das Setzen des neuen Zeitstempels passieren in
+-- einer einzigen atomaren INSERT ... ON CONFLICT ... DO UPDATE ...
+-- WHERE-Anweisung, dadurch race-sicher ohne zusaetzliche Sperre.
+--
+-- Ehrlicher Hinweis: das verhindert zuverlaessig "denselben
+-- Belohnungsanspruch beliebig oft HINTEREINANDER einloesen" (die
+-- gestellte Anforderung), aber kein ueber sehr lange Zeit verteiltes,
+-- langsames Sammeln (z. B. ein Skript, das brav den Mindestabstand
+-- einhaelt und stundenlang laeuft). Dafuer braeuchte es zusaetzlich
+-- ein echtes Tages-/Sitzungslimit pro Grund - bewusst nicht Teil
+-- dieser Aenderung, da nicht verlangt und die Cooldown-Loesung fuer
+-- die genannte Bedrohung (Replay/Skript-Schleife) bereits ausreicht.
+-- ============================================================
+
+create table if not exists public.reward_cooldowns (
+    user_id uuid not null references auth.users (id) on delete cascade,
+    reason text not null,
+    last_claimed_at timestamptz not null default now(),
+    primary key (user_id, reason)
+);
+
+-- RLS aktiv, aber bewusst OHNE jede Policy: die Tabelle wird
+-- ausschliesslich von der security-definer-Funktion earn_coins()
+-- gelesen/geschrieben (laeuft mit deren eigenen Rechten, nicht denen
+-- des Aufrufers) - kein Client-Code soll oder muss je direkt darauf
+-- zugreifen. Ohne Policy verweigert RLS jeden direkten Zugriff.
+alter table public.reward_cooldowns enable row level security;
 
 
 -- 1) Direktes UPDATE auf profiles durch den Client sperren.
@@ -122,22 +173,30 @@ $$;
 
 
 -- ============================================================
--- 3) earn_coins(reason): einzige Route, um Münzen gutzuschreiben.
+-- 3) earn_coins(p_reason): einzige Route, um Münzen gutzuschreiben.
 --    Der Client liefert NUR einen Grund (welche Aktion war es),
 --    NIEMALS einen Betrag - der Betrag steht fest in der case-
 --    Anweisung unten und muss zu den Beträgen in JS/player.js,
 --    JS/quiz.js, JS/fuchs.js, JS/eulenschule.js passen (dort nur
 --    noch für die optimistische, lokale Sofort-Anzeige verwendet -
---    massgeblich ist immer dieser serverseitige Wert). "for update"
---    sperrt die Zeile fuer die Dauer des Aufrufs gegen gleichzeitige
---    Aufrufe (verhindert verlorene Updates bei zwei Aufrufen kurz
---    hintereinander).
+--    massgeblich ist immer dieser serverseitige Wert).
+--
+--    Anti-Replay: siehe "WARUM v3" oben - reward_cooldowns verhindert,
+--    dass derselbe Grund innerhalb von cooldown_seconds erneut
+--    eingeloest wird. Der Parameter heisst bewusst "p_reason" (nicht
+--    "reason") - sonst waere er in der SQL unten mit der gleich-
+--    namigen Tabellenspalte reward_cooldowns.reason mehrdeutig
+--    (klassische PL/pgSQL-Falle).
+--
+--    "for update" auf profiles sperrt die Zeile fuer die Dauer des
+--    Aufrufs gegen gleichzeitige Aufrufe (verhindert verlorene
+--    Updates bei zwei Aufrufen kurz hintereinander).
 --
 --    Faengt zusaetzlich noch vorhandene player_data.feathers aus der
 --    Zeit vor der Muenzen-Umbenennung als Startwert ab, falls eine
 --    Zeile seit der Umstellung noch nie synchronisiert wurde.
 -- ============================================================
-create or replace function public.earn_coins(reason text)
+create or replace function public.earn_coins(p_reason text)
 returns jsonb
 language plpgsql
 security definer
@@ -145,6 +204,7 @@ set search_path = public
 as $$
 declare
     reward int;
+    cooldown_seconds int;
     current_data jsonb;
     current_coins numeric;
     current_total numeric;
@@ -157,7 +217,7 @@ begin
         raise exception 'Nicht angemeldet';
     end if;
 
-    reward := case reason
+    reward := case p_reason
         when 'quiz_correct' then 1
         when 'fox_correct' then 1
         when 'memory_normal' then 1
@@ -170,7 +230,41 @@ begin
     end;
 
     if reward is null then
-        raise exception 'Unbekannter Belohnungsgrund: %', reason;
+        raise exception 'Unbekannter Belohnungsgrund: %', p_reason;
+    end if;
+
+    -- Mindestabstand zwischen zwei Gutschriften desselben Grundes -
+    -- Quiz/Fuchs sind Einzelfragen (koennen schnell aufeinander
+    -- folgen), Wort-/Memory-Spiele brauchen realistischerweise
+    -- laenger fuer eine ganze Runde.
+    cooldown_seconds := case p_reason
+        when 'quiz_correct' then 1
+        when 'fox_correct' then 1
+        when 'word_leicht' then 3
+        when 'word_mittel' then 3
+        when 'word_schwer' then 3
+        when 'memory_normal' then 5
+        when 'memory_schwer' then 5
+        when 'memory_extraschwer' then 5
+        else 3
+    end;
+
+    -- Atomarer Anti-Replay-Gate: legt beim allerersten Aufruf fuer
+    -- diesen Grund einfach die Zeile an (kein Konflikt -> INSERT
+    -- greift, FOUND = true). Bei einem erneuten Aufruf greift die
+    -- ON CONFLICT-Klausel nur, wenn der Mindestabstand seit dem
+    -- letzten Mal bereits verstrichen ist (WHERE-Bedingung) - sonst
+    -- passiert fuer diese Zeile schlicht nichts und FOUND = false.
+    -- Alles in einer einzigen Anweisung, dadurch race-sicher ohne
+    -- separates SELECT ... FOR UPDATE vorher.
+    insert into public.reward_cooldowns as rc (user_id, reason, last_claimed_at)
+    values (auth.uid(), p_reason, now())
+    on conflict (user_id, reason) do update
+        set last_claimed_at = excluded.last_claimed_at
+        where rc.last_claimed_at <= now() - (cooldown_seconds || ' seconds')::interval;
+
+    if not found then
+        raise exception 'Zu schnell hintereinander - bitte % Sekunde(n) warten', cooldown_seconds;
     end if;
 
     select player_data into current_data
