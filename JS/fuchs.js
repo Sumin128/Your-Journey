@@ -494,7 +494,9 @@ function checkSoundAnswer(isCorrect, button) {
 
         button.classList.add("correct");
 
-        addCoins(1);
+        window.dispatchEvent(
+            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1 } })
+        );
         updateFaroPlayer();
 
         if (soundMessage) {

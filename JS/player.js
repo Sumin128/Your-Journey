@@ -447,71 +447,100 @@ function updatePlayerUI() {
    ===================================================== */
 
 /*
-   Groesste echte Einzel-Belohnung im Spiel: 10 Münzen (Memory,
-   Stufe "extraschwer"). Der Cap unten liegt grosszuegig darueber,
-   damit kein normaler Spielzug je gekappt wird - verhindert aber,
-   dass addCoins() ueber die Browser-Konsole mit einer riesigen Zahl
-   aufgerufen wird und sofort tausende Münzen gutschreibt. Das ist
-   nur eine erste Bremse gegen den offensichtlichsten Missbrauch -
-   die eigentliche, verlässliche Prüfung läuft serverseitig in
-   sync_player_data() (siehe supabase_schema.sql), da player.coins
-   als globale Variable ohnehin von jedem direkt in der Konsole
-   veränderbar bleibt (das lässt sich clientseitig grundsätzlich
-   nicht vollständig verhindern).
+   addCoins() ist absichtlich KEINE globale Funktion mehr. In diesem
+   Projekt gibt es keinen Bundler/kein Modulsystem - jede Funktion,
+   die als "function foo() {}" auf oberster Ebene eines <script>-Tags
+   steht, landet automatisch als aufrufbare globale Funktion auf
+   window und war damit vorher direkt in der Browser-Konsole nutzbar
+   (addCoins(1000) gab sofort 1000 Münzen).
+
+   Stattdessen: die eigentliche Vergabe-Logik steckt unten in einer
+   IIFE (sofort ausgeführte Funktion) als lokale Variable - die ist
+   von aussen (Konsole, andere <script>-Dateien) grundsätzlich nicht
+   per Namen erreichbar, weder als window.grantCoins noch als loses
+   "grantCoins". Andere Dateien (quiz.js, fuchs.js, eulenschule.js)
+   und der Rest von player.js selbst lösen eine Münzgutschrift nur
+   noch über ein CustomEvent aus - das bereits bestehende Muster für
+   "player-updated" wird hier fuer die Anfrage-Richtung wiederverwendet:
+
+       window.dispatchEvent(new CustomEvent("mirelon:earn-coins", {
+           detail: { amount: 1 }
+       }));
+
+   Ehrlicher Hinweis: da der komplette Quellcode oeffentlich auf
+   GitHub liegt, koennte ein Angreifer dieses Event-Muster in der
+   Konsole nachbauen (window.dispatchEvent(new CustomEvent(...))).
+   Das ist kein 100%iges Verbot, aber es gibt keinen einzeln
+   aufrufbaren Funktionsnamen mehr, und - wichtiger - die eigentliche,
+   verlaessliche Pruefung laeuft ohnehin serverseitig in
+   sync_player_data() (siehe supabase_schema.sql): player.coins ist
+   als Variable im Browser sowieso frei veraenderbar, das laesst sich
+   clientseitig grundsaetzlich nicht vollstaendig verhindern.
 */
-const MAX_SINGLE_COIN_REWARD = 20;
+(function () {
 
-function addCoins(amount) {
+    function grantCoins(amount) {
 
-    if (amount <= 0) {
+        if (typeof amount !== "number" || amount <= 0) {
 
-        return;
+            return;
 
-    }
+        }
 
-    const cappedAmount = Math.min(amount, MAX_SINGLE_COIN_REWARD);
+        player.coins += amount;
 
-    player.coins += cappedAmount;
-
-    player.totalCoinsEarned += cappedAmount;
+        player.totalCoinsEarned += amount;
 
 
-    /*
-       Goldene Feder:
-       Für jeweils 100 insgesamt verdiente Münzen
-       bekommt der Spieler eine goldene Feder (eigenständiger
-       Cursor-Bonus, unabhängig vom Währungsnamen - siehe
-       player.items.goldenFeatherCursor).
-    */
+        /*
+           Goldene Feder:
+           Für jeweils 100 insgesamt verdiente Münzen
+           bekommt der Spieler eine goldene Feder (eigenständiger
+           Cursor-Bonus, unabhängig vom Währungsnamen - siehe
+           player.items.goldenFeatherCursor).
+        */
 
-    const earnedGoldenFeathers =
-        Math.floor(
-            player.totalCoinsEarned / 100
+        const earnedGoldenFeathers =
+            Math.floor(
+                player.totalCoinsEarned / 100
+            );
+
+
+        if (
+            earnedGoldenFeathers >
+            player.goldenFeathers
+        ) {
+
+            player.goldenFeathers =
+                earnedGoldenFeathers;
+
+        }
+
+
+        checkCoinMilestones();
+
+        savePlayer();
+
+        updatePlayerUI();
+
+        window.dispatchEvent(
+            new CustomEvent("player-updated")
         );
 
-
-    if (
-        earnedGoldenFeathers >
-        player.goldenFeathers
-    ) {
-
-        player.goldenFeathers =
-            earnedGoldenFeathers;
-
     }
 
+    window.addEventListener("mirelon:earn-coins", function (event) {
 
-    checkCoinMilestones();
+        const amount =
+            event && event.detail && typeof event.detail.amount === "number"
+                ? event.detail.amount
+                : 0;
 
-    savePlayer();
+        grantCoins(amount);
 
-    updatePlayerUI();
+    });
 
-    window.dispatchEvent(
-        new CustomEvent("player-updated")
-    );
-
-}
+})();
 
 
 /* =====================================================
@@ -1480,7 +1509,9 @@ function registerMemoryCompletion(difficulty) {
         memoryReward = 10;
     }
 
-    addCoins(memoryReward);
+    window.dispatchEvent(
+        new CustomEvent("mirelon:earn-coins", { detail: { amount: memoryReward } })
+    );
 
     awardHighscorePoints();
 

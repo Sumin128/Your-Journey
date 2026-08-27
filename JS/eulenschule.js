@@ -370,7 +370,11 @@ function checkWinCondition() {
 
     gameFinished = true;
 
-    addCoins(difficultySettings[currentDifficulty].coins);
+    window.dispatchEvent(
+        new CustomEvent("mirelon:earn-coins", {
+            detail: { amount: difficultySettings[currentDifficulty].coins }
+        })
+    );
 
     if (typeof registerWordGameWin === "function") {
         registerWordGameWin(currentDifficulty);

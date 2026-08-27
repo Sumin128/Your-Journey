@@ -311,7 +311,9 @@ function checkAnswer(isCorrect, button) {
 
         button.classList.add("correct");
         score++;
-        addCoins(1);
+        window.dispatchEvent(
+            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1 } })
+        );
 
         if (typeof playCorrectSound === "function") {
             playCorrectSound();
