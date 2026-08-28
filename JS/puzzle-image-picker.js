@@ -28,6 +28,7 @@
         { label: "Faros Fuchsbau", src: "images/faros_fuchsbau3.png" },
         { label: "Bärental", src: "images/baerenthal.png" },
         { label: "Luis", src: "images/luis_chameleon.png" },
+        { label: "Luis' Hütte", src: "images/luis_huette.png" },
     ];
 
     function createThumb(src, label, isGalleryImage) {
