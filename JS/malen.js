@@ -1,19 +1,24 @@
 /* =====================================================
    MALEN.JS
    Zeichenfläche der Malstube: Maus- und Touch-Zeichnen,
-   Werkzeuge (Pinsel, Rechteck, Kreis, Radiergummi,
-   Sprühdose, Farbeimer, Stempel, Umriss/Gefüllt,
-   Stiftgröße, Rückgängig, Leeren) und Speichern in
+   Werkzeugkasten in drei Kategorien-Tabs (immer nur eine
+   Kategorie sichtbar, siehe .paint-tool-category-panel[hidden]):
+   - Malen: Pinsel, Stift, Füller, Edding, Sprühdose (je eigener
+     Strich-Charakter: Breite/Deckkraft/Kappe, siehe
+     getBrushRenderParams())
+   - Formen: Rechteck, Kreis, Dreieck, Stern, Herz, Linie
+     (Umriss/Gefüllt, gleiche Snapshot-Technik für alle)
+   - Werkzeuge: Radiergummi, Farbeimer, Farbverlauf, Stempel
+   Rückgängig/Leeren sind bewusst NICHT Teil der Kategorien,
+   sondern immer sichtbar (.paint-persistent-actions). Die
+   Größen-Regler (Klein/Mittel/Groß + Slider) werden je nach
+   Kategorie/Werkzeug per JS ins passende Panel verschoben,
+   siehe updateSizeControlPlacement(). Dazu Speichern in
    Supabase Storage.
 
    Speichern funktioniert nur mit Konto (siehe auth.js) -
    die App bleibt ohne Konto komplett nutzbar, das Bild
    geht dann beim Verlassen der Seite nur verloren.
-
-   Bewusst noch NICHT gebaut (spätere Ausbaustufe, siehe
-   malen-und-galerie-prompt.md):
-   - Gerade-Linie-Werkzeug (gleiche Snapshot-Technik wie
-     Rechteck/Kreis, nur ctx.moveTo()/ctx.lineTo())
    ===================================================== */
 
 (function setupMalstube() {
@@ -35,13 +40,23 @@
     const fillButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-fill-mode]");
     const stampButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-stamp]");
     const stampMotifGroup = document.getElementById("stamp-motif-group");
+    const categoryTabs = document.querySelectorAll("#malen-toolbar .paint-category-tab[data-category]");
+    const categoryPanels = document.querySelectorAll("#malen-toolbar .paint-tool-category-panel[data-category-panel]");
+    const sizeControlEl = document.getElementById("paint-size-control");
     const undoButton = document.getElementById("paint-undo-button");
     const clearButton = document.getElementById("paint-clear-button");
     const saveButton = document.getElementById("paint-save-button");
     const messageEl = document.getElementById("paint-message");
 
     const MAX_HISTORY_STATES = 20;
-    const SHAPE_TOOLS = ["rectangle", "circle"];
+    const SHAPE_TOOLS = ["rectangle", "circle", "triangle", "star", "heart", "line"];
+
+    /* Kategorien, deren Werkzeuge IMMER eine Größe brauchen (Malen,
+       Formen - alle Pinseltypen und Formen nutzen currentSize als
+       Strichbreite). Im "Werkzeuge"-Panel brauchen nur Radiergummi
+       und Stempel eine Größe, siehe updateSizeControlPlacement(). */
+    const SIZE_ALWAYS_PANELS = ["paint", "shapes"];
+    const TOOLS_PANEL_SIZE_TOOLS = ["eraser", "stamp"];
 
     /* Echte Maskottchen als Stempel-Motive, per Bild statt Emoji -
        einmal vorab laden, damit das erste Stempeln nicht auf das
@@ -199,6 +214,39 @@
 
     }
 
+    /* Die Größen-Regler (Klein/Mittel/Groß + Slider) gibt es nur EIN
+       Mal im DOM - je nach aktiver Kategorie/Werkzeug wird derselbe
+       Block per appendChild() in das passende Panel verschoben, statt
+       ihn viermal zu duplizieren. */
+    function updateSizeControlPlacement() {
+
+        if (!sizeControlEl) {
+            return;
+        }
+
+        const activePanel = document.querySelector("#malen-toolbar .paint-tool-category-panel:not([hidden])");
+
+        if (!activePanel) {
+            sizeControlEl.hidden = true;
+            return;
+        }
+
+        const panelKey = activePanel.dataset.categoryPanel;
+        const showSize = SIZE_ALWAYS_PANELS.includes(panelKey) || (panelKey === "tools" && TOOLS_PANEL_SIZE_TOOLS.includes(currentTool));
+
+        if (!showSize) {
+            sizeControlEl.hidden = true;
+            return;
+        }
+
+        if (sizeControlEl.parentElement !== activePanel) {
+            activePanel.appendChild(sizeControlEl);
+        }
+
+        sizeControlEl.hidden = false;
+
+    }
+
     toolButtons.forEach(function (button) {
 
         button.addEventListener("click", function () {
@@ -216,6 +264,7 @@
             }
 
             updateCanvasCursor();
+            updateSizeControlPlacement();
 
         });
 
@@ -253,6 +302,30 @@
 
     });
 
+    categoryTabs.forEach(function (tab) {
+
+        tab.addEventListener("click", function () {
+
+            categoryTabs.forEach(function (item) {
+                item.classList.remove("is-active");
+                item.setAttribute("aria-selected", "false");
+            });
+
+            categoryPanels.forEach(function (panel) {
+                panel.hidden = panel.dataset.categoryPanel !== tab.dataset.category;
+            });
+
+            tab.classList.add("is-active");
+            tab.setAttribute("aria-selected", "true");
+
+            updateSizeControlPlacement();
+
+        });
+
+    });
+
+    updateSizeControlPlacement();
+
 
     /* =====================================================
        2b. CURSOR JE WERKZEUG
@@ -264,7 +337,7 @@
        Rechteck/Kreis behalten den normalen Fadenkreuz-Cursor.
        ===================================================== */
 
-    const CURSOR_TOOLS = ["brush", "eraser", "spray"];
+    const CURSOR_TOOLS = ["brush", "pencil", "pen", "marker", "eraser", "spray"];
     const CURSOR_MIN_DIAMETER = 8;
     const CURSOR_PADDING = 4;
 
@@ -341,25 +414,117 @@
 
     }
 
+    /* Jeder Pinseltyp bekommt einen eigenen Strich-Charakter statt nur
+       eines anderen Namens - Breite, Deckkraft und Kappe unterscheiden
+       sich, damit Stift/Füller/Edding sich beim Malen wirklich anders
+       anfühlen als der Standard-Pinsel. */
+    function getBrushRenderParams(tool, distance) {
+
+        if (tool === "pencil") {
+            return { width: Math.max(1, currentSize * 0.45), opacity: 0.85, cap: "round" };
+        }
+
+        if (tool === "pen") {
+
+            // Füllfederhalter: schnell gezogen = dünnerer Strich,
+            // langsam gezogen = dickerer Strich (wie echte Tinte).
+            const speedFactor = Math.min(1, (distance || 0) / 30);
+            const width = Math.max(1.5, currentSize * (1.3 - speedFactor * 0.7));
+
+            return { width: width, opacity: 1, cap: "round" };
+
+        }
+
+        if (tool === "marker") {
+            return { width: currentSize * 1.4, opacity: 0.55, cap: "square" };
+        }
+
+        return { width: currentSize, opacity: 1, cap: "round" };
+
+    }
+
     function drawDot(point) {
 
+        const isEraser = currentTool === "eraser";
+        const params = isEraser
+            ? { width: currentSize, opacity: 1 }
+            : getBrushRenderParams(currentTool, 0);
+
+        ctx.globalAlpha = params.opacity;
+
         ctx.beginPath();
-        ctx.arc(point.x, point.y, currentSize / 2, 0, Math.PI * 2);
-        ctx.fillStyle = currentTool === "eraser" ? "#ffffff" : currentColor;
+        ctx.arc(point.x, point.y, params.width / 2, 0, Math.PI * 2);
+        ctx.fillStyle = isEraser ? "#ffffff" : currentColor;
         ctx.fill();
+
+        ctx.globalAlpha = 1;
 
     }
 
     function drawLine(from, to) {
 
+        const isEraser = currentTool === "eraser";
+        const distance = Math.hypot(to.x - from.x, to.y - from.y);
+
+        const params = isEraser
+            ? { width: currentSize, opacity: 1, cap: "round" }
+            : getBrushRenderParams(currentTool, distance);
+
+        ctx.globalAlpha = params.opacity;
+
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
-        ctx.strokeStyle = currentTool === "eraser" ? "#ffffff" : currentColor;
-        ctx.lineWidth = currentSize;
-        ctx.lineCap = "round";
+        ctx.strokeStyle = isEraser ? "#ffffff" : currentColor;
+        ctx.lineWidth = params.width;
+        ctx.lineCap = params.cap;
         ctx.lineJoin = "round";
         ctx.stroke();
+
+        ctx.globalAlpha = 1;
+
+    }
+
+    function traceStarPath(x, y, width, height) {
+
+        const cx = x + width / 2;
+        const cy = y + height / 2;
+        const outerRadius = Math.min(width, height) / 2;
+        const innerRadius = outerRadius * 0.45;
+        const points = 5;
+
+        for (let i = 0; i < points * 2; i++) {
+
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const angle = (Math.PI / points) * i - Math.PI / 2;
+
+            const px = cx + Math.cos(angle) * radius;
+            const py = cy + Math.sin(angle) * radius;
+
+            if (i === 0) {
+                ctx.moveTo(px, py);
+            } else {
+                ctx.lineTo(px, py);
+            }
+
+        }
+
+        ctx.closePath();
+
+    }
+
+    function traceHeartPath(x, y, width, height) {
+
+        const midX = x + width / 2;
+
+        ctx.moveTo(midX, y + height * 0.3);
+
+        ctx.bezierCurveTo(midX, y, x, y, x, y + height * 0.3);
+        ctx.bezierCurveTo(x, y + height * 0.65, midX, y + height * 0.8, midX, y + height);
+        ctx.bezierCurveTo(midX, y + height * 0.8, x + width, y + height * 0.65, x + width, y + height * 0.3);
+        ctx.bezierCurveTo(x + width, y, midX, y, midX, y + height * 0.3);
+
+        ctx.closePath();
 
     }
 
@@ -376,6 +541,23 @@
         const width = Math.abs(point.x - shapeStartPoint.x);
         const height = Math.abs(point.y - shapeStartPoint.y);
 
+        ctx.lineWidth = currentSize;
+        ctx.strokeStyle = currentColor;
+        ctx.fillStyle = currentColor;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+
+        if (currentTool === "line") {
+
+            ctx.beginPath();
+            ctx.moveTo(shapeStartPoint.x, shapeStartPoint.y);
+            ctx.lineTo(point.x, point.y);
+            ctx.stroke();
+
+            return;
+
+        }
+
         ctx.beginPath();
 
         if (currentTool === "rectangle") {
@@ -386,11 +568,22 @@
 
             ctx.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
 
-        }
+        } else if (currentTool === "triangle") {
 
-        ctx.lineWidth = currentSize;
-        ctx.strokeStyle = currentColor;
-        ctx.fillStyle = currentColor;
+            ctx.moveTo(x + width / 2, y);
+            ctx.lineTo(x + width, y + height);
+            ctx.lineTo(x, y + height);
+            ctx.closePath();
+
+        } else if (currentTool === "star") {
+
+            traceStarPath(x, y, width, height);
+
+        } else if (currentTool === "heart") {
+
+            traceHeartPath(x, y, width, height);
+
+        }
 
         if (fillMode === "fill") {
             ctx.fill();
@@ -465,16 +658,17 @@
 
     }
 
-    function floodFill(startX, startY, fillRgb) {
+    /* Gemeinsame Flood-Fill-Traversierung für Farbeimer UND Farbverlauf -
+       markiert nur, WELCHE zusammenhängenden Pixel zur Zielfläche
+       gehören (plus deren Breite als minX/maxX), ohne schon eine Farbe
+       zu schreiben. Färben passiert danach separat je nach Werkzeug. */
+    function floodFillTraversal(startX, startY) {
 
         const width = canvas.width;
         const height = canvas.height;
 
-        startX = Math.round(startX);
-        startY = Math.round(startY);
-
         if (startX < 0 || startY < 0 || startX >= width || startY >= height) {
-            return;
+            return null;
         }
 
         const imageData = ctx.getImageData(0, 0, width, height);
@@ -486,15 +680,6 @@
         const targetG = data[startIndex + 1];
         const targetB = data[startIndex + 2];
         const targetA = data[startIndex + 3];
-
-        const fillR = fillRgb[0];
-        const fillG = fillRgb[1];
-        const fillB = fillRgb[2];
-        const fillA = 255;
-
-        if (targetR === fillR && targetG === fillG && targetB === fillB && targetA === fillA) {
-            return;
-        }
 
         const TOLERANCE_SQUARED = 40 * 40;
 
@@ -514,17 +699,16 @@
 
         visited[startY * width + startX] = 1;
 
+        let minX = startX;
+        let maxX = startX;
+
         while (stack.length > 0) {
 
             const pixelPos = stack.pop();
-            const index = pixelPos * 4;
-
-            data[index] = fillR;
-            data[index + 1] = fillG;
-            data[index + 2] = fillB;
-            data[index + 3] = fillA;
-
             const x = pixelPos % width;
+
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
 
             if (x > 0) {
 
@@ -564,7 +748,88 @@
 
         }
 
-        ctx.putImageData(imageData, 0, 0);
+        return { imageData, data, width, visited, minX, maxX, targetR, targetG, targetB, targetA };
+
+    }
+
+    function floodFill(startX, startY, fillRgb) {
+
+        startX = Math.round(startX);
+        startY = Math.round(startY);
+
+        const result = floodFillTraversal(startX, startY);
+
+        if (!result) {
+            return;
+        }
+
+        const [fillR, fillG, fillB] = fillRgb;
+
+        if (result.targetR === fillR && result.targetG === fillG && result.targetB === fillB && result.targetA === 255) {
+            return;
+        }
+
+        const { data, visited } = result;
+
+        for (let pixelPos = 0; pixelPos < visited.length; pixelPos++) {
+
+            if (!visited[pixelPos]) {
+                continue;
+            }
+
+            const index = pixelPos * 4;
+
+            data[index] = fillR;
+            data[index + 1] = fillG;
+            data[index + 2] = fillB;
+            data[index + 3] = 255;
+
+        }
+
+        ctx.putImageData(result.imageData, 0, 0);
+
+    }
+
+    /* Farbverlauf-Werkzeug: füllt die angeklickte Fläche wie der
+       Farbeimer, aber mit einem weichen Übergang von der Grundfarbe
+       (links) zu einer helleren Tönung derselben Farbe (rechts) statt
+       eines flachen Farbtons. */
+    function floodFillGradient(startX, startY, baseRgb) {
+
+        startX = Math.round(startX);
+        startY = Math.round(startY);
+
+        const result = floodFillTraversal(startX, startY);
+
+        if (!result) {
+            return;
+        }
+
+        const { data, visited, width, minX, maxX } = result;
+
+        const lightRgb = baseRgb.map(function (channel) {
+            return Math.round(channel + (255 - channel) * 0.7);
+        });
+
+        const rangeX = Math.max(1, maxX - minX);
+
+        for (let pixelPos = 0; pixelPos < visited.length; pixelPos++) {
+
+            if (!visited[pixelPos]) {
+                continue;
+            }
+
+            const t = (pixelPos % width - minX) / rangeX;
+            const index = pixelPos * 4;
+
+            data[index] = Math.round(baseRgb[0] + (lightRgb[0] - baseRgb[0]) * t);
+            data[index + 1] = Math.round(baseRgb[1] + (lightRgb[1] - baseRgb[1]) * t);
+            data[index + 2] = Math.round(baseRgb[2] + (lightRgb[2] - baseRgb[2]) * t);
+            data[index + 3] = 255;
+
+        }
+
+        ctx.putImageData(result.imageData, 0, 0);
 
     }
 
@@ -577,6 +842,15 @@
         if (currentTool === "bucket") {
 
             floodFill(point.x, point.y, hexToRgb(currentColor));
+            pushHistoryState();
+
+            return;
+
+        }
+
+        if (currentTool === "gradient") {
+
+            floodFillGradient(point.x, point.y, hexToRgb(currentColor));
             pushHistoryState();
 
             return;

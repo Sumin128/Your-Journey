@@ -17,7 +17,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=20">
+        href="CSS/style.css?v=23">
 
     <link
         rel="stylesheet"
@@ -276,135 +276,88 @@
 
             <div class="paint-toolbar" id="malen-toolbar">
 
-                <div class="paint-toolbar-row">
+                <div class="paint-color-bar">
 
-                    <div class="paint-tool-group">
+                    <div class="paint-color-swatches">
 
-                        <span class="paint-tool-label">Farbe</span>
-
-                        <div class="paint-palette">
-
-                            <div class="paint-color-swatches">
-
-                                <button type="button" class="paint-color-swatch is-active" style="--swatch-color:#e53935;" data-color="#e53935" aria-label="Rot"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#ff9800;" data-color="#ff9800" aria-label="Orange"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#ffeb3b;" data-color="#ffeb3b" aria-label="Gelb"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#4caf50;" data-color="#4caf50" aria-label="Grün"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#2196f3;" data-color="#2196f3" aria-label="Blau"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#9c27b0;" data-color="#9c27b0" aria-label="Lila"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#795548;" data-color="#795548" aria-label="Braun"></button>
-                                <button type="button" class="paint-color-swatch" style="--swatch-color:#212121;" data-color="#212121" aria-label="Schwarz"></button>
-
-                                <div class="paint-color-picker-wrap" title="Weitere Farben wählen">
-
-                                    <input type="color" id="paint-color-picker" class="paint-color-picker" value="#e53935" aria-label="Weitere Farben wählen">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <span class="paint-color-picker-hint">🎨 mehr Farben</span>
+                        <button type="button" class="paint-color-swatch is-active" style="--swatch-color:#e53935;" data-color="#e53935" aria-label="Rot"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#ff9800;" data-color="#ff9800" aria-label="Orange"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#ffeb3b;" data-color="#ffeb3b" aria-label="Gelb"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#4caf50;" data-color="#4caf50" aria-label="Grün"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#2196f3;" data-color="#2196f3" aria-label="Blau"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#9c27b0;" data-color="#9c27b0" aria-label="Lila"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#795548;" data-color="#795548" aria-label="Braun"></button>
+                        <button type="button" class="paint-color-swatch" style="--swatch-color:#212121;" data-color="#212121" aria-label="Schwarz"></button>
 
                     </div>
 
+                    <div class="paint-color-picker-wrap" title="Weitere Farben wählen">
 
-                    <div class="paint-tool-group">
-
-                        <span class="paint-tool-label">Werkzeug</span>
-
-                        <div class="paint-shape-buttons">
-
-                            <button type="button" class="yj-button yj-button--compact tool-button is-active" data-tool="brush">
-                                🖌️ Pinsel
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-tool="rectangle">
-                                ▭ Rechteck
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-tool="circle">
-                                ⭕ Kreis
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-tool="eraser">
-                                🧽 Radiergummi
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-tool="spray">
-                                💨 Sprühdose
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-tool="bucket">
-                                🪣 Farbeimer
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-tool="stamp">
-                                🐾 Stempel
-                            </button>
-
-                        </div>
-
-                        <span class="paint-tool-sublabel">Füllart (Rechteck/Kreis)</span>
-
-                        <div class="paint-shape-buttons">
-
-                            <button type="button" class="yj-button yj-button--compact tool-button is-active" data-fill-mode="stroke">
-                                ⬜ Umriss
-                            </button>
-
-                            <button type="button" class="yj-button yj-button--compact tool-button" data-fill-mode="fill">
-                                ⬛ Gefüllt
-                            </button>
-
-                        </div>
-
-                        <div id="stamp-motif-group" hidden>
-
-                            <span class="paint-tool-sublabel">Stempel-Motiv</span>
-
-                            <div class="paint-shape-buttons">
-
-                                <button type="button" class="yj-button yj-button--compact tool-button is-active" data-stamp="kuro" aria-label="Kuro-Stempel">
-                                    <img src="images/Kuro_close.png" alt="" class="paint-stamp-thumb">
-                                </button>
-
-                                <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="tessa" aria-label="Tessa-Stempel">
-                                    <img src="images/tessa_hase.png" alt="" class="paint-stamp-thumb">
-                                </button>
-
-                                <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="faro" aria-label="Faro-Stempel">
-                                    <img src="images/faro1.png" alt="" class="paint-stamp-thumb">
-                                </button>
-
-                                <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="branos" aria-label="Branos-Stempel">
-                                    <img src="images/branos.png" alt="" class="paint-stamp-thumb">
-                                </button>
-
-                                <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="luis" aria-label="Luis-Stempel">
-                                    <img src="images/chameleon_luis_green.png" alt="" class="paint-stamp-thumb">
-                                </button>
-
-                            </div>
-
-                        </div>
+                        <input type="color" id="paint-color-picker" class="paint-color-picker" value="#e53935" aria-label="Weitere Farbe wählen">
 
                     </div>
+
+                    <span class="paint-color-picker-hint">Mehr Farben</span>
 
                 </div>
 
 
-                <div class="paint-toolbar-row">
+                <div class="paint-tool-categories" role="tablist" aria-label="Werkzeugkategorien">
 
-                    <div class="paint-tool-group">
+                    <button type="button" class="paint-category-tab is-active" data-category="paint" role="tab" aria-selected="true" aria-controls="paint-panel-paint">🖌️ Malen</button>
+                    <button type="button" class="paint-category-tab" data-category="shapes" role="tab" aria-selected="false" aria-controls="paint-panel-shapes">🔷 Formen</button>
+                    <button type="button" class="paint-category-tab" data-category="tools" role="tab" aria-selected="false" aria-controls="paint-panel-tools">🧰 Werkzeuge</button>
 
-                        <span class="paint-tool-label">Stiftgröße</span>
+                </div>
+
+
+                <div class="paint-persistent-actions">
+
+                    <button type="button" id="paint-undo-button" class="yj-button yj-button--compact">
+                        ↩️ Rückgängig
+                    </button>
+
+                    <button type="button" id="paint-clear-button" class="yj-button yj-button--compact">
+                        🗑️ Leeren
+                    </button>
+
+                </div>
+
+
+                <div class="paint-tool-category-panel" id="paint-panel-paint" data-category-panel="paint" role="tabpanel">
+
+                    <div class="paint-shape-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact tool-button is-active" data-tool="brush">
+                            🖌️ Pinsel
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="pencil">
+                            ✏️ Stift
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="pen">
+                            🖋️ Füller
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="marker">
+                            🖊️ Edding
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="spray">
+                            💨 Sprühdose
+                        </button>
+
+                    </div>
+
+                    <div class="paint-size-control" id="paint-size-control">
+
+                        <span class="paint-tool-sublabel">Größe</span>
 
                         <div class="paint-size-buttons">
 
                             <button type="button" class="yj-button yj-button--compact paint-size-button" data-size="4">
-                                Dünn
+                                Klein
                             </button>
 
                             <button type="button" class="yj-button yj-button--compact paint-size-button is-active" data-size="12">
@@ -412,14 +365,14 @@
                             </button>
 
                             <button type="button" class="yj-button yj-button--compact paint-size-button" data-size="24">
-                                Dick
+                                Groß
                             </button>
 
                         </div>
 
                         <div class="paint-size-slider-row">
 
-                            <input type="range" id="paint-size-slider" min="2" max="40" step="1" value="12" aria-label="Stiftgröße stufenlos einstellen">
+                            <input type="range" id="paint-size-slider" min="2" max="40" step="1" value="12" aria-label="Größe stufenlos einstellen">
 
                             <span id="paint-size-value">12 px</span>
 
@@ -427,16 +380,105 @@
 
                     </div>
 
+                </div>
 
-                    <div class="paint-tool-group paint-tool-actions">
 
-                        <button type="button" id="paint-undo-button" class="yj-button yj-button--compact">
-                            ↩️ Rückgängig
+                <div class="paint-tool-category-panel" id="paint-panel-shapes" data-category-panel="shapes" role="tabpanel" hidden>
+
+                    <div class="paint-shape-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="rectangle">
+                            ▭ Rechteck
                         </button>
 
-                        <button type="button" id="paint-clear-button" class="yj-button yj-button--compact">
-                            🗑️ Leeren
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="circle">
+                            ⭕ Kreis
                         </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="triangle">
+                            🔺 Dreieck
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="star">
+                            ⭐ Stern
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="heart">
+                            ❤️ Herz
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="line">
+                            📏 Linie
+                        </button>
+
+                    </div>
+
+                    <span class="paint-tool-sublabel">Füllart</span>
+
+                    <div class="paint-shape-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact tool-button is-active" data-fill-mode="stroke">
+                            ⬜ Umriss
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-fill-mode="fill">
+                            ⬛ Gefüllt
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="paint-tool-category-panel" id="paint-panel-tools" data-category-panel="tools" role="tabpanel" hidden>
+
+                    <div class="paint-shape-buttons">
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="eraser">
+                            🧽 Radiergummi
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="bucket">
+                            🪣 Farbeimer
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="gradient">
+                            🌈 Farbverlauf
+                        </button>
+
+                        <button type="button" class="yj-button yj-button--compact tool-button" data-tool="stamp">
+                            🐾 Stempel
+                        </button>
+
+                    </div>
+
+                    <div id="stamp-motif-group" hidden>
+
+                        <span class="paint-tool-sublabel">Stempel-Motiv</span>
+
+                        <div class="paint-shape-buttons">
+
+                            <button type="button" class="yj-button yj-button--compact tool-button is-active" data-stamp="kuro" aria-label="Kuro-Stempel">
+                                <img src="images/Kuro_close.png" alt="" class="paint-stamp-thumb">
+                            </button>
+
+                            <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="tessa" aria-label="Tessa-Stempel">
+                                <img src="images/tessa_hase.png" alt="" class="paint-stamp-thumb">
+                            </button>
+
+                            <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="faro" aria-label="Faro-Stempel">
+                                <img src="images/faro1.png" alt="" class="paint-stamp-thumb">
+                            </button>
+
+                            <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="branos" aria-label="Branos-Stempel">
+                                <img src="images/branos.png" alt="" class="paint-stamp-thumb">
+                            </button>
+
+                            <button type="button" class="yj-button yj-button--compact tool-button" data-stamp="luis" aria-label="Luis-Stempel">
+                                <img src="images/chameleon_luis_green.png" alt="" class="paint-stamp-thumb">
+                            </button>
+
+                        </div>
 
                     </div>
 
@@ -444,9 +486,6 @@
 
             </div>
 
-
-            <!-- Bewusst noch nicht gebaut (spätere Ausbaustufe):
-                 Gerade-Linie-Werkzeug. Siehe TODO-Kommentar in JS/malen.js. -->
 
             <div class="paint-canvas-wrap">
 
@@ -479,7 +518,7 @@
     <script src="JS/auth.js?v=8"></script>
     <script src="JS/sidebar.js?v=10"></script>
     <script src="JS/bugreport.js?v=1"></script>
-    <script src="JS/malen.js?v=5"></script>
+    <script src="JS/malen.js?v=8"></script>
 
 
 </body>
