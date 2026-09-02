@@ -33,6 +33,34 @@ const AVATAR_PLACEHOLDER =
    signUpAccount() in JS/auth.js.
    ===================================================== */
 
+/* Einzige Quelle für den Start-Zustand des Zauber-Gefährten.
+   Wird von createDefaultPlayer() und der Migration unten benutzt und
+   ist als Fallback global für JS/tamagotchi.js erreichbar.
+   Feature-Spezifikation: docs/zauber-gefaehrte.md */
+
+function defaultTamagotchi() {
+
+    return {
+        name: "Mippe",
+        species: "igel",
+        unlockedSpecies: ["igel"],
+        hunger: 80,
+        thirst: 80,
+        happiness: 85,
+        energy: 75,
+        cleanliness: 90,
+        level: 1,
+        xp: 0,
+        accessory: "none",
+        isSleeping: false,
+        hidden: false,
+        pos: null,
+        lastTimestamp: Date.now()
+    };
+
+}
+
+
 function createDefaultPlayer() {
 
     return {
@@ -90,8 +118,17 @@ function createDefaultPlayer() {
             hasenCursor: false,
             goldenFeatherCursor: false,
             blackGoldenFeatherCursor: false,
-            luisCursor: false
+            luisCursor: false,
+
+            /* Baumkinder (Bako-Basar) – Freischaltungen für den Zauber-Gefährten */
+            baumkindOtter: false,
+            baumkindReh: false,
+            baumkindEichhorn: false,
+            baumkindBaer: false
         },
+
+        /* Verbrauchsgegenstände als Stückzahl, z. B. { feuerwerk: 3 } */
+        consumables: {},
 
         friends: {
 
@@ -101,7 +138,9 @@ function createDefaultPlayer() {
 
             faro: 0
 
-        }
+        },
+
+        tamagotchi: defaultTamagotchi()
 
     };
 
@@ -240,6 +279,16 @@ if (typeof player.items.luisCursor === "undefined") {
 
 }
 
+["baumkindOtter", "baumkindReh", "baumkindEichhorn", "baumkindBaer"].forEach(function (k) {
+    if (typeof player.items[k] === "undefined") {
+        player.items[k] = false;
+    }
+});
+
+if (!player.consumables || typeof player.consumables !== "object") {
+    player.consumables = {};
+}
+
     /* Falls ältere Speicherstände noch kein memoryGamesCompleted haben */
 
     if (!player.memoryGamesCompleted) {
@@ -281,6 +330,63 @@ if (typeof player.items.luisCursor === "undefined") {
             faro: 0
 
         };
+
+    }
+
+
+    /* Zauber-Gefährte: fehlende oder veraltete Felder ausbessern.
+       Migration der ersten (nicht veröffentlichten) Fassung siehe
+       docs/zauber-gefaehrte.md */
+
+    if (!player.tamagotchi) {
+
+        player.tamagotchi = defaultTamagotchi();
+
+    } else {
+
+        const base = defaultTamagotchi();
+
+        Object.keys(base).forEach(function (key) {
+            if (typeof player.tamagotchi[key] === "undefined") {
+                player.tamagotchi[key] = base[key];
+            }
+        });
+
+        const SPECIES_MIGRATION = {
+            lumi: "igel", fox: "otter", dragon: "reh", owl: "eichhorn", cat: "baer"
+        };
+        const NAME_MIGRATION = {
+            "Lumi": "Mippe", "Flöckchen": "Fenn", "Pyri": "Taja",
+            "Kira": "Piri", "Mimi": "Bruno"
+        };
+        const VALID_SPECIES = ["igel", "otter", "reh", "eichhorn", "baer"];
+
+        const migrateSpecies = function (id) {
+            if (SPECIES_MIGRATION[id]) { return SPECIES_MIGRATION[id]; }
+            return VALID_SPECIES.indexOf(id) !== -1 ? id : "igel";
+        };
+
+        player.tamagotchi.species = migrateSpecies(player.tamagotchi.species);
+
+        if (NAME_MIGRATION[player.tamagotchi.name]) {
+            player.tamagotchi.name = NAME_MIGRATION[player.tamagotchi.name];
+        }
+
+        if (Array.isArray(player.tamagotchi.unlockedSpecies)) {
+            player.tamagotchi.unlockedSpecies =
+                player.tamagotchi.unlockedSpecies.map(migrateSpecies);
+        } else {
+            player.tamagotchi.unlockedSpecies = ["igel"];
+        }
+
+        if (player.tamagotchi.unlockedSpecies.indexOf("igel") === -1) {
+            player.tamagotchi.unlockedSpecies.unshift("igel");
+        }
+
+        player.tamagotchi.unlockedSpecies =
+            player.tamagotchi.unlockedSpecies.filter(function (id, i, arr) {
+                return arr.indexOf(id) === i;
+            });
 
     }
 

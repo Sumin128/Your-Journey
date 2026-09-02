@@ -25,6 +25,9 @@ const backToBranos =
 const startAnimalGame =
     document.getElementById("start-animal-game");
 
+const startSuperheroGame =
+    document.getElementById("start-superhero-game");
+
 const backToBearMenu =
     document.getElementById("back-to-bear-menu");
 
@@ -45,6 +48,10 @@ let usedQuestions = [];
 let guessingMode = false;
 
 let roundFinished = false;
+
+let activeCardSet = animals;
+
+let activeMode = "animals";
 
 
 /* =====================================================
@@ -156,6 +163,26 @@ const eyeColorQuestions = [
    WILLKOMMEN → SPIELMENÜ
    ===================================================== */
 
+function getActiveQuestions() {
+    return activeMode === "superheroes" ? superheroQuestions : animalQuestions;
+}
+
+function getActiveEyeColorQuestions() {
+    return activeMode === "superheroes" ? eyeColorQuestions.slice(0, 3) : eyeColorQuestions;
+}
+
+function updateGameHeading() {
+    const title = document.getElementById("guess-game-title");
+    const subtitle = document.getElementById("guess-game-subtitle");
+    if (activeMode === "superheroes") {
+        if (title) title.textContent = "🦸 Wer ist es? – Superhelden";
+        if (subtitle) subtitle.textContent = "Finde Branos' geheimen Tierhelden";
+    } else {
+        if (title) title.textContent = "🐾 Wer ist es?";
+        if (subtitle) subtitle.textContent = "Finde Branos' geheimes Tier";
+    }
+}
+
 if (bearStartButton) {
 
     bearStartButton.addEventListener(
@@ -191,6 +218,20 @@ if (backToBranos) {
 
 }
 
+if (startSuperheroGame) {
+    startSuperheroGame.addEventListener(
+        "click",
+        function () {
+            activeCardSet = superheroCards;
+            activeMode = "superheroes";
+            updateGameHeading();
+            bearGameMenu.hidden = true;
+            guessAnimalGame.hidden = false;
+            startAnimalRound();
+        }
+    );
+}
+
 
 /* =====================================================
    SPIEL STARTEN
@@ -201,6 +242,10 @@ if (startAnimalGame) {
     startAnimalGame.addEventListener(
         "click",
         function () {
+
+            activeCardSet = animals;
+            activeMode = "animals";
+            updateGameHeading();
 
             bearGameMenu.hidden = true;
 
@@ -290,12 +335,12 @@ function chooseSecretAnimal() {
 
     const randomIndex =
         Math.floor(
-            Math.random() * animals.length
+            Math.random() * activeCardSet.length
         );
 
 
     secretAnimal =
-        animals[randomIndex];
+        activeCardSet[randomIndex];
 
 
     /*
@@ -338,7 +383,7 @@ function buildQuestions() {
        NORMALE FRAGEN
        ================================================= */
 
-    animalQuestions.forEach(
+    getActiveQuestions().forEach(
         function (question) {
 
             const button =
@@ -443,7 +488,7 @@ function buildQuestions() {
 
     /* Farben erzeugen */
 
-    eyeColorQuestions.forEach(
+    getActiveEyeColorQuestions().forEach(
         function (question) {
 
             const button =
@@ -725,7 +770,7 @@ function buildAnimalBoard() {
     animalBoard.innerHTML = "";
 
 
-    animals.forEach(
+    activeCardSet.forEach(
         function (animal) {
 
             const card =

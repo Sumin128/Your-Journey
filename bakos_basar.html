@@ -23,12 +23,11 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=14">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=1">
+    <link rel="stylesheet" href="CSS/bako.css?v=1">
 
-    <title>Impressum &amp; Datenschutz – Mirelon</title>
+    <title>Bakos Basar</title>
 
 </head>
-
-
 <body>
 
 
@@ -71,7 +70,6 @@
                 </button>
 
             </div>
-
 
             <div class="sidebar-player-info">
 
@@ -210,15 +208,12 @@
                     <span class="sidebar-label">Kuros Laden</span>
                 </a>
 
-                <a href="bakos_basar.html" class="sidebar-link sidebar-sublink">
+                <a href="bakos_basar.html" class="sidebar-link sidebar-sublink" aria-current="page">
                     <span class="sidebar-icon"><img src="Icons/Sidebar/shop.png" alt="" class="sidebar-icon-img" decoding="async"></span>
                     <span class="sidebar-label">Bakos Basar</span>
                 </a>
 
             </div>
-
-
-            
 
 
             <a
@@ -256,10 +251,10 @@
 
             </a>
 
-            <a href="impressum.html" class="sidebar-link sidebar-legal-link" aria-current="page">
+            <a href="impressum.html" class="sidebar-link sidebar-legal-link">
 
                 <span class="sidebar-icon"><img src="Icons/Sidebar/impressum.png" alt="" class="sidebar-icon-img" decoding="async"></span>
-                <span class="sidebar-label">Impressum &amp; Datenschutz</span>
+                <span class="sidebar-label">Impressum & Datenschutz</span>
 
             </a>
 
@@ -269,160 +264,101 @@
 
 
     <!-- =====================================================
-         IMPRESSUM & DATENSCHUTZ
+         BAKOS BASAR
          ===================================================== -->
 
-    <main id="legal-main" class="yj-page">
+    <main id="bako-main" class="yj-page bako-page">
 
-        <section class="legal-section yj-panel yj-panel--paper yj-enter">
+        <section class="bako-intro yj-panel yj-panel--paper yj-enter">
+            <img
+                class="bako-portrait"
+                src="charaktere/Bako_h%C3%A4ndler.png"
+                alt="Bako, der fahrende Händler"
+                decoding="async">
+            <div class="bako-intro-text">
+                <h1>Bakos Basar</h1>
+                <p>
+                    „Nur heute, nur hier! Ich reise weit durch Mirelon und bringe mit,
+                    was der Magische Baum manchmal verschenkt – junge Baumkinder, die
+                    einen Freund suchen. Und ein bisschen Glitzern für den Nachthimmel
+                    habe ich auch dabei."
+                </p>
+            </div>
+        </section>
 
-            <h1>Impressum</h1>
+        <section id="bako-scene" aria-label="Bakos Marktstand">
 
-            
+            <img
+                id="bako-scene-img"
+                src="charaktere/bakos_laden.png"
+                alt="Bakos hölzerner Marktstand voller Waren"
+                decoding="async">
 
-            <h2>Angaben gemäß § 5 DDG</h2>
+            <div id="bako-coins" aria-live="polite">
+                <span id="feather-count"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
+            </div>
 
-            <p>
-                Simon Walbröhl<br>
-                c/o POSTFLEX PFX-600-251<br>
-                Emsdettener Straße 10<br>
-                48268 Greven
-            </p>
+            <div id="bako-hotspots">
 
-            <h2>Kontakt</h2>
+                <div class="bako-hotspot bako-slot-otter">
+                    <img class="shop-hotspot-icon" src="images/tamagotchi/otter_happy.png" alt="">
+                    <div class="shop-hotspot-tooltip">
+                        <strong>Fenn</strong>
+                        <span class="bako-hs-sub">Otterjunges</span>
+                        <span class="bako-hs-price" data-price="baumkindOtter">25 <img src="images/muenze.png" alt="" class="coin-icon"></span>
+                        <button type="button" class="yj-button yj-button--compact" data-buy-baumkind="baumkindOtter">Kaufen</button>
+                    </div>
+                </div>
 
-            <p>
-                E-Mail: info@mirelon.de
-            </p>
+                <div class="bako-hotspot bako-slot-reh">
+                    <img class="shop-hotspot-icon" src="images/tamagotchi/reh_happy.png" alt="">
+                    <div class="shop-hotspot-tooltip">
+                        <strong>Taja</strong>
+                        <span class="bako-hs-sub">Rehkitz</span>
+                        <span class="bako-hs-price" data-price="baumkindReh">45 <img src="images/muenze.png" alt="" class="coin-icon"></span>
+                        <button type="button" class="yj-button yj-button--compact" data-buy-baumkind="baumkindReh">Kaufen</button>
+                    </div>
+                </div>
 
-            <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+                <div class="bako-hotspot bako-slot-eichhorn">
+                    <img class="shop-hotspot-icon" src="images/tamagotchi/eichhorn_happy.png" alt="">
+                    <div class="shop-hotspot-tooltip">
+                        <strong>Piri</strong>
+                        <span class="bako-hs-sub">Eichhörnchenkind</span>
+                        <span class="bako-hs-price" data-price="baumkindEichhorn">70 <img src="images/muenze.png" alt="" class="coin-icon"></span>
+                        <button type="button" class="yj-button yj-button--compact" data-buy-baumkind="baumkindEichhorn">Kaufen</button>
+                    </div>
+                </div>
 
-            <p>
-                Simon walbröhl, Anschrift wie oben.
-            </p>
+                <div class="bako-hotspot bako-slot-baer">
+                    <img class="shop-hotspot-icon" src="images/tamagotchi/baer_happy.png" alt="">
+                    <div class="shop-hotspot-tooltip">
+                        <strong>Bruno</strong>
+                        <span class="bako-hs-sub">Bärenjunges</span>
+                        <span class="bako-hs-price" data-price="baumkindBaer">100 <img src="images/muenze.png" alt="" class="coin-icon"></span>
+                        <button type="button" class="yj-button yj-button--compact" data-buy-baumkind="baumkindBaer">Kaufen</button>
+                    </div>
+                </div>
 
-            
+                <div class="bako-hotspot bako-slot-firework">
+                    <span class="shop-hotspot-icon shop-hotspot-icon--emoji" aria-hidden="true">🎆</span>
+                    <div class="shop-hotspot-tooltip">
+                        <strong>Feuerwerk-Paket</strong>
+                        <span class="bako-hs-sub">5 Stück · zünden im Inventar</span>
+                        <span class="bako-hs-sub">Du hast: <strong id="bako-firework-qty">0</strong></span>
+                        <span class="bako-hs-price">30 <img src="images/muenze.png" alt="" class="coin-icon"></span>
+                        <button type="button" id="bako-buy-firework" class="yj-button yj-button--compact">Kaufen</button>
+                    </div>
+                </div>
+
+            </div>
 
         </section>
 
-
-        <section class="legal-section yj-panel yj-panel--paper yj-enter">
-
-            <h1>Datenschutzerklärung</h1>
-
-            
-
-            <h2>1. Verantwortlicher</h2>
-
-            <p>
-                Simon Walbröhl<br>
-                c/o POSTFLEX PFX-600-251<br>
-                Emsdettener Straße 10<br>
-                48268 Greven<br>
-                E-Mail: info@mirelon.de
-            </p>
-
-            <h2>2. Lokale Speicherung (localStorage)</h2>
-
-            <p>
-                Dein Spielername, Avatar und Spielfortschritt werden ausschließlich
-                lokal in deinem Browser gespeichert (localStorage). Diese Daten
-                verlassen dein Gerät nicht und werden nicht an einen Server
-                übertragen – es sei denn, du entscheidest dich später bewusst für
-                ein Konto und die Übernahme dieses Spielstands (siehe Punkt 3).
-            </p>
-
-            <h2>3. Optionales Konto (Supabase)</h2>
-
-            <p>
-                Eine Registrierung ist freiwillig und nicht 
-                erforderlich, um zu spielen. Wer sich dennoch
-                 registriert, erstellt damit ein Konto bei unserem 
-                 Datenbank-Anbieter <em><strong>Supabase</strong></em>
-                  (Supabase Inc., Server-Standort Frankfurt am Main, Deutschland/EU).
-                   Gespeichert werden dabei ausschließlich E-Mail-Adresse, ein Passwort (verschlüsselt),
-                    der Spielfortschritt (Münzen, Erfolge, Inventar, Avatar-Wahl, Sidebar-Design), technische
-                    Zeitangaben zur Missbrauchsvermeidung (z. B. wann zuletzt eine Belohnung gutgeschrieben wurde)
-                    sowie mit
-                    dem Malwerkzeug selbst erstellte Bilder – keine weiteren personenbezogenen Daten, insbesondere
-                     keine hochgeladenen Fotos. Die im Malwerkzeug erstellten Bilder
-                      werden als Bilddatei über Supabase Storage (ebenfalls Server-Standort Frankfurt am Main)
-                       gespeichert, damit sie beim nächsten Besuch wieder angezeigt werden können. Es werden keine
-                        Fotos oder Kamerabilder hochgeladen, sondern ausschließlich mit dem Werkzeug selbst gezeichnete
-                         Bilder. Die Registrierung richtet sich an Erziehungsberechtigte, die damit
-                         ein Konto für ihr Kind anlegen; beim Registrieren wird eine entsprechende
-                          Einwilligung abgefragt.
-            </p>
-
-            <p>
-                Wurde vorher ohne Konto (als Gast) gespielt, fragen wir bei der
-                Registrierung einmalig, ob der bisherige, bis dahin nur lokal
-                gespeicherte Gast-Spielstand (siehe Punkt 2) in das neue Konto
-                übernommen werden soll – das ist die einzige Ausnahme von der in
-                Punkt 2 beschriebenen rein lokalen Speicherung. Diese Übertragung
-                erfolgt nur nach ausdrücklicher Bestätigung, ausschließlich für
-                ein neues, noch leeres Konto und nur einmalig – lehnt man ab,
-                bleibt der Gast-Spielstand unverändert lokal auf dem Gerät
-                erhalten und wird nicht übertragen.
-            </p>
-
-            <h2>4. Bug-Melder</h2>
-
-            <p>
-                Über den Bug-Melder (🐞) eingereichte Meldungen (Kategorie, Text,
-                aufgerufene Seite sowie technische Angaben zu Browser und
-                Gerät) werden in einer Tabelle bei unserem in Punkt 3
-                genannten Datenbank-Anbieter <em><strong>Supabase</strong></em>
-                (Server-Standort Frankfurt am Main, Deutschland/EU) gespeichert.
-                Es findet keine Übertragung an weitere Drittanbieter statt.
-            </p>
-
-            <h2>5. Hosting (Vercel)</h2>
-
-            <p>
-                Diese Seite wird über <strong>Vercel Inc.</strong> gehostet. Beim
-                Aufruf der Seite verarbeitet Vercel technisch bedingt
-                Server-Log-Daten (z. B. IP-Adresse, Zeitpunkt des Zugriffs). Details
-                siehe
-                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">
-                    Vercel-Datenschutzerklärung
-                </a>.
-            </p>
-
-            <h2>6. Cookies</h2>
-
-            <p>
-                Diese Seite setzt keine Tracking-Cookies. Es wird ausschließlich
-                localStorage für Spielfunktionen genutzt (siehe Punkt 2).
-            </p>
-
-
-            <h2>7. Freiwillige Unterstützung (PayPal)</h2>
-
-            <p>
-                Du hast die Möglichkeit, dieses Projekt freiwillig und ohne jede
-                Gegenleistung über einen PayPal-Link zu unterstützen. Bei Nutzung
-                 dieses Links wirst du auf die Website von PayPal (Europe) S.à r.l.
-                  et Cie, S.C.A., Luxemburg, weitergeleitet, wo die Zahlung direkt 
-                  zwischen dir und PayPal abgewickelt wird. Dabei erhält PayPal die 
-                  von dir dort eingegebenen Daten (z. B. Name, E-Mail-Adresse, Zahl
-                  ungsdaten); wir selbst erhalten davon keine Daten außer der Informa
-                  tion, dass eine Zahlung eingegangen ist. Die Nutzung dieses Links ist
-                   vollkommen freiwillig und für die Nutzung der App nicht erforderlich
-                   . Weitere Informationen findest du in der Datenschutzerklärung von Pa
-                   yPal: <a href="https://www.paypal.com/de/webapps/mpp/ua/privacy-full" target="_blank" rel="noopener">
-                    https://www.paypal.com/de/webapps/mpp/ua/privacy-full
-                </a>.
-            <h2>8. Deine Rechte</h2>
-
-            <p>
-                Du hast das Recht auf Auskunft, Berichtigung, Löschung und
-                Einschränkung der Verarbeitung deiner personenbezogenen Daten sowie
-                ein Beschwerderecht bei einer Aufsichtsbehörde. Wende dich dazu an
-                die oben genannte Kontakt-E-Mail.
-            </p>
-
-        </section>
+        <p class="bako-scene-hint">
+            Ein gekauftes Baumkind zieht bei deinem Zauber-Gefährten ein – am ⚙-Menü
+            des Begleiters wechselst du, wer dich begleitet.
+        </p>
 
     </main>
 
@@ -438,8 +374,8 @@
     <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=1"></script>
     <script src="JS/fireworks.js?v=1"></script>
-
+    <script src="JS/sounds.js?v=1"></script>
+    <script src="JS/bako.js?v=1"></script>
 
 </body>
-
 </html>

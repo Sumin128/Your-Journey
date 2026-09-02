@@ -536,6 +536,16 @@ const inventoryButton =
                     <span class="inventory-item-status"></span>
                 </button>
 
+                <button
+                    id="inventory-firework"
+                    class="inventory-item"
+                    type="button"
+                    data-category="items">
+                    <span class="inventory-item-icon" aria-hidden="true">🎆</span>
+                    <span class="inventory-item-name">Feuerwerk</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
             </div>
 
             <p class="inventory-empty-state" hidden>
@@ -684,6 +694,41 @@ function updateInventoryUI() {
 
     });
 
+    /* Verbrauchs-Feuerwerk (Kategorie "Items") */
+
+    const fireworkButton = document.getElementById("inventory-firework");
+
+    if (fireworkButton) {
+
+        const qty = (player.consumables && Number(player.consumables.feuerwerk)) || 0;
+        const matchesCategory =
+            activeInventoryCategory === "all" ||
+            activeInventoryCategory === "items";
+
+        fireworkButton.hidden = !matchesCategory;
+
+        if (matchesCategory) {
+            visibleCount++;
+        }
+
+        fireworkButton.disabled = qty < 1;
+        fireworkButton.classList.toggle("is-locked", qty < 1);
+
+        const statusEl = fireworkButton.querySelector(".inventory-item-status");
+
+        if (statusEl) {
+            statusEl.textContent = qty > 0 ? "×" + qty + " · Zünden" : "🔒 Leer";
+        }
+
+        fireworkButton.setAttribute(
+            "aria-label",
+            qty > 0
+                ? "Feuerwerk zünden, noch " + qty + " übrig"
+                : "Feuerwerk, leer – bei Bako erhältlich"
+        );
+
+    }
+
     const emptyState =
         inventoryPanel.querySelector(".inventory-empty-state");
 
@@ -692,6 +737,100 @@ function updateInventoryUI() {
     }
 
 }
+
+
+/* =====================================================
+   INVENTAR: FEUERWERK ZÜNDEN
+   Verbrauch bei angemeldeten Konten serverseitig über
+   use_consumable_item() (siehe supabase_migration_
+   security_player_data.sql); der Effekt startet erst
+   nach erfolgreichem Abzug.
+   ===================================================== */
+
+let fireworkBusy = false;
+
+async function igniteFirework() {
+
+    if (fireworkBusy) {
+        return;
+    }
+
+    const qty = (player.consumables && Number(player.consumables.feuerwerk)) || 0;
+
+    if (qty < 1) {
+        return;
+    }
+
+    fireworkBusy = true;
+
+    try {
+
+        const loggedIn =
+            typeof supabaseClient !== "undefined" && supabaseClient &&
+            typeof currentSession !== "undefined" && currentSession;
+
+        if (loggedIn) {
+
+            const res = await supabaseClient.rpc("use_consumable_item", { item_key: "feuerwerk" });
+
+            if (res.error) {
+                throw res.error;
+            }
+
+            if (!player.consumables) {
+                player.consumables = {};
+            }
+
+            if (res.data && typeof res.data.remaining === "number") {
+                player.consumables.feuerwerk = res.data.remaining;
+            } else {
+                player.consumables.feuerwerk = qty - 1;
+            }
+
+        } else {
+
+            if (!player.consumables) {
+                player.consumables = {};
+            }
+
+            player.consumables.feuerwerk = qty - 1;
+
+        }
+
+        savePlayer();
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        if (inventoryPanel) {
+            inventoryPanel.hidden = true;
+        }
+
+        if (typeof MirelonFireworks !== "undefined" && MirelonFireworks.play) {
+            MirelonFireworks.play({ seconds: 12 });
+        }
+
+    } catch (e) {
+
+        if (typeof showMirelonToast === "function") {
+            showMirelonToast("Feuerwerk fehlgeschlagen: " + (e && e.message ? e.message : e), "error");
+        }
+
+    } finally {
+
+        fireworkBusy = false;
+
+    }
+
+}
+
+(function () {
+
+    const fireworkButton = document.getElementById("inventory-firework");
+
+    if (fireworkButton) {
+        fireworkButton.addEventListener("click", igniteFirework);
+    }
+
+})();
 
 const inventoryFoxCursorButton =
     document.getElementById("inventory-fox-cursor");

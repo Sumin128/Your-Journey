@@ -1,0 +1,538 @@
+/* =====================================================
+   ZAUBER-GEFÄHRTE – schwebender Begleiter
+   Wird von JS/tamagotchi.js auf jeder Seite erzeugt.
+   Sitzt unten rechts über dem Bug-Melder.
+   ===================================================== */
+
+#pet-companion {
+    position: fixed;
+    right: 20px;
+    bottom: 92px;
+    z-index: 1780;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+}
+
+/* [hidden] muss die display-Regeln unten schlagen */
+#pet-companion [hidden],
+#pet-companion[hidden] {
+    display: none !important;
+}
+
+/* --- Das Baumkind --- */
+
+#pc-actor {
+    position: relative;
+    display: block;
+    width: 76px;
+    height: 76px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: grab;
+    touch-action: none;
+    filter: drop-shadow(0 6px 10px rgba(35, 20, 8, 0.35));
+    animation: pcBreathe 3.6s ease-in-out infinite;
+    transition: transform 0.15s ease;
+}
+
+#pc-actor:hover {
+    transform: scale(1.06);
+}
+
+#pc-actor:active {
+    transform: scale(0.96);
+}
+
+#pc-sprite {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+#pet-companion.pc-sleeping #pc-actor {
+    animation-duration: 5s;
+    filter: drop-shadow(0 6px 10px rgba(35, 20, 8, 0.35)) brightness(0.8) saturate(0.85);
+}
+
+@keyframes pcBreathe {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    50%      { transform: translateY(-4px) scale(1.02, 0.98); }
+}
+
+/* --- Verschieben --- */
+
+#pet-companion.pc-dragging {
+    transition: none;
+    z-index: 2100;
+}
+
+#pet-companion.pc-dragging #pc-actor {
+    animation: none;
+    cursor: grabbing;
+}
+
+/* --- Stimmung: bewegt sich anders, wenn ein Wert niedrig ist --- */
+
+#pet-companion.pc-mood-hungry #pc-actor,
+#pet-companion.pc-mood-thirsty #pc-actor {
+    animation: pcWobble 1s ease-in-out infinite;
+}
+
+#pet-companion.pc-mood-tired #pc-actor,
+#pet-companion.pc-mood-dirty #pc-actor {
+    animation: pcDroop 3s ease-in-out infinite;
+}
+
+#pet-companion.pc-mood-dirty #pc-sprite {
+    filter: saturate(0.6) brightness(0.96);
+}
+
+#pet-companion.pc-mood-tired #pc-sprite {
+    opacity: 0.85;
+}
+
+#pet-companion[class*="pc-mood-"] #pc-actor::after {
+    content: "!";
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 17px;
+    height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    background: var(--yj-color-danger, #e2542a);
+    border: 2px solid var(--yj-color-paper, #fffaf0);
+    border-radius: 50%;
+    animation: pcPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pcWobble {
+    0%, 100% { transform: rotate(-4deg); }
+    50%      { transform: rotate(4deg) translateY(-3px); }
+}
+
+@keyframes pcDroop {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    50%      { transform: translateY(2px) scale(1.01, 0.97); }
+}
+
+@keyframes pcPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+}
+
+/* --- Einblende-Reiter, wenn ausgeblendet --- */
+
+#pc-show {
+    position: fixed;
+    right: 0;
+    bottom: 130px;
+    z-index: 1780;
+    width: 34px;
+    height: 44px;
+    padding: 0;
+    font-size: 1.3rem;
+    line-height: 1;
+    border: 2px solid var(--yj-color-border, #c8a06a);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    background: var(--yj-color-paper, #fffaf0);
+    box-shadow: -3px 3px 10px rgba(35, 20, 8, 0.25);
+    cursor: pointer;
+}
+
+/* --- Sprechblase --- */
+
+#pc-bubble {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    max-width: 220px;
+    padding: 7px 12px;
+    background: #fff;
+    border: 2px solid var(--yj-color-accent, #e0a53c);
+    border-radius: 14px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--yj-color-wood-dark, #4a2f16);
+    box-shadow: 0 4px 12px rgba(35, 20, 8, 0.25);
+}
+
+#pc-bubble::after {
+    content: "";
+    position: absolute;
+    right: 22px;
+    bottom: -8px;
+    border: 8px solid transparent;
+    border-top-color: #fff;
+    border-bottom: 0;
+}
+
+/* --- Kompaktes Panel --- */
+
+#pc-panel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    width: 262px;
+    /* Seite wird per JS gewählt, je nachdem wo das Baumkind sitzt */
+    max-width: 84vw;
+    padding: 12px;
+    background: var(--yj-color-paper, #fffaf0);
+    border: 2px solid var(--yj-color-border, #c8a06a);
+    border-radius: var(--yj-radius-lg, 16px);
+    box-shadow: 0 12px 32px rgba(35, 20, 8, 0.35);
+    color: var(--yj-color-wood-dark, #4a2f16);
+}
+
+#pc-panel.pc-panel-left {
+    right: auto;
+    left: 0;
+}
+
+#pc-panel.pc-panel-down {
+    bottom: auto;
+    top: calc(100% + 10px);
+}
+
+.pc-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid rgba(150, 80, 30, 0.15);
+}
+
+.pc-head-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    flex: none;
+}
+
+.pc-head-txt {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+    margin-right: auto;
+    min-width: 0;
+}
+
+.pc-head-txt strong {
+    font-size: 1rem;
+}
+
+.pc-lvl {
+    font-size: 0.7rem;
+    color: var(--yj-color-ink-soft, #7a5c3e);
+}
+
+.pc-icon-btn {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: #f0e6d6;
+    color: var(--yj-color-wood-dark, #4a2f16);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.pc-icon-btn:hover {
+    background: var(--yj-color-accent, #e0a53c);
+}
+
+/* XP */
+
+.pc-xp {
+    height: 6px;
+    margin: 8px 0;
+    background: #e8ded0;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.pc-xp-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #f4a531, #ffd77a);
+    transition: width 0.4s ease;
+}
+
+/* Werte */
+
+.pc-vitals {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.pc-vital {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+}
+
+.pc-vital-ico {
+    width: 1.1rem;
+    text-align: center;
+    flex: none;
+}
+
+.pc-bar {
+    flex: 1;
+    height: 9px;
+    background: #ede3d4;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.pc-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.5s ease;
+}
+
+.pc-vital-val {
+    width: 1.9rem;
+    text-align: right;
+    flex: none;
+    color: var(--yj-color-ink-soft, #7a5c3e);
+}
+
+.pc-hunger      { background: linear-gradient(90deg, #f87171, #22c55e); }
+.pc-thirst      { background: linear-gradient(90deg, #60a5fa, #38bdf8); }
+.pc-happiness   { background: linear-gradient(90deg, #f472b6, #f59e0b); }
+.pc-energy      { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.pc-cleanliness { background: linear-gradient(90deg, #34d399, #10b981); }
+
+/* Aktionen */
+
+.pc-actions {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.pc-actions button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 2px;
+    border: 1.5px solid var(--yj-color-border, #c8a06a);
+    border-radius: 10px;
+    background: #fffdf8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.pc-actions button span {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--yj-color-wood-dark, #4a2f16);
+}
+
+.pc-actions button:hover {
+    transform: translateY(-2px);
+    background: #fff;
+}
+
+/* Untermenü (Futter-/Getränke-/Spiel-Auswahl, Zahnrad-Menü) */
+
+.pc-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1.5px solid rgba(150, 80, 30, 0.15);
+}
+
+.pc-sub button {
+    padding: 7px 10px;
+    border: 1.5px solid var(--yj-color-border, #c8a06a);
+    border-radius: 8px;
+    background: #fffdf8;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: left;
+    color: var(--yj-color-wood-dark, #4a2f16);
+    cursor: pointer;
+}
+
+.pc-sub button:hover {
+    background: var(--yj-color-accent, #e0a53c);
+}
+
+/* Schwebende Emojis bei Interaktion */
+
+.pc-float {
+    position: absolute;
+    right: 26px;
+    bottom: 60px;
+    font-size: 1.4rem;
+    pointer-events: none;
+    animation: pcFloat 1s ease-out forwards;
+}
+
+@keyframes pcFloat {
+    0%   { opacity: 1; transform: translateY(0) scale(0.8); }
+    100% { opacity: 0; transform: translateY(-46px) scale(1.2); }
+}
+
+/* =====================================================
+   MINISPIEL BEEREN-FANGEN
+   ===================================================== */
+
+#pc-game {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(20, 10, 5, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.pc-game-box {
+    background: var(--yj-color-paper, #fffaf0);
+    border: 3px solid var(--yj-color-border, #c8a06a);
+    border-radius: var(--yj-radius-lg, 16px);
+    padding: 14px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.pc-game-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    color: var(--yj-color-wood-dark, #4a2f16);
+    margin-bottom: 10px;
+}
+
+.pc-game-top span {
+    flex: 1;
+    padding: 5px 0;
+    background: #fff3d9;
+    border: 1.5px solid var(--yj-color-border, #c8a06a);
+    border-radius: 99px;
+    font-size: 0.9rem;
+}
+
+.pc-game-top button {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: #f0e6d6;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.pc-game-top button:hover {
+    background: var(--yj-color-danger, #e2542a);
+    color: #fff;
+}
+
+#pc-game-canvas {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    border: 3px solid var(--yj-color-border, #c8a06a);
+    border-radius: 14px;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.12);
+    touch-action: none;
+}
+
+.pc-game-box p {
+    font-size: 0.82rem;
+    color: var(--yj-color-ink-soft, #7a5c3e);
+    margin: 10px 0 0;
+}
+
+.pc-game-result {
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--yj-color-wood-dark, #4a2f16) !important;
+    margin: 8px 0 14px !important;
+}
+
+@media (max-width: 480px) {
+    #pet-companion {
+        right: 12px;
+        bottom: 84px;
+    }
+    #pc-actor {
+        width: 64px;
+        height: 64px;
+    }
+}
+
+/* =====================================================
+   FEUERWERK-OVERLAY  (JS/fireworks.js)
+   ===================================================== */
+
+#mirelon-fireworks {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    background: rgba(6, 8, 20, 0.55);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#mirelon-fireworks.mf-out {
+    opacity: 0;
+}
+
+#mirelon-fireworks canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#mirelon-fireworks .mf-skip {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    padding: 8px 18px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+#mirelon-fireworks .mf-skip:hover {
+    background: rgba(0, 0, 0, 0.55);
+}

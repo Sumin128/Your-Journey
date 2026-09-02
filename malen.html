@@ -22,6 +22,7 @@
     <link
         rel="stylesheet"
         href="CSS/components/index.css?v=14">
+    <link rel="stylesheet" href="CSS/tamagotchi.css?v=1">
 
     <title>Malstube – Mirelon</title>
 
@@ -197,14 +198,25 @@
             </div>
 
 
-            <a
-                href="shop_seite.html"
-                class="sidebar-link">
-
+            <button type="button" class="sidebar-group-header">
                 <span class="sidebar-icon"><img src="Icons/Sidebar/shop.png" alt="" class="sidebar-icon-img" decoding="async"></span>
-                <span class="sidebar-label">Kuros Laden</span>
+                <span class="sidebar-label">Läden</span>
+                <span class="sidebar-chevron">▸</span>
+            </button>
 
-            </a>
+            <div class="sidebar-subnav">
+
+                <a href="shop_seite.html" class="sidebar-link sidebar-sublink">
+                    <span class="sidebar-icon"><img src="Icons/Sidebar/shop.png" alt="" class="sidebar-icon-img" decoding="async"></span>
+                    <span class="sidebar-label">Kuros Laden</span>
+                </a>
+
+                <a href="bakos_basar.html" class="sidebar-link sidebar-sublink">
+                    <span class="sidebar-icon"><img src="Icons/Sidebar/shop.png" alt="" class="sidebar-icon-img" decoding="async"></span>
+                    <span class="sidebar-label">Bakos Basar</span>
+                </a>
+
+            </div>
 
 
             
@@ -514,10 +526,12 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=27"></script>
+    <script src="JS/player.js?v=28"></script>
     <script src="JS/auth.js?v=8"></script>
-    <script src="JS/sidebar.js?v=10"></script>
+    <script src="JS/sidebar.js?v=11"></script>
     <script src="JS/bugreport.js?v=1"></script>
+    <script src="JS/tamagotchi.js?v=1"></script>
+    <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/malen.js?v=8"></script>
 
 
