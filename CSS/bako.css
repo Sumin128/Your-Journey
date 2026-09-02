@@ -116,6 +116,26 @@
     cursor: pointer;
 }
 
+/* Unsichtbare Brücke zwischen Icon und Tooltip, damit der Hover beim
+   Weg zum Kaufen-Knopf nicht abreißt. */
+.bako-hotspot::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 45%;
+    width: 130px;
+    height: 130px;
+    transform: translateX(-50%);
+    z-index: 4;
+    pointer-events: none;
+}
+
+.bako-hotspot:hover::before,
+.bako-hotspot:focus-within::before,
+.bako-hotspot.is-open::before {
+    pointer-events: auto;
+}
+
 /* Positionen auf dem Marktstand */
 .bako-slot-otter    { left: 27%; top: 40%; }
 .bako-slot-reh      { left: 37%; top: 57%; }
@@ -173,7 +193,8 @@
 }
 
 .bako-hotspot:hover .shop-hotspot-tooltip,
-.bako-hotspot:focus-within .shop-hotspot-tooltip {
+.bako-hotspot:focus-within .shop-hotspot-tooltip,
+.bako-hotspot.is-open .shop-hotspot-tooltip {
     opacity: 1;
     pointer-events: auto;
 }

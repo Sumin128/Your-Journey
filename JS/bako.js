@@ -157,6 +157,13 @@
         }
     }
 
+    function closeHotspots(except) {
+        var open = document.querySelectorAll(".bako-hotspot.is-open");
+        for (var i = 0; i < open.length; i++) {
+            if (open[i] !== except) { open[i].classList.remove("is-open"); }
+        }
+    }
+
     document.addEventListener("click", function (e) {
         var bk = e.target.closest("[data-buy-baumkind]");
         if (bk) {
@@ -164,9 +171,23 @@
             if (entry) { buyBaumkind(entry, bk); }
             return;
         }
-        var fw = e.target.closest("#bako-buy-firework");
-        if (fw) {
-            buyFirework(fw);
+        if (e.target.closest("#bako-buy-firework")) {
+            buyFirework(e.target.closest("#bako-buy-firework"));
+            return;
+        }
+
+        // Tippen aufs Hotspot-Icon: Tooltip fest ein-/ausblenden (nicht nur Hover)
+        var hs = e.target.closest(".bako-hotspot");
+        if (hs && !e.target.closest(".shop-hotspot-tooltip")) {
+            var wasOpen = hs.classList.contains("is-open");
+            closeHotspots(hs);
+            hs.classList.toggle("is-open", !wasOpen);
+            return;
+        }
+
+        // Klick daneben schließt offene Tooltips
+        if (!e.target.closest(".shop-hotspot-tooltip")) {
+            closeHotspots(null);
         }
     });
 
