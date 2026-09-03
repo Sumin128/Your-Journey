@@ -33,8 +33,8 @@
     }
 
     @keyframes yj-glow-pulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(244, 165, 49, 0.45); }
-        50% { box-shadow: 0 0 0 10px rgba(244, 165, 49, 0); }
+        0%, 100% { box-shadow: 0 0 0 0 rgba(var(--yj-accent-rgb), 0.45); }
+        50% { box-shadow: 0 0 0 10px rgba(var(--yj-accent-rgb), 0); }
     }
 }
 

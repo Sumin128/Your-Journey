@@ -44,7 +44,7 @@
     gap: 6px;
     padding: 4px 14px;
     border-radius: var(--yj-radius-pill);
-    background: rgba(244, 165, 49, 0.22);
+    background: rgba(var(--yj-accent-rgb), 0.22);
     color: var(--yj-color-accent-light);
     font-family: var(--yj-font-body);
     font-size: 0.8rem;

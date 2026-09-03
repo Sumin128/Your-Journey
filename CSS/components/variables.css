@@ -21,6 +21,10 @@
     --yj-color-accent: #f4a531;
     --yj-color-accent-light: #ffd77a;
     --yj-color-accent-dark: #c06a17;
+    /* Akzent als RGB-Tripel für rgba(...)-Aufrufe - so kann ein
+       Farbthema den Akzent überall (Panel-Ränder, Glow, Fokus)
+       auf einmal umfärben. */
+    --yj-accent-rgb: 244, 165, 49;
     --yj-color-accent-2: #23c98f;
     --yj-color-accent-2-dark: #14996a;
     --yj-color-magic: #b083f0;
@@ -95,4 +99,60 @@
     --mirelon-shadow: var(--yj-shadow-card);
     --mirelon-card-bg: var(--yj-color-paper-soft);
     --mirelon-text: var(--yj-color-ink);
+}
+
+
+/* =====================================================
+   FARBTHEMEN
+   Das in den Einstellungen gewählte Thema setzt data-theme
+   auf <html> (siehe applySidebarTheme() in JS/sidebar.js).
+   Bewusst dezent: die dunkle Szenen-Dialogbox und der
+   Seitenhintergrund bleiben gleich, nur der Akzent (Ränder,
+   Glow, Überschriften, Buttons, Fokus) verschiebt sich mit.
+   "wurzelholz" ist der Standard und braucht keinen Block.
+   ===================================================== */
+
+:root[data-theme="smaragdwald"] {
+    --yj-color-accent: #4fb98a;
+    --yj-color-accent-light: #8fd9b8;
+    --yj-color-accent-dark: #2f8f66;
+    --yj-accent-rgb: 79, 185, 138;
+    --yj-gradient-gold: linear-gradient(135deg, #a7e6cc 0%, #4fb98a 55%, #2f8f66 100%);
+    --yj-shadow-glow: 0 0 32px 4px rgba(120, 214, 170, 0.32), 0 8px 20px -4px rgba(20, 40, 30, 0.4);
+}
+
+:root[data-theme="zuckerwatte"] {
+    --yj-color-accent: #d878b0;
+    --yj-color-accent-light: #f2b3d8;
+    --yj-color-accent-dark: #b0568c;
+    --yj-accent-rgb: 216, 120, 176;
+    --yj-gradient-gold: linear-gradient(135deg, #f5cbe4 0%, #d878b0 55%, #b0568c 100%);
+    --yj-shadow-glow: 0 0 32px 4px rgba(240, 170, 210, 0.3), 0 8px 20px -4px rgba(50, 25, 45, 0.4);
+}
+
+:root[data-theme="azurblau"] {
+    --yj-color-accent: #4fa8cf;
+    --yj-color-accent-light: #9ad4ec;
+    --yj-color-accent-dark: #2f7fa0;
+    --yj-accent-rgb: 79, 168, 207;
+    --yj-gradient-gold: linear-gradient(135deg, #b3e0f2 0%, #4fa8cf 55%, #2f7fa0 100%);
+    --yj-shadow-glow: 0 0 32px 4px rgba(130, 200, 235, 0.3), 0 8px 20px -4px rgba(15, 35, 50, 0.4);
+}
+
+:root[data-theme="rot"] {
+    --yj-color-accent: #d96a5c;
+    --yj-color-accent-light: #f0a89c;
+    --yj-color-accent-dark: #a84436;
+    --yj-accent-rgb: 217, 106, 92;
+    --yj-gradient-gold: linear-gradient(135deg, #f2c0b6 0%, #d96a5c 55%, #a84436 100%);
+    --yj-shadow-glow: 0 0 32px 4px rgba(240, 150, 130, 0.3), 0 8px 20px -4px rgba(50, 20, 15, 0.4);
+}
+
+:root[data-theme="orange"] {
+    --yj-color-accent: #e08a3f;
+    --yj-color-accent-light: #f4bc7f;
+    --yj-color-accent-dark: #b06020;
+    --yj-accent-rgb: 224, 138, 63;
+    --yj-gradient-gold: linear-gradient(135deg, #f7d3a8 0%, #e08a3f 55%, #b06020 100%);
+    --yj-shadow-glow: 0 0 32px 4px rgba(255, 190, 120, 0.32), 0 8px 20px -4px rgba(45, 25, 8, 0.4);
 }

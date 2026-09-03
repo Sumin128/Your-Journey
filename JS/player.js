@@ -101,7 +101,7 @@ function createDefaultPlayer() {
 
         activeCursor: "default",
 
-        sidebarTheme: "baumrinde",
+        sidebarTheme: "orange",
 
         settings: {
 

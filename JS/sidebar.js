@@ -141,14 +141,15 @@ if (
    komplette player-Objekt) - keine eigene Sync-Logik nötig.
    ===================================================== */
 
-// "baumrinde" ist der Standard und bekommt bewusst KEIN data-theme-
-// Attribut (nutzt die Basiswerte direkt am #sidebar). Neue Themes
-// hier einfach ergänzen.
+// "orange" (Bernsteinlicht) ist der Standard - am neutralsten. Nur
+// "baumrinde" nutzt die attributlosen Basiswerte direkt am #sidebar,
+// alle anderen (inkl. Standard) bekommen ein data-theme-Attribut.
 const SIDEBAR_THEMES_WITH_ATTRIBUTE = ["smaragdwald", "zuckerwatte", "azurblau", "rot", "orange"];
+const DEFAULT_THEME = "orange";
 
 function getSidebarTheme() {
 
-    return (typeof player !== "undefined" && player.sidebarTheme) || "baumrinde";
+    return (typeof player !== "undefined" && player.sidebarTheme) || DEFAULT_THEME;
 
 }
 
@@ -160,8 +161,10 @@ function applySidebarTheme(theme) {
 
     if (SIDEBAR_THEMES_WITH_ATTRIBUTE.includes(theme)) {
         sidebar.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-theme", theme);
     } else {
         sidebar.removeAttribute("data-theme");
+        document.documentElement.removeAttribute("data-theme");
     }
 
     document.querySelectorAll("[data-theme-choice]").forEach(function (card) {

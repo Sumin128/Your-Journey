@@ -155,7 +155,7 @@ main {
     gap: 30px;
 
     background:
-        radial-gradient(900px 500px at 12% 0%, rgba(244, 165, 49, 0.22), transparent 60%),
+        radial-gradient(900px 500px at 12% 0%, rgba(var(--yj-accent-rgb), 0.22), transparent 60%),
         radial-gradient(800px 500px at 100% 20%, rgba(35, 201, 143, 0.16), transparent 55%),
         linear-gradient(rgba(16, 22, 12, 0.4), rgba(16, 22, 12, 0.6)),
         #1c2b17;
@@ -191,8 +191,8 @@ main {
 
     box-shadow:
         0 1px 0 rgba(255, 226, 165, 0.25) inset,
-        0 0 0 3px rgba(244, 165, 49, 0.35),
-        0 0 70px -10px rgba(244, 165, 49, 0.35),
+        0 0 0 3px rgba(var(--yj-accent-rgb), 0.35),
+        0 0 70px -10px rgba(var(--yj-accent-rgb), 0.35),
         var(--yj-shadow-float);
     transition: box-shadow var(--yj-transition);
 }
@@ -237,12 +237,12 @@ main {
     0%, 100% {
         box-shadow:
             0 0 0 8px rgba(255, 221, 150, 0.12),
-            0 0 22px 4px rgba(244, 165, 49, 0.28);
+            0 0 22px 4px rgba(var(--yj-accent-rgb), 0.28);
     }
     50% {
         box-shadow:
             0 0 0 14px rgba(255, 221, 150, 0.18),
-            0 0 38px 10px rgba(244, 165, 49, 0.4);
+            0 0 38px 10px rgba(var(--yj-accent-rgb), 0.4);
     }
 }
 
@@ -251,7 +251,7 @@ main {
     .home-map-hotspot:focus-visible,
     .home-map-hotspot:active {
         animation: none;
-        box-shadow: 0 0 0 10px rgba(255, 221, 150, 0.15), 0 0 28px 6px rgba(244, 165, 49, 0.32);
+        box-shadow: 0 0 0 10px rgba(255, 221, 150, 0.15), 0 0 28px 6px rgba(var(--yj-accent-rgb), 0.32);
     }
 }
 
@@ -309,7 +309,7 @@ main {
 
     background: rgba(26, 17, 9, 0.94);
     backdrop-filter: blur(4px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(244, 165, 49, 0.35) inset;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(var(--yj-accent-rgb), 0.35) inset;
     color: #ffdd96;
     font-family: var(--yj-font-display);
 
@@ -4983,7 +4983,7 @@ justify-content:center;
 .achievement-card--locked {
 
     background: rgba(0, 0, 0, 0.28);
-    border-color: rgba(244, 165, 49, 0.2);
+    border-color: rgba(var(--yj-accent-rgb), 0.2);
     opacity: 0.9;
 
 }

@@ -85,7 +85,7 @@
     background:
         linear-gradient(145deg, rgba(60, 40, 22, 0.55), rgba(38, 24, 13, 0.65));
 
-    border: 2px solid rgba(244, 165, 49, 0.35);
+    border: 2px solid rgba(var(--yj-accent-rgb), 0.35);
     border-radius: 14px;
 
     box-shadow:
@@ -266,7 +266,7 @@
             rgba(28, 17, 9, 0.75) 100%
         );
 
-    border: 2px solid rgba(244, 165, 49, 0.4);
+    border: 2px solid rgba(var(--yj-accent-rgb), 0.4);
     border-radius: 18px 10px 20px 12px;
 
     box-shadow:
@@ -526,7 +526,7 @@
             rgba(26, 16, 9, 0.8) 100%
         );
 
-    border: 2px solid rgba(244, 165, 49, 0.42);
+    border: 2px solid rgba(var(--yj-accent-rgb), 0.42);
     border-radius: 22px 13px 19px 11px;
 
     box-shadow:
@@ -678,7 +678,7 @@
 .bear-set-description h2 {
     margin: 0 0 10px;
 
-    color: #442313;
+    color: var(--yj-color-accent-light);
 
     font-size: 30px;
 }
@@ -689,7 +689,7 @@
 
     max-width: 340px;
 
-    color: #59361f;
+    color: var(--yj-color-cream);
 
     font-size: 18px;
     line-height: 1.45;
@@ -711,7 +711,7 @@
 
 
 .bear-set-action strong {
-    color: #442817;
+    color: var(--yj-color-cream-soft);
 
     font-size: 17px;
 }
