@@ -62,7 +62,7 @@
             card.setAttribute("aria-label", "Memory-Karte, verdeckt");
             card.innerHTML =
                 '<span class="faro-memory-inner">' +
-                '<span class="faro-memory-face faro-memory-back">🐾</span>' +
+                '<span class="faro-memory-face faro-memory-back"></span>' +
                 '<span class="faro-memory-face faro-memory-front"><span class="faro-track">' +
                 window.FARO_TRACKS[id] + '</span></span>' +
                 '</span>';

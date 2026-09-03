@@ -3199,11 +3199,7 @@ justify-content:center;
 
 .faro-memory-back{
 
-    background:linear-gradient(160deg, #7a4a26, #4c2d15);
-
-    color:#ffdca0;
-
-    font-size:2.2rem;
+    background:#4c2d15 url("../images/faro/memory/back.jpg") center/cover no-repeat;
 
 }
 
