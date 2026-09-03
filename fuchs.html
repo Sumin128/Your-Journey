@@ -17,7 +17,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=26">
+        href="CSS/style.css?v=27">
 
     <link
         rel="stylesheet"
@@ -85,9 +85,8 @@
                 <h1>Faros Fuchsbau</h1>
 
                 <p id="faro-text">
-                    Pssst … hör genau hin!
-                    Meine Ohren haben ein Geräusch entdeckt.
-                    Kannst du mir sagen, was das für ein Geräusch ist?
+                    Meine Nase und meine Augen sind die besten im ganzen Wald.
+                    Komm, ich zeige dir ein paar Spür-Spiele!
                 </p>
 
             </div>
@@ -95,71 +94,34 @@
         </section>
 
 
+        <!-- =====================================================
+             SPIELE-MENÜ
+             ===================================================== -->
+
         <section
-            id="faro-quiz-select"
+            id="faro-games"
             class="panel quiz-panel yj-panel yj-panel--paper">
 
-            <h2>Wähle ein Geräuschequiz</h2>
+            <h2>Faros Spür-Spiele</h2>
 
-            <button
-                type="button"
-                id="animal-sounds-button"
-                class="yj-button">
-                🐾 Tiergeräusche
-            </button>
-
-            <button
-                type="button"
-                id="everyday-sounds-button"
-                class="yj-button">
-                🏡 Alltagsgeräusche
-            </button>
-
-            <button
-                type="button"
-                id="household-sounds-button"
-                class="yj-button">
-                🫖 Haushaltsgeräusche
-            </button>
-
-            <button
-                type="button"
-                id="nature-sounds-button"
-                class="yj-button">
-                🍃 Naturgeräusche
-            </button>
+            <div id="faro-game-buttons">
+                <!-- Spiel-Buttons werden per JavaScript erzeugt -->
+            </div>
 
         </section>
 
 
         <button
-            id="back-to-quizzes"
+            id="faro-back-to-games"
             type="button"
             class="yj-button yj-button--secondary yj-button--wide"
             hidden>
-            ⬅️ Zur Quizauswahl
+            ⬅️ Zurück zu den Spielen
         </button>
 
 
-        <section id="sound-quiz" class="quiz-panel yj-panel yj-panel--paper" hidden>
-
-            <h2 id="sound-question">
-                Welches Tier macht dieses Geräusch?
-            </h2>
-
-            <button
-                type="button"
-                id="play-sound-button"
-                class="yj-button">
-                🔊 Geräusch abspielen
-            </button>
-
-            <div id="sound-answers">
-                <!-- Antwortbuttons werden später mit JavaScript erzeugt -->
-            </div>
-
-            <p id="sound-message" aria-live="polite"></p>
-
+        <section id="faro-game-stage" class="quiz-panel yj-panel yj-panel--paper" hidden>
+            <!-- aktives Spiel wird per JavaScript hier hineingebaut -->
         </section>
 
     </main>
@@ -178,7 +140,7 @@
     <script src="JS/tamagotchi.js?v=2"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
-    <script src="JS/fuchs.js?v=6"></script>
+    <script src="JS/fuchs.js?v=7"></script>
 
 </body>
 

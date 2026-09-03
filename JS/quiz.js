@@ -10,6 +10,11 @@ let currentQuestion = 0;
 let score = 0;
 let activeQuiz = [];
 let currentCategoryId = null;
+let currentGroup = "wissen";
+// true, wenn wir die Quizliste uebersprungen haben (Kategorie mit nur
+// einem Quiz) - dann fuehrt "zurueck" direkt zur Kategorieauswahl.
+let skippedQuizList = false;
+let currentSoundAudio = null;
 
 
 /* =====================================================
@@ -70,23 +75,54 @@ function renderQuizCategories() {
 
     container.innerHTML = "";
 
-    quizCategories.forEach(function (category) {
+    quizCategories
+        .filter(function (category) {
+            return (category.group || "wissen") === currentGroup;
+        })
+        .forEach(function (category) {
 
-        const button = document.createElement("button");
+            const button = document.createElement("button");
 
-        button.type = "button";
-        button.className = "yj-button";
-        button.textContent = category.icon + " " + category.label;
+            button.type = "button";
+            button.className = "yj-button";
+            button.textContent = category.icon + " " + category.label;
 
-        button.addEventListener("click", function () {
-            showQuizList(category.id);
+            button.addEventListener("click", function () {
+                showQuizList(category.id);
+            });
+
+            container.appendChild(button);
+
         });
 
-        container.appendChild(button);
+}
 
+
+/* =====================================================
+   REITER "WISSEN" / "GERÄUSCHE"
+   ===================================================== */
+
+function setQuizGroup(group) {
+
+    currentGroup = group;
+
+    document.querySelectorAll("[data-quiz-group]").forEach(function (tab) {
+        tab.classList.toggle("is-active", tab.dataset.quizGroup === group);
     });
 
+    // Immer zurueck auf die Kategorieauswahl des neuen Reiters
+    document.getElementById("quiz-list-select").hidden = true;
+    document.getElementById("quiz-category-select").hidden = false;
+
+    renderQuizCategories();
+
 }
+
+document.querySelectorAll("[data-quiz-group]").forEach(function (tab) {
+    tab.addEventListener("click", function () {
+        setQuizGroup(tab.dataset.quizGroup);
+    });
+});
 
 
 /* =====================================================
@@ -104,6 +140,16 @@ function showQuizList(categoryId) {
     }
 
     currentCategoryId = categoryId;
+
+    // Kategorie mit nur einem Quiz: Zwischenauswahl ueberspringen und
+    // direkt starten (z. B. "Tiergeräusche").
+    if (category.quizzes.length === 1) {
+        skippedQuizList = true;
+        startQuiz(category.quizzes[0].id);
+        return;
+    }
+
+    skippedQuizList = false;
 
     document.getElementById("quiz-category-select").hidden = true;
     document.getElementById("quiz-list-select").hidden = false;
@@ -253,6 +299,32 @@ function showQuestion() {
 
     }
 
+    // Geräuschfrage: "anhören"-Knopf statt Bild
+    if (q.sound) {
+
+        if (currentSoundAudio) {
+            currentSoundAudio.pause();
+        }
+
+        currentSoundAudio = new Audio(q.sound);
+
+        const playButton = document.createElement("button");
+        playButton.type = "button";
+        playButton.className = "yj-button quiz-sound-button";
+        playButton.textContent = "🔊 Geräusch anhören";
+        playButton.onclick = function () {
+            currentSoundAudio.currentTime = 0;
+            currentSoundAudio.play().catch(function () {});
+        };
+
+        container.appendChild(playButton);
+
+        // Einmal automatisch abspielen (Autoplay kann blockiert sein -
+        // dann hilft der Knopf).
+        currentSoundAudio.play().catch(function () {});
+
+    }
+
     // Frage anzeigen
     const questionText = document.createElement("p");
     questionText.textContent = q.question;
@@ -386,6 +458,11 @@ function nextQuestion() {
 
 function exitQuiz() {
 
+    if (currentSoundAudio) {
+        currentSoundAudio.pause();
+        currentSoundAudio = null;
+    }
+
     document.getElementById("quiz-select").style.display = "block";
 
     document.getElementById("quiz-status").style.display = "none";
@@ -397,12 +474,16 @@ function exitQuiz() {
     document.getElementById("quiz-container").innerHTML = "";
 
     /*
-       Zurück zur Quizliste der aktuellen Kategorie,
-       damit man leicht ein weiteres Quiz aus dem
-       gleichen Thema probieren kann.
+       Zurück zur Quizliste der aktuellen Kategorie, damit man leicht
+       ein weiteres Quiz aus dem gleichen Thema probieren kann. Bei
+       Kategorien mit nur einem Quiz gibt es keine Liste - dann direkt
+       zur Kategorieauswahl.
     */
 
-    if (currentCategoryId) {
+    if (skippedQuizList || !currentCategoryId) {
+        document.getElementById("quiz-list-select").hidden = true;
+        document.getElementById("quiz-category-select").hidden = false;
+    } else {
         showQuizList(currentCategoryId);
     }
 

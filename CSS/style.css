@@ -2915,41 +2915,43 @@ justify-content:center;
 
 
 
-#faro-quiz-select button{
+#faro-game-buttons{
 
-    margin:10px;
+    display:grid;
 
-    padding:15px 22px;
+    grid-template-columns:repeat(2, minmax(200px, 1fr));
 
-    border:2px solid transparent;
+    gap:14px;
 
-    border-radius:14px;
+    max-width:600px;
 
-    background:var(--yj-color-button-bg);
-
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, var(--yj-shadow-sm);
-
-    color:var(--yj-color-ink);
-
-    font-size:18px;
-
-    cursor:inherit;
-
-    transition: transform 130ms var(--yj-ease-out), box-shadow 180ms var(--yj-ease-out), border-color 180ms var(--yj-ease-out);
+    margin:20px auto 0;
 
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (max-width: 560px){
 
-    #faro-quiz-select button:hover{
+    #faro-game-buttons{
 
-        transform:translateY(-3px);
-
-        border-color: var(--yj-color-accent);
-
-        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 10px 20px rgba(59, 36, 22, 0.18), var(--yj-shadow-glow);
+        grid-template-columns:1fr;
 
     }
+
+}
+
+#faro-game-buttons button{
+
+    padding:15px 22px;
+
+    font-size:18px;
+
+}
+
+#faro-game-stage{
+
+    width:min(100%, 900px);
+
+    padding:25px;
 
 }
 
@@ -3286,6 +3288,46 @@ justify-content:center;
         transform: none;
     }
 
+}
+
+
+/* Reiter Wissen / Geräusche */
+#quiz-group-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 18px auto 0;
+}
+
+.quiz-group-tab {
+    padding: 10px 22px;
+    border: 2px solid rgba(var(--yj-accent-rgb), 0.35);
+    border-radius: var(--yj-radius-pill);
+    background: rgba(255, 224, 160, 0.06);
+    color: var(--yj-color-cream-soft);
+    font-family: var(--yj-font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 160ms var(--yj-ease-out), color 160ms var(--yj-ease-out), border-color 160ms var(--yj-ease-out);
+}
+
+.quiz-group-tab:hover {
+    color: var(--yj-color-cream);
+    border-color: var(--yj-color-accent);
+}
+
+.quiz-group-tab.is-active {
+    background: var(--yj-color-accent);
+    border-color: var(--yj-color-accent);
+    color: #3a2410;
+}
+
+/* "Geräusch anhören"-Knopf in einer Geräuschfrage */
+.quiz-sound-button {
+    display: block;
+    margin: 4px auto 18px;
+    font-size: 1.1rem;
 }
 
 

@@ -1240,10 +1240,57 @@ const quizWeltraum = [
 
 
 /* =====================================================
+   GERÄUSCHEQUIZ
+   Früher bei Faro, jetzt bei Kuro im Reiter "Geräusche".
+   Statt eines Bildes hat jede Frage ein "sound" - JS/quiz.js
+   zeigt dann einen "Geräusch anhören"-Knopf.
+   Audiodateien: Sounds/Fuchsbau_quiz/
+   ===================================================== */
+
+const quizTiergeraeusche = [
+
+    { sound: "Sounds/Fuchsbau_quiz/dog.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Hund", correct: true }, { text: "Katze", correct: false }, { text: "Krähe", correct: false }, { text: "Eule", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/cat.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Katze", correct: true }, { text: "Marder", correct: false }, { text: "Spatz", correct: false }, { text: "Pferd", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/crow.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Krähe", correct: true }, { text: "Eichhörnchen", correct: false }, { text: "Giraffe", correct: false }, { text: "Leopard", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/owl.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Eule", correct: true }, { text: "Adler", correct: false }, { text: "Kaninchen", correct: false }, { text: "Hamster", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/monkey.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Affe", correct: true }, { text: "Luchs", correct: false }, { text: "Giraffe", correct: false }, { text: "Fuchs", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/mouse.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Maus", correct: true }, { text: "Elster", correct: false }, { text: "Hase", correct: false }, { text: "Wal", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/bear.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Bär", correct: true }, { text: "Panther", correct: false }, { text: "Elch", correct: false }, { text: "Fuchs", correct: false }
+    ]},
+
+    { sound: "Sounds/Fuchsbau_quiz/wolf.mp3", question: "Welches Tier macht dieses Geräusch?", answers: [
+        { text: "Wolf", correct: true }, { text: "Hund", correct: false }, { text: "Löwe", correct: false }, { text: "Panther", correct: false }
+    ]}
+
+];
+
+
+/* =====================================================
    QUIZ-KATEGORIEN
    Ordnet die einzelnen Quizze zu Themenblöcken.
    Wird von JS/quiz.js benutzt, um die Kategorie- und
    Quiz-Auswahl bei Kuro anzuzeigen.
+   "group" trennt die Reiter: "wissen" (Standard) und
+   "geraeusche". Kategorien ohne group zählen als "wissen".
    ===================================================== */
 
 const quizCategories = [
@@ -1292,6 +1339,16 @@ const quizCategories = [
             { id: "piraten", label: "Piraten", icon: "🏴‍☠️", quiz: quizPiraten },
             { id: "dinosaurier", label: "Dinosaurier", icon: "🦕", quiz: quizDinosaurier },
             { id: "weltraum", label: "Weltraum", icon: "🚀", quiz: quizWeltraum }
+        ]
+    },
+
+    {
+        id: "geraeusche-tiere",
+        label: "Tiergeräusche",
+        icon: "🐾",
+        group: "geraeusche",
+        quizzes: [
+            { id: "tiergeraeusche", label: "Tiergeräusche", icon: "🔊", quiz: quizTiergeraeusche }
         ]
     }
 
