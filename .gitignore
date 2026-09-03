@@ -1,6 +1,7 @@
 .claude/
 .agents/
 .vscode/mcp.json
+.mcp.json
 skills-lock.json
 *.bak
 Thumbs.db
