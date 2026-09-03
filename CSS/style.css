@@ -2955,6 +2955,101 @@ justify-content:center;
 
 }
 
+#faro-game-stage h2{
+
+    text-align:center;
+
+    margin-bottom:6px;
+
+}
+
+.faro-game-progress{
+
+    text-align:center;
+
+    color:var(--yj-color-cream-soft);
+
+    font-weight:700;
+
+    margin:0 0 6px;
+
+}
+
+.faro-game-message{
+
+    text-align:center;
+
+    min-height:26px;
+
+    font-weight:700;
+
+    color:var(--yj-color-cream);
+
+}
+
+/* Schattenraten */
+.faro-shadow-wrap{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-end;
+
+    height:220px;
+
+    margin:14px 0 6px;
+
+}
+
+.faro-shadow{
+
+    max-height:100%;
+
+    width:auto;
+
+    filter:brightness(0) drop-shadow(0 10px 14px rgba(0,0,0,0.35));
+
+    transition:filter 450ms var(--yj-ease-out);
+
+    image-rendering:pixelated;
+
+}
+
+.faro-shadow.revealed{
+
+    filter:brightness(1) drop-shadow(0 10px 14px rgba(0,0,0,0.35));
+
+}
+
+.faro-answers{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    gap:12px;
+
+    margin:14px 0 4px;
+
+}
+
+.faro-answers button{
+
+    min-width:150px;
+
+}
+
+.faro-answers button.correct{
+
+    background:#9bd08f;
+
+    border-color:#6fae63;
+
+}
+
 @keyframes faroFloat{
 
     0%{
