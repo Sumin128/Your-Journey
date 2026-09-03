@@ -59,23 +59,40 @@ Namen `Lumi/Flöckchen/Pyri/Kira/Mimi` → `Mippe/Fenn/Taja/Piri/Bruno`. `unlock
   Rand zum Wiedereinblenden.
 - **Panel (Tippen aufs Baumkind):** Name + Stufe, XP-Balken, 5 Mini-Werte, Knöpfe Füttern /
   Trinken / Spielen / Schlafen / Bürsten, ⚙-Menü (Umbenennen, ggf. Wechseln, Ausblenden).
-  Tippen bei offenem Panel = Streicheln.
+  Tippen bei offenem Panel = Streicheln. „Spielen" = Streicheln (kein Minispiel mehr).
 - **Werte:** Sättigung, Erfrischung, Laune, Energie, Glanz. Sanfter Zeitverfall mit Untergrenzen
   (15–25 %), kein Sterben, keine Bestrafung. Beim Schlafen lädt Energie.
 - **Stimmung:** Ist ein Wert niedrig, bewegt sich das Baumkind anders (Wackeln bei Hunger/Durst,
   Hängenlassen bei Müdigkeit/Schmutz) und trägt ein „!"-Zeichen. Beim Seitenaufruf sagt es dann
   einen Hinweis statt einer Begrüßung. **Keine** Sprechblasen im Sekundentakt.
-- **XP & Stufen:** je Aktion etwas XP, `Stufe × 100` XP pro Stufe. Titel: Nestling,
-  Waldentdecker, Sternenfreund, Zauberhüter, Meister-Gefährte, Himmelswächter, Mirelon-Legende.
+- **XP & Stufen:** wenig XP pro Aktion (Füttern 3–12, Streicheln 2, Bürsten 4).
+  XP pro Stufe: `100 + Stufe × 150` – bewusst lang, der Gefährte ist ein Langzeit-Ziel.
 
 ## Münz-Ökonomie
 
-- Level-up: +10 Münzen über `mirelon:earn-coins`.
-- Minispiel **Beeren-Fangen**: **max. 3 Münzen pro Runde** (`Math.min(3, Math.floor(score/50))`,
-  min. 1). Einzige Münzquelle des Begleiters. `ponytail:` einfacher Deckel ohne Tageslimit.
-- Verbrauchsgüter als Münzsenke: Honigwabe (2), Sternenfrucht (5), Zaubertrank (3). Waldbeeren
-  und Quellwasser gratis. Käufe über `spendCoins()`, keine erfundenen Werte.
-- Für angemeldete Konten greift ohnehin die serverseitige Prüfung (`sync_player_data()`).
+**Der Gefährte gibt keine Münzen aus – er kostet welche. Münzen verdient man in den
+Lernspielen.** Kein Minispiel mehr am Gefährten.
+
+- **Pflege (Abfluss):** Waldbeeren 1 · Honigwabe 3 · Sternenfrucht 8 · Quellwasser 1 ·
+  Zaubertrank 5. Streicheln / Bürsten / Schlafen gratis.
+  Angemeldet über `spend_coins(reason)`
+  (`supabase_migration_tamagotchi_economy.sql`, feste Kosten pro `tamagotchi_feed_*` /
+  `tamagotchi_drink_*`). Gast: `player.coins` lokal.
+- **Stufen-Belohnung:** bei jedem Aufstieg entweder **10–30 Münzen** oder **1–5
+  Feuerwerkskörper** (50/50). Angemeldet würfelt `claim_tamagotchi_levelup_reward()`
+  serverseitig (Cooldown 60 s als Anti-Replay); Gast würfelt lokal.
+- Die Gefährten-Stufe selbst liegt clientseitig in `player.tamagotchi` und ist nicht
+  serverseitig verifizierbar. Cooldown + kleine Belohnung + die Tatsache, dass Pflege unterm
+  Strich mehr kostet als die Belohnung einbringt, halten den Missbrauchsanreiz gering.
+  `ponytail:` bewusster Kompromiss.
+
+## Panel-Icons (offen)
+
+Die Bedienleiste nutzt derzeit Emojis (🍎💧💖⚡✨ / 🍓🥛🎾💤🧼). Ziel: kleine PNG-Icons wie
+im Rest von Mirelon, in `Icons/tamagotchi/`:
+`hunger, thirst, happiness, energy, cleanliness, feed, drink, play, sleep, clean` (je ~48 px,
+warmer Pixel-Look). Sobald sie da sind, in `tamagotchi.js` (`VITALS`-Array + `renderPanel`)
+verdrahten.
 
 ## Bako – exotischer fahrender Händler
 
@@ -98,11 +115,14 @@ Namen `Lumi/Flöckchen/Pyri/Kira/Mimi` → `Mippe/Fenn/Taja/Piri/Bruno`. `unlock
 
 ## Bildspezifikation
 
+**Stand:** Alle 5 Baumkinder haben ihr vollständiges Sprite-Set
+(`images/tamagotchi/<id>_{happy,eating,drinking,sleeping,playing}.png`) – aus den
+Roh-PNGs geschnitten. Widget und Bako-Basar nutzen sie.
+
 **Verbindlicher Stil** – identisch zu [`docs/wer-ist-es.md`](wer-ist-es.md): warmer, hochwertiger
 Retro-Pixel-Art-Stil, 16-/32-Bit-Fantasy-Look, deutlich erkennbare Pixel, warme Farben, klare
 Konturen, kindgerecht aber nicht babyhaft. **Nicht** fotorealistisch, **kein** weiches 3D,
-**kein** Disney-/Pixar-Look, **keine** Glubschaugen, **keine** Feenflügel/Glitzer. Die aktuellen
-Platzhalter (`pet_happy.png` usw.) verletzen diesen Stil und werden **ersetzt**.
+**kein** Disney-/Pixar-Look, **keine** Glubschaugen, **keine** Feenflügel/Glitzer.
 
 **Sprite-Set je Baumkind** – freigestellt (transparentes PNG), frontal/leicht gedreht,
 Ganzkörper sitzend, gleiche Kameradistanz und Größe über alle Baumkinder. Dateiname

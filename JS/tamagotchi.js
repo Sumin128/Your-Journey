@@ -590,27 +590,60 @@
        7. PFLEGE-AKTIONEN
        ===================================================== */
 
+    /* Pflege ist ein Münz-Abfluss: günstig, aber nicht gratis – die
+       Münzen verdient man in den Lernspielen. Kosten müssen zu
+       spend_coins() in supabase_migration_tamagotchi_economy.sql passen. */
     var FOOD = {
-        beeren: { label: "🫐 Waldbeeren", cost: 0, hunger: 20, happiness: 3, xp: 5 },
-        honig: { label: "🍯 Honigwabe", cost: 2, hunger: 45, happiness: 15, xp: 12 },
-        stern: { label: "⭐ Sternenfrucht", cost: 5, hunger: 100, thirst: 100, happiness: 100, energy: 100, cleanliness: 100, xp: 30 }
+        beeren: { label: "🫐 Waldbeeren", cost: 1, reason: "tamagotchi_feed_beeren", hunger: 22, happiness: 3, xp: 3 },
+        honig: { label: "🍯 Honigwabe", cost: 3, reason: "tamagotchi_feed_honig", hunger: 48, happiness: 15, xp: 6 },
+        stern: { label: "⭐ Sternenfrucht", cost: 8, reason: "tamagotchi_feed_stern", hunger: 100, thirst: 100, happiness: 100, energy: 100, cleanliness: 100, xp: 12 }
     };
     var DRINK = {
-        wasser: { label: "💧 Quellwasser", cost: 0, thirst: 25, xp: 5 },
-        trank: { label: "🧪 Zaubertrank", cost: 3, thirst: 100, cleanliness: 40, happiness: 10, xp: 15 }
+        wasser: { label: "💧 Quellwasser", cost: 1, reason: "tamagotchi_drink_wasser", thirst: 25, xp: 3 },
+        trank: { label: "🧪 Zaubertrank", cost: 5, reason: "tamagotchi_drink_trank", thirst: 100, cleanliness: 40, happiness: 10, xp: 6 }
     };
 
-    function pay(cost) {
-        if (cost <= 0) {
-            return true;
+    function loggedIn() {
+        return typeof supabaseClient !== "undefined" && supabaseClient &&
+            typeof currentSession !== "undefined" && currentSession;
+    }
+
+    /* Zieht die Münzen ab: optimistisch lokal, angemeldet zusätzlich
+       serverseitig über spend_coins(reason). Bei Server-Ablehnung
+       wird lokal zurückgebucht. */
+    function pay(item) {
+        var cost = item.cost || 0;
+        if (cost <= 0) { return true; }
+
+        if ((player.coins || 0) < cost) {
+            if (typeof showMirelonToast === "function") {
+                showMirelonToast("Dafür brauchst du " + cost + " Münzen – spiel ein paar Lernspiele!", "error");
+            }
+            return false;
         }
-        if (typeof spendCoins === "function" && spendCoins(cost)) {
-            return true;
+
+        player.coins -= cost;
+        if (typeof updatePlayerUI === "function") { updatePlayerUI(); }
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        if (loggedIn() && item.reason) {
+            supabaseClient.rpc("spend_coins", { p_reason: item.reason }).then(function (r) {
+                if (r.error) {
+                    player.coins += cost;
+                    if (typeof updatePlayerUI === "function") { updatePlayerUI(); }
+                    window.dispatchEvent(new CustomEvent("player-updated"));
+                    if (typeof showMirelonToast === "function") {
+                        showMirelonToast("Das hat gerade nicht geklappt.", "error");
+                    }
+                } else if (r.data && typeof r.data.coins === "number") {
+                    player.coins = r.data.coins;
+                    if (typeof updatePlayerUI === "function") { updatePlayerUI(); }
+                }
+            });
+        } else if (typeof savePlayer === "function") {
+            savePlayer();
         }
-        if (typeof showMirelonToast === "function") {
-            showMirelonToast("Dafür brauchst du " + cost + " Münzen.", "error");
-        }
-        return false;
+        return true;
     }
 
     function applyItem(item) {
@@ -690,7 +723,7 @@
         }
         if (target && target.dataset.feed) {
             var f = FOOD[target.dataset.feed];
-            if (!f || !pay(f.cost)) { return; }
+            if (!f || !pay(f)) { return; }
             applyItem(f);
             flashSprite("eating", 2200);
             floatEmoji("🍪");
@@ -710,7 +743,7 @@
         }
         if (target && target.dataset.drink) {
             var d = DRINK[target.dataset.drink];
-            if (!d || !pay(d.cost)) { return; }
+            if (!d || !pay(d)) { return; }
             applyItem(d);
             flashSprite("drinking", 2200);
             floatEmoji("💧");
@@ -721,15 +754,7 @@
             return;
         }
 
-        if (act === "play") {
-            subMenu(
-                '<button type="button" data-act="cuddle">🤗 Streicheln · gratis</button>' +
-                '<button type="button" data-act="berrygame">🧺 Beeren-Fangen · Münzen sammeln</button>'
-            );
-            return;
-        }
-        if (act === "cuddle") { cuddle(); return; }
-        if (act === "berrygame") { closePanel(); startBerryGame(); return; }
+        if (act === "play" || act === "cuddle") { cuddle(); return; }
 
         if (act === "sleep") {
             toggleSleep();
@@ -743,7 +768,7 @@
             floatEmoji("✨");
             chime("pop");
             say("Jetzt glänz ich wieder.", 2500);
-            addXP(8);
+            addXP(4);
             afterAction();
         }
     }
@@ -766,7 +791,7 @@
         chime("pop");
         var pool = t.happiness > 70 ? species().speeches.happy : species().speeches.greeting;
         say(pool[Math.floor(Math.random() * pool.length)], 3000);
-        addXP(4);
+        addXP(2);
         afterAction();
     }
 
@@ -787,277 +812,78 @@
        8. XP & STUFEN
        ===================================================== */
 
+    /* Stufen dauern bewusst lang – der Gefährte ist ein
+       Langzeit-Ziel, kein Münz-Automat. */
+    function xpNeeded(level) {
+        return 100 + level * 150;
+    }
+
     function addXP(amount) {
         var t = player.tamagotchi;
-        var need = t.level * 100;
         t.xp = (t.xp || 0) + amount;
 
+        var need = xpNeeded(t.level);
         if (t.xp >= need && t.level < 99) {
             t.xp -= need;
             t.level += 1;
             var title = LEVEL_TITLES[t.level] || "Großer Gefährte";
-            window.dispatchEvent(new CustomEvent("mirelon:earn-coins", {
-                detail: { amount: 10, reason: "tamagotchi_level_up" }
-            }));
             chime("level");
             floatEmoji("⭐");
             say(t.name + " ist jetzt Stufe " + t.level + ": " + title + "!", 5000);
-            if (typeof showMirelonToast === "function") {
-                showMirelonToast("Levelaufstieg! " + t.name + " erreicht Stufe " + t.level + " (+10 Münzen).", "info");
-            }
+            grantLevelReward();
         }
     }
 
-    /* =====================================================
-       9. MINISPIEL: BEEREN-FANGEN
-       Einzige Münzquelle des Begleiters – Deckel unten.
-       ===================================================== */
-
-    var bg = {};
-    var W = 340, H = 400;
-    var KINDS = {
-        berry: { p: 10, color: "#7c3aed", edge: "#5b21b6" },
-        honig: { p: 20, color: "#f6b73c", edge: "#d98a1e" },
-        stern: { p: 30, color: "#fde047", edge: "#f59e0b" }
-    };
-
-    function startBerryGame() {
-        var overlay = document.getElementById("pc-game");
-        if (!overlay) {
-            overlay = document.createElement("div");
-            overlay.id = "pc-game";
-            overlay.innerHTML =
-                '<div class="pc-game-box">' +
-                '  <div class="pc-game-top">' +
-                '    <span>🧺 <strong id="pc-game-score">0</strong></span>' +
-                '    <span>⏱ <strong id="pc-game-time">30</strong></span>' +
-                '    <button id="pc-game-x" type="button" aria-label="Schließen">✕</button>' +
-                '  </div>' +
-                '  <canvas id="pc-game-canvas" width="' + W + '" height="' + H + '"></canvas>' +
-                '  <p>Fang die Beeren mit dem Korb – bewege Maus oder Finger.</p>' +
-                '</div>';
-            document.body.appendChild(overlay);
-            document.getElementById("pc-game-x").addEventListener("click", stopBerryGame);
-            var cv = document.getElementById("pc-game-canvas");
-            var move = function (clientX) {
-                var r = cv.getBoundingClientRect();
-                var x = (clientX - r.left) * (cv.width / r.width);
-                bg.basketX = Math.max(38, Math.min(cv.width - 38, x));
-            };
-            cv.addEventListener("mousemove", function (e) { move(e.clientX); });
-            cv.addEventListener("touchmove", function (e) {
-                if (e.touches[0]) { move(e.touches[0].clientX); }
-                e.preventDefault();
-            }, { passive: false });
-        }
-        overlay.hidden = false;
-
-        bg.running = true;
-        bg.score = 0;
-        bg.time = 30;
-        bg.items = [];
-        bg.pops = [];
-        bg.clouds = [{ x: 60, y: 60, s: 1 }, { x: 250, y: 110, s: 0.8 }, { x: 160, y: 40, s: 0.6 }];
-        bg.basketX = W / 2;
-        bg.tick = 0;
-        document.getElementById("pc-game-score").textContent = "0";
-        document.getElementById("pc-game-time").textContent = "30";
-
-        clearInterval(bg.timer);
-        bg.timer = setInterval(function () {
-            bg.time -= 1;
-            document.getElementById("pc-game-time").textContent = bg.time;
-            if (bg.time <= 0) { endBerryGame(); }
-        }, 1000);
-
-        requestAnimationFrame(berryLoop);
-    }
-
-    function drawFalling(c, it) {
-        c.save();
-        c.translate(it.x, it.y);
-        c.rotate(it.rot);
-        var k = KINDS[it.kind];
-        if (it.kind === "stern") {
-            c.fillStyle = k.color;
-            c.strokeStyle = k.edge;
-            c.lineWidth = 2;
-            c.beginPath();
-            for (var i = 0; i < 5; i++) {
-                var a = (Math.PI / 5) * (2 * i) - Math.PI / 2;
-                var a2 = a + Math.PI / 5;
-                c.lineTo(Math.cos(a) * 11, Math.sin(a) * 11);
-                c.lineTo(Math.cos(a2) * 5, Math.sin(a2) * 5);
-            }
-            c.closePath();
-            c.fill();
-            c.stroke();
-        } else {
-            c.fillStyle = k.color;
-            c.strokeStyle = k.edge;
-            c.lineWidth = 2;
-            c.beginPath();
-            c.arc(0, 0, 10, 0, Math.PI * 2);
-            c.fill();
-            c.stroke();
-            c.fillStyle = "rgba(255,255,255,0.55)";
-            c.beginPath();
-            c.arc(-3, -3, 3, 0, Math.PI * 2);
-            c.fill();
-            if (it.kind === "berry") {
-                c.fillStyle = "#4d7c0f";
-                c.fillRect(-1.5, -13, 3, 4);
-            }
-        }
-        c.restore();
-    }
-
-    function drawBasket(c, x, y) {
-        c.save();
-        c.translate(x, y);
-        c.fillStyle = "#c98a52";
-        c.strokeStyle = "#8a5a30";
-        c.lineWidth = 2;
-        c.beginPath();
-        c.moveTo(-34, 0);
-        c.lineTo(34, 0);
-        c.lineTo(26, 26);
-        c.lineTo(-26, 26);
-        c.closePath();
-        c.fill();
-        c.stroke();
-        c.strokeStyle = "rgba(138,90,48,0.5)";
-        c.lineWidth = 1.5;
-        for (var i = -22; i <= 22; i += 11) {
-            c.beginPath();
-            c.moveTo(i, 2);
-            c.lineTo(i * 0.78, 24);
-            c.stroke();
-        }
-        c.fillStyle = "#e0a86b";
-        c.strokeStyle = "#8a5a30";
-        c.lineWidth = 2.5;
-        c.beginPath();
-        c.ellipse(0, 0, 36, 7, 0, 0, Math.PI * 2);
-        c.fill();
-        c.stroke();
-        c.restore();
-    }
-
-    function berryLoop() {
-        var cv = document.getElementById("pc-game-canvas");
-        if (!bg.running || !cv) { return; }
-        var c = cv.getContext("2d");
-        bg.tick++;
-
-        var sky = c.createLinearGradient(0, 0, 0, H);
-        sky.addColorStop(0, "#bfe3f4");
-        sky.addColorStop(0.7, "#eaf6e6");
-        sky.addColorStop(1, "#d7edc4");
-        c.fillStyle = sky;
-        c.fillRect(0, 0, W, H);
-
-        c.fillStyle = "rgba(255,255,255,0.85)";
-        bg.clouds.forEach(function (cl) {
-            cl.x += 0.15 * cl.s;
-            if (cl.x > W + 40) { cl.x = -40; }
-            var s = cl.s;
-            c.beginPath();
-            c.arc(cl.x, cl.y, 14 * s, 0, Math.PI * 2);
-            c.arc(cl.x + 16 * s, cl.y + 4 * s, 11 * s, 0, Math.PI * 2);
-            c.arc(cl.x - 15 * s, cl.y + 4 * s, 10 * s, 0, Math.PI * 2);
-            c.fill();
-        });
-
-        c.fillStyle = "#a7d07a";
-        c.fillRect(0, H - 22, W, 22);
-
-        if (Math.random() < 0.055) {
-            var r = Math.random();
-            var kind = r < 0.16 ? "stern" : (r < 0.4 ? "honig" : "berry");
-            bg.items.push({
-                x: 24 + Math.random() * (W - 48),
-                y: -14,
-                kind: kind,
-                v: 2 + Math.random() * 2.2,
-                rot: 0,
-                vr: (Math.random() - 0.5) * 0.12
+    /* Belohnung bei jedem Stufenaufstieg: mal Münzen (10–30),
+       mal Feuerwerk (1–5). Angemeldet würfelt der Server
+       (claim_tamagotchi_levelup_reward, mit Cooldown), Gäste lokal. */
+    function grantLevelReward() {
+        if (loggedIn()) {
+            supabaseClient.rpc("claim_tamagotchi_levelup_reward").then(function (r) {
+                if (!r.error && r.data) { showReward(r.data); }
             });
+            return;
         }
+        if (Math.random() < 0.5) {
+            var c = 10 + Math.floor(Math.random() * 21);
+            window.dispatchEvent(new CustomEvent("mirelon:earn-coins", { detail: { amount: c } }));
+            showReward({ kind: "coins", amount: c });
+        } else {
+            var fw = 1 + Math.floor(Math.random() * 5);
+            player.consumables = player.consumables || {};
+            player.consumables.feuerwerk = (player.consumables.feuerwerk || 0) + fw;
+            if (typeof savePlayer === "function") { savePlayer(); }
+            window.dispatchEvent(new CustomEvent("player-updated"));
+            showReward({ kind: "feuerwerk", amount: fw });
+        }
+    }
 
-        var basketY = H - 30;
-        drawBasket(c, bg.basketX, basketY);
-
-        for (var i = bg.items.length - 1; i >= 0; i--) {
-            var it = bg.items[i];
-            it.y += it.v;
-            it.rot += it.vr;
-            drawFalling(c, it);
-
-            if (it.y >= basketY - 16 && it.y <= basketY + 16 && Math.abs(it.x - bg.basketX) < 34) {
-                bg.score += KINDS[it.kind].p;
-                document.getElementById("pc-game-score").textContent = bg.score;
-                bg.pops.push({ x: it.x, y: it.y, txt: "+" + KINDS[it.kind].p, life: 1 });
-                chime("pop");
-                bg.items.splice(i, 1);
-            } else if (it.y > H + 20) {
-                bg.items.splice(i, 1);
+    function showReward(d) {
+        if (d.kind === "coins") {
+            if (typeof d.coins === "number") {
+                player.coins = d.coins;
+                if (typeof player.totalCoinsEarned === "number") { player.totalCoinsEarned = d.totalCoinsEarned; }
+            }
+            if (typeof updatePlayerUI === "function") { updatePlayerUI(); }
+            window.dispatchEvent(new CustomEvent("player-updated"));
+            say("Schau – " + d.amount + " Münzen als Geschenk! 🪙", 4000);
+            if (typeof showMirelonToast === "function") {
+                showMirelonToast("Stufen-Geschenk: +" + d.amount + " Münzen!", "info");
+            }
+        } else {
+            if (typeof d.feuerwerk === "number") {
+                player.consumables = player.consumables || {};
+                player.consumables.feuerwerk = d.feuerwerk;
+            }
+            if (typeof updatePlayerUI === "function") { updatePlayerUI(); }
+            window.dispatchEvent(new CustomEvent("player-updated"));
+            say(d.amount + " Feuerwerkskörper – zünd sie aus dem Inventar! 🎆", 4000);
+            if (typeof showMirelonToast === "function") {
+                showMirelonToast("Stufen-Geschenk: +" + d.amount + " Feuerwerk!", "info");
             }
         }
-
-        c.font = "bold 15px system-ui, sans-serif";
-        c.textAlign = "center";
-        for (var j = bg.pops.length - 1; j >= 0; j--) {
-            var p = bg.pops[j];
-            p.y -= 1.4;
-            p.life -= 0.03;
-            if (p.life <= 0) { bg.pops.splice(j, 1); continue; }
-            c.globalAlpha = Math.max(0, p.life);
-            c.fillStyle = "#4a2f16";
-            c.fillText(p.txt, p.x, p.y);
-            c.globalAlpha = 1;
-        }
-
-        requestAnimationFrame(berryLoop);
     }
 
-    function endBerryGame() {
-        bg.running = false;
-        clearInterval(bg.timer);
-
-        // ponytail: fester Deckel von 3 Münzen pro Runde, reicht ohne Tageslimit
-        var coins = Math.min(3, Math.max(1, Math.floor(bg.score / 50)));
-        window.dispatchEvent(new CustomEvent("mirelon:earn-coins", {
-            detail: { amount: coins, reason: "tamagotchi_berry_game" }
-        }));
-
-        var t = player.tamagotchi;
-        t.happiness = Math.min(100, t.happiness + 25);
-        t.energy = Math.max(10, t.energy - 12);
-        addXP(20);
-        save();
-        renderSprite();
-
-        var box = document.querySelector("#pc-game .pc-game-box");
-        if (box) {
-            box.innerHTML = '<p class="pc-game-result">Toll gemacht!<br>' + bg.score +
-                ' Punkte · +' + coins + ' Münzen</p>' +
-                '<button id="pc-game-x" type="button" class="yj-button yj-button--compact">Fertig</button>';
-            document.getElementById("pc-game-x").addEventListener("click", stopBerryGame);
-        }
-        if (typeof showMirelonToast === "function") {
-            showMirelonToast("Beeren-Fangen: +" + coins + " Münzen.", "info");
-        }
-    }
-
-    function stopBerryGame() {
-        bg.running = false;
-        clearInterval(bg.timer);
-        var overlay = document.getElementById("pc-game");
-        if (overlay) {
-            overlay.remove();
-        }
-    }
 
     /* =====================================================
        10. EVENTS & START
