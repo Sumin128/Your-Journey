@@ -537,12 +537,13 @@ main {
 
 #sidebar{
 
-    /* Theme "Baumrinde" (Standard) */
-    --sb-bg-top: #5C3A24;
-    --sb-bg-bottom: #40280E;
-    --sb-active-bg: #79532F;
-    --sb-accent: #E2A13F;
-    --sb-hover-bg: rgba(121, 83, 47, 0.45);
+    /* Theme "Wurzelholz" (Standard) - warmes Holz, bewusst etwas
+       heller als das dunkle Rinden-Braun davor. */
+    --sb-bg-top: #7A5334;
+    --sb-bg-bottom: #543619;
+    --sb-active-bg: #916334;
+    --sb-accent: #F0B056;
+    --sb-hover-bg: rgba(145, 99, 52, 0.5);
     --sb-text: #F6EAD3;
     --sb-text-muted: #C2AD90;
     --sb-divider: rgba(226, 161, 63, 0.22);
