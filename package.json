@@ -1,0 +1,14 @@
+{
+  "name": "mirelon-dev",
+  "private": true,
+  "type": "module",
+  "description": "Nur Entwickler-Werkzeuge. Die Website selbst ist statisch und braucht keinen Build.",
+  "scripts": {
+    "check": "node tools/check-pages.mjs",
+    "shots": "node tools/screenshots.mjs",
+    "serve": "node tools/serve.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}

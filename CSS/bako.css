@@ -116,16 +116,16 @@
     cursor: pointer;
 }
 
-/* Unsichtbare Brücke zwischen Icon und Tooltip, damit der Hover beim
-   Weg zum Kaufen-Knopf nicht abreißt. */
+/* Unsichtbare Brücke ums Icon herum, damit der Hover beim Weg zum
+   Kaufen-Knopf nicht abreißt (Tooltip kann oben oder unten sein). */
 .bako-hotspot::before {
     content: "";
     position: absolute;
     left: 50%;
-    bottom: 45%;
-    width: 130px;
-    height: 130px;
-    transform: translateX(-50%);
+    top: 50%;
+    width: 150px;
+    height: 280px;
+    transform: translate(-50%, -50%);
     z-index: 4;
     pointer-events: none;
 }
@@ -136,12 +136,22 @@
     pointer-events: auto;
 }
 
-/* Positionen auf dem Marktstand */
-.bako-slot-otter    { left: 27%; top: 40%; }
-.bako-slot-reh      { left: 37%; top: 57%; }
-.bako-slot-eichhorn { left: 63%; top: 41%; }
-.bako-slot-baer     { left: 76%; top: 60%; }
-.bako-slot-firework { left: 51%; top: 25%; }
+/* Positionen auf dem Marktstand (an sichtbaren Regalflächen) */
+.bako-slot-otter    { left: 28%; top: 39%; }
+.bako-slot-reh      { left: 25%; top: 61%; }
+.bako-slot-eichhorn { left: 64%; top: 40%; }
+.bako-slot-baer     { left: 76%; top: 59%; }
+.bako-slot-firework { left: 50%; top: 24%; }
+
+/* Obere Reihe: Tooltip klappt nach UNTEN (sonst über dem Seitenkopf) */
+.bako-slot-otter .shop-hotspot-tooltip,
+.bako-slot-eichhorn .shop-hotspot-tooltip,
+.bako-slot-firework .shop-hotspot-tooltip {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 10px;
+}
 
 /* Icon-Kugel */
 .bako-hotspot .shop-hotspot-icon {
@@ -222,10 +232,28 @@
 
 @media (max-width: 760px) {
 
+    /* Kein Szenen-Trick mehr: Stand als normales Bild-Banner, darunter
+       die Waren als Kartengitter. */
     #bako-scene {
         aspect-ratio: auto;
-        padding-top: 56%;
-        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        background: var(--yj-color-paper, #fffaf0);
+        padding: 12px;
+        gap: 12px;
+    }
+
+    #bako-scene-img {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: 190px;
+        object-fit: contain;
+    }
+
+    #bako-coins {
+        position: static;
+        align-self: center;
     }
 
     #bako-hotspots {
@@ -233,25 +261,30 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 10px;
-        padding: 12px;
     }
 
-    .bako-hotspot {
+    .bako-hotspot,
+    .bako-hotspot::before {
         position: static;
         transform: none;
         width: auto;
         height: auto;
+    }
+
+    .bako-hotspot {
         flex-direction: column;
         gap: 8px;
         padding: 12px;
-        background: rgba(255, 253, 246, 0.95);
+        background: #fffdf8;
         border: 2px solid #5b351c;
         border-radius: 14px;
     }
 
-    .bako-hotspot .shop-hotspot-icon--emoji {
-        width: 48px;
-        height: 48px;
+    .bako-hotspot::before { content: none; }
+
+    .bako-hotspot .shop-hotspot-icon {
+        width: 56px;
+        height: 56px;
     }
 
     .bako-hotspot .shop-hotspot-tooltip {
@@ -262,8 +295,10 @@
         pointer-events: auto;
         background: transparent;
         color: var(--yj-color-wood-dark);
+        box-shadow: none;
         padding: 0;
         white-space: normal;
+        align-items: center;
     }
 
     .bako-hotspot.is-owned::after {

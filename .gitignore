@@ -5,3 +5,7 @@ skills-lock.json
 *.bak
 Thumbs.db
 .DS_Store
+
+# Dev-Werkzeuge (Website selbst ist statisch)
+node_modules/
+tools/__screenshots__/
