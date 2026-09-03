@@ -2936,28 +2936,36 @@ justify-content:center;
 
 }
 
-/* Fährten lesen - Abdruck in einem hellen Erdfleck */
+/* Fährten lesen - gemalter Abdruck im Boden, rund gerahmt */
 .faro-track-wrap{
 
     position:relative;
 
-    width:230px;
+    width:250px;
 
-    height:230px;
+    height:250px;
 
     margin:14px auto 6px;
 
+}
+
+.faro-track-img{
+
+    width:100%;
+
+    height:100%;
+
     border-radius:50%;
 
-    background:
-        radial-gradient(circle at 42% 38%, #e7d3ac 0%, #d2b98c 55%, #b89a6c 100%);
+    object-fit:cover;
 
     box-shadow:
-        inset 0 6px 16px rgba(60,38,16,0.35),
-        0 8px 20px rgba(0,0,0,0.35);
+        inset 0 0 0 4px rgba(var(--yj-accent-rgb),0.35),
+        0 10px 24px rgba(0,0,0,0.4);
 
 }
 
+/* Fallback (SVG), falls ein Bild fehlt */
 .faro-track{
 
     position:absolute;
@@ -2966,13 +2974,11 @@ justify-content:center;
 
     top:50%;
 
-    width:120px;
+    width:130px;
 
     transform:translate(-50%, -50%);
 
-    color:#5a3c22;
-
-    filter:drop-shadow(0 2px 2px rgba(255,255,255,0.25));
+    color:#e7d3ac;
 
 }
 
@@ -2983,21 +2989,6 @@ justify-content:center;
     width:100%;
 
     height:auto;
-
-}
-
-/* zweiter, blasserer Abdruck leicht versetzt - wirkt wie eine Fährte */
-.faro-track--faint{
-
-    width:78px;
-
-    left:32%;
-
-    top:66%;
-
-    opacity:0.4;
-
-    transform:translate(-50%, -50%) rotate(-16deg);
 
 }
 

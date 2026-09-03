@@ -78,9 +78,13 @@
 
         const trackWrap = document.createElement("div");
         trackWrap.className = "faro-track-wrap";
-        trackWrap.innerHTML =
-            '<span class="faro-track">' + TRACKS[target.id] + '</span>' +
-            '<span class="faro-track faro-track--faint">' + TRACKS[target.id] + '</span>';
+        const images = window.FARO_TRACK_IMAGES || {};
+        if (images[target.id]) {
+            trackWrap.innerHTML =
+                '<img class="faro-track-img" src="' + images[target.id] + '" alt="Tierspur im Boden">';
+        } else {
+            trackWrap.innerHTML = '<span class="faro-track">' + (TRACKS[target.id] || "") + '</span>';
+        }
         stageEl.appendChild(trackWrap);
 
         const answers = document.createElement("div");

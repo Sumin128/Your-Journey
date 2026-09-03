@@ -73,3 +73,14 @@ window.FARO_TRACK_NAMES = {
     vogel: "Vogel",
     ente: "Ente"
 };
+
+// Gemalte Abdrücke (Gemini) für "Fährten lesen". Das Memory nutzt
+// weiter die SVGs oben - die skalieren auf kleinen Karten sauberer.
+window.FARO_TRACK_IMAGES = {
+    hund: "images/faro/faehrten/hund.jpg",
+    katze: "images/faro/faehrten/katze.jpg",
+    reh: "images/faro/faehrten/reh.jpg",
+    baer: "images/faro/faehrten/baer.jpg",
+    vogel: "images/faro/faehrten/vogel.jpg",
+    ente: "images/faro/faehrten/ente.jpg"
+};
