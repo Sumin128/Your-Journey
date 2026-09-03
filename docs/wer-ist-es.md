@@ -1,79 +1,20 @@
-# Wer ist es? – verbindliche Karten- und Bildspezifikation
+# Wer ist es? – Karten- und Bildspezifikation
 
 > **Source of Truth.** Vor jeder Änderung am Tierkarten-/Ratespiel und vor jeder Bildarbeit diese Datei lesen. Bei Widerspruch hat diese Feature-Spezifikation Vorrang vor allgemeinen Projektannahmen.
 
-## Aktueller Codebezug
+## Stand: fertig
 
-Das bestehende Karten-/Ratespiel befindet sich im Bärental. `JS/animals.js` enthält die Kartendaten; `JS/baerental.js` stellt Fragen, filtert Karten und steuert das Raten. Bestehende Logik und Daten nicht ohne ausdrückliche Freigabe umbauen.
+Das Spiel „Wer ist es?" ist **fertig und aktiv** im Bärental:
 
-## Status und verbindlicher Ablauf für die Tier-Superhelden-Version
+- 35 Tierkarten (`images/bear_quiz/*.png`), painterly Porträt-Stil mit Pergamentrahmen + Namensband.
+- Merkmalsmatrix in [`JS/animals.js`](../JS/animals.js): `glasses, scarf, headwear, bow, mask, earrings, eyeColor`. Bild und Matrix stimmen 1:1 überein.
+- Spiellogik in [`JS/baerental.js`](../JS/baerental.js): Fragen, Kartenfilterung, Raten. Ein Kartenset, kein Moduswechsel.
 
-Es gibt 35 Karten. Die Spiellogik basiert auf einer festen Merkmalsmatrix. Bild und Matrix müssen **1:1** übereinstimmen.
+Bestehende Logik und Kartendaten **nicht ohne ausdrückliche Freigabe umbauen.**
 
-Für die neue Tier-Superhelden-Version darf die alte Matrix **nicht** einfach übernommen werden. Der Ablauf ist zwingend:
+## Verworfen: Tier-Superhelden-Version
 
-1. Zuerst eine neue, logisch und möglichst ausgewogen verteilte 35er-Superheldenmatrix erstellen.
-2. Diese vollständige Matrix vom Nutzer freigeben lassen.
-3. Erst danach Bilder erzeugen.
-4. Genau **eine** Testkarte erzeugen, mit der Referenz vergleichen und Nutzerfreigabe abwarten.
-5. Erst nach dieser Freigabe die restlichen 34 Karten erzeugen.
-
-Wenn der Nutzer Gemini verlangt, Gemini im Browser für die Bilder verwenden.
-
-Die neue Matrix muss so balanciert werden, dass Fragen sinnvolle Teilmengen eliminieren und Merkmalskombinationen ausreichend unterscheidbar sind. Denkbare Superheldenmerkmale sind Maske, Cape, Helm/Kopfbedeckung, Brille, Handschuhe, Brustsymbol/Emblem, Ohrring, natürliche Hörner/Geweih und klar definierte Kraft-Optik. Die konkreten Merkmale und ihre vollständige Verteilung müssen zuerst gemeinsam festgelegt und freigegeben werden.
-
-## Freigegebene Superheldenmatrix
-
-Diese Matrix wurde vom Nutzer am 31.08.2026 freigegeben. Sie ist für die Tier-Superhelden-Version verbindlich. Die sieben Superheldenmerkmale sind je 16 bis 18 Mal vorhanden; die Augenfarben sind mit 12× Blau, 12× Grün und 11× Braun verteilt. Natürliche Hörner oder Geweihe werden bei den passenden Tierarten anatomisch korrekt gezeigt, sind aber kein eigenes Superhelden-Fragemerkmal.
-
-| # | Tier | Augen | Maske | Cape | Helm | Brille | Handschuhe | Emblem | Kraft-Aura |
-|---:|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 1 | Bär | Blau | – | – | – | – | – | – | – |
-| 2 | Panda | Grün | ✓ | – | – | – | – | ✓ | ✓ |
-| 3 | Fuchs | Braun | – | ✓ | – | – | – | ✓ | – |
-| 4 | Katze | Blau | ✓ | ✓ | – | – | – | – | ✓ |
-| 5 | Hund | Grün | – | – | ✓ | – | – | ✓ | ✓ |
-| 6 | Hase | Braun | ✓ | – | ✓ | – | – | – | – |
-| 7 | Wolf | Blau | – | ✓ | ✓ | – | – | – | ✓ |
-| 8 | Löwe | Grün | ✓ | ✓ | ✓ | – | – | ✓ | – |
-| 9 | Otter | Braun | – | – | – | ✓ | – | ✓ | – |
-| 10 | Alpaka | Blau | ✓ | – | – | ✓ | – | – | ✓ |
-| 11 | Ziege | Grün | – | ✓ | – | ✓ | – | – | – |
-| 12 | Widder | Braun | ✓ | ✓ | – | ✓ | – | ✓ | ✓ |
-| 13 | Hirsch | Blau | – | – | ✓ | ✓ | – | – | – |
-| 14 | Rentier | Grün | ✓ | – | ✓ | ✓ | – | ✓ | ✓ |
-| 15 | Steinbock | Braun | – | ✓ | ✓ | ✓ | – | ✓ | – |
-| 16 | Büffel | Blau | ✓ | ✓ | ✓ | ✓ | – | – | ✓ |
-| 17 | Yak | Grün | – | – | – | – | ✓ | ✓ | – |
-| 18 | Kuh | Braun | ✓ | – | – | – | ✓ | – | ✓ |
-| 19 | Eule | Blau | – | ✓ | – | – | ✓ | – | – |
-| 20 | Papagei | Grün | ✓ | ✓ | – | – | ✓ | ✓ | ✓ |
-| 21 | Pinguin | Braun | – | – | ✓ | – | ✓ | – | ✓ |
-| 22 | Ente | Blau | ✓ | – | ✓ | – | ✓ | ✓ | – |
-| 23 | Adler | Grün | – | ✓ | ✓ | – | ✓ | ✓ | ✓ |
-| 24 | Flamingo | Braun | ✓ | ✓ | ✓ | – | ✓ | – | – |
-| 25 | Krokodil | Blau | – | – | – | ✓ | ✓ | – | – |
-| 26 | Chamäleon | Grün | ✓ | – | – | ✓ | ✓ | ✓ | ✓ |
-| 27 | Schildkröte | Braun | – | ✓ | – | ✓ | ✓ | ✓ | – |
-| 28 | Schlange | Blau | ✓ | ✓ | – | ✓ | ✓ | – | ✓ |
-| 29 | Leguan | Grün | – | – | ✓ | ✓ | ✓ | ✓ | – |
-| 30 | Axolotl | Braun | ✓ | – | ✓ | ✓ | ✓ | – | ✓ |
-| 31 | Frosch | Blau | – | ✓ | ✓ | ✓ | ✓ | – | – |
-| 32 | Gecko | Grün | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| 33 | Hahn | Braun | – | – | – | – | – | ✓ | – |
-| 34 | Hai | Blau | ✓ | – | – | – | – | – | ✓ |
-| 35 | Oktopus | Grün | – | ✓ | – | – | – | – | – |
-
-### Umsetzungsreihenfolge nach der Freigabe
-
-1. Eine Gemini-Testkarte für Karte 1 (Bär) erstellen.
-2. Sie gegen die bestehenden Karten und die obigen Stilregeln prüfen lassen.
-3. Erst nach einer weiteren Nutzerfreigabe die übrigen 34 Bilder erzeugen und das gesperrte Superhelden-Kartenset aktivieren.
-
-### Testkarten-Protokoll
-
-- **31.08.2026, Bär-Testkarte 1:** verworfen. Zwar waren Goldrahmen und klarer Pixel-Art-Ansatz vorhanden, der Bär war aber seitlich abgeschnitten, nicht mittig und nur mit einem sichtbaren Auge dargestellt. Das Ergebnis darf weder gespeichert noch als Stilreferenz oder Spielasset verwendet werden.
-- **31.08.2026, Bär-Testkarte 2:** vom Nutzer für die weitere Produktion freigegeben. Die Karte zeigt den Bären mittig im Hochformat, mit sichtbarem Kopf und Oberkörper, beiden blauen Augen und vollständig sichtbarem Goldrahmen. Als `images/bear_quiz_superheroes/01-baer.jfif` abgelegt.
+Die geplante zweite Kartenserie (Tiere als Superhelden: Maske, Cape, Helm, Emblem, Kraft-Aura …) wurde **gestrichen**. Entfernt: `JS/superhero-cards.js`, `images/bear_quiz_superheroes/`, der Menü-Eintrag im Bärental, die `superheroQuestions`/`superheroCards`-Pfade in `baerental.js`. Falls das Thema je zurückkommt: neue, sauber balancierte 35er-Matrix zuerst festlegen und freigeben lassen, dann erst Bilder – **eine** Testkarte, prüfen, freigeben, dann der Rest.
 
 ## Historischer Mirelon-Kartenstil – bindend
 

@@ -394,6 +394,8 @@ main {
 
 .character-panel{
 
+    position: relative;
+
     width:min(100%,900px);
 
     display:flex;
@@ -406,6 +408,25 @@ main {
 
     margin-bottom:40px;
 
+}
+
+/* Warmer Lichtschein hinter der Figur, damit sie nicht "aufgeklebt" wirkt */
+.character-panel::before{
+    content:"";
+    position:absolute;
+    left:4%;
+    top:8%;
+    width:42%;
+    height:84%;
+    background:radial-gradient(ellipse at 45% 55%, rgba(255,214,150,.55), rgba(255,214,150,0) 70%);
+    filter:blur(26px);
+    pointer-events:none;
+    z-index:0;
+}
+
+.character-panel > *{
+    position:relative;
+    z-index:1;
 }
 
 /* Quizbox */

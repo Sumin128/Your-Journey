@@ -29,6 +29,7 @@
 
 
 .bear-welcome-card {
+    position: relative;
     min-height: 650px;
 
     display: grid;
@@ -37,6 +38,17 @@
     gap: 50px;
 
     padding: 40px 60px;
+
+    /* Warmer Waldton statt Papierweiß, damit Branos nicht auf Blatt
+       Papier steht (bis es ein echtes Hintergrundbild gibt). */
+    background:
+        radial-gradient(ellipse at 28% 55%, rgba(255, 214, 150, 0.55), rgba(255, 214, 150, 0) 55%),
+        linear-gradient(160deg, #f3e4c6 0%, #e6cfa4 55%, #d8bd8a 100%);
+}
+
+.bear-welcome-card > * {
+    position: relative;
+    z-index: 1;
 }
 
 
@@ -62,7 +74,7 @@
     object-fit: contain;
 
     filter:
-        drop-shadow(0 14px 10px rgba(0, 0, 0, 0.28));
+        drop-shadow(0 18px 22px rgba(74, 45, 20, 0.32));
 }
 
 
@@ -662,16 +674,6 @@
 }
 
 
-.bear-set-icon.superhero {
-    background:
-        radial-gradient(
-            circle,
-            #8750a5,
-            #5e287b
-        );
-}
-
-
 /* =====================================================
    SET-BESCHREIBUNG
    ===================================================== */
@@ -1070,7 +1072,9 @@
 
     margin: 0;
 
-    color: #351807;
+    color: #fff2d6;
+
+    text-shadow: 0 2px 0 rgba(53, 24, 7, 0.55), 0 0 8px rgba(0, 0, 0, 0.25);
 
     font-size: 30px;
 
@@ -1087,7 +1091,8 @@
 
     margin-top: 5px;
 
-    color: #542b13;
+    color: #ffe6bd;
+    text-shadow: 0 1px 0 rgba(53, 24, 7, 0.5);
 
     font-size: 14px;
 

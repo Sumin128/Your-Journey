@@ -66,12 +66,18 @@
     width: min(100%, 900px);
     aspect-ratio: 2400 / 1309;
     margin: 0 auto;
+    /* Warmer Waldstand statt flacher Fläche: Sonnenlicht oben,
+       gedämpftes Grün an den Rändern, sanfte Vignette. */
     background:
-        radial-gradient(ellipse at 50% 40%, #f6e2bd 0%, #e6c68f 55%, #cfa76a 100%);
-    background-color: #e6c68f;
+        radial-gradient(ellipse at 50% 18%, rgba(255, 240, 200, 0.9), rgba(255, 240, 200, 0) 55%),
+        radial-gradient(ellipse at 50% 120%, rgba(60, 74, 40, 0.55), rgba(60, 74, 40, 0) 60%),
+        linear-gradient(180deg, #e9cf9c 0%, #d8b878 45%, #b98f56 100%);
+    background-color: #d8b878;
     border: clamp(4px, 0.7vw, 9px) solid #5b351c;
     border-radius: clamp(12px, 2vw, 22px);
-    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.45),
+        inset 0 0 80px rgba(40, 24, 8, 0.28);
     overflow: visible;
 }
 
