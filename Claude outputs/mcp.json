@@ -1,0 +1,43 @@
+{
+  "servers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "@playwright/mcp@latest"]
+    },
+    "supabase": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": [
+        "/c", "npx", "-y", "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=mcfsfynceaajsflmrxzg"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${input:supabaseAccessToken}"
+      }
+    },
+    "gemini-image": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@creating-cat/gemini-image-mcp-server"],
+      "env": {
+        "GEMINI_API_KEY": "${input:geminiApiKey}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "supabaseAccessToken",
+      "type": "promptString",
+      "description": "Supabase Personal Access Token (read-only Nutzung)",
+      "password": true
+    },
+    {
+      "id": "geminiApiKey",
+      "type": "promptString",
+      "description": "Google Gemini API Key",
+      "password": true
+    }
+  ]
+}

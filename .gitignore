@@ -9,3 +9,5 @@ Thumbs.db
 # Dev-Werkzeuge (Website selbst ist statisch)
 node_modules/
 tools/__screenshots__/
+
+"Claude outputs/"
