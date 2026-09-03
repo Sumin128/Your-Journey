@@ -5,6 +5,100 @@
 const sidebar =
     document.getElementById("sidebar");
 
+/* =====================================================
+   SIDEBAR-MARKUP ZENTRAL ERZEUGEN
+   Früher war die <nav id="sidebar"> auf jeder Seite von
+   Hand kopiert (~230 Zeilen × 14 Seiten). Jetzt steht auf
+   der Seite nur noch <nav id="sidebar"></nav> und der Inhalt
+   wird hier gebaut. Aktive Seite ergibt sich aus dem
+   Dateinamen. Klassen/IDs bleiben exakt gleich, damit CSS,
+   Gruppen-Aufklappen, Theme, Inventar und Mobile-Nav weiter
+   funktionieren.
+   ===================================================== */
+
+function buildSidebarMarkup() {
+
+    const here = (location.pathname.split("/").pop() || "index.html").toLowerCase() || "index.html";
+
+    const icon = (src) =>
+        `<span class="sidebar-icon"><img src="${src}" alt="" class="sidebar-icon-img" decoding="async"></span>`;
+
+    const link = (href, label, iconSrc, extraClass) => {
+        const current = href.toLowerCase() === here ? ' aria-current="page"' : "";
+        const cls = "sidebar-link" + (extraClass ? " " + extraClass : "");
+        return `<a href="${href}" class="${cls}"${current}>${icon(iconSrc)}<span class="sidebar-label">${label}</span></a>`;
+    };
+
+    const sublink = (href, label, iconSrc) => {
+        const current = href.toLowerCase() === here ? ' aria-current="page"' : "";
+        return `<a href="${href}" class="sidebar-link sidebar-sublink"${current}>${icon(iconSrc)}<span class="sidebar-label">${label}</span></a>`;
+    };
+
+    const group = (label, iconSrc, subs) =>
+        `<button type="button" class="sidebar-group-header">${icon(iconSrc)}` +
+        `<span class="sidebar-label">${label}</span><span class="sidebar-chevron">▸</span></button>` +
+        `<div class="sidebar-subnav">${subs.join("")}</div>`;
+
+    return `
+        <div class="sidebar-header">
+            <button id="sidebar-toggle" type="button" aria-label="Menü öffnen">☰</button>
+            <img src="images/magischer_baum_von_mirelon_logo.png" alt="Mirelon" class="sidebar-title sidebar-logo" decoding="async">
+        </div>
+
+        <div class="sidebar-player">
+            <div class="sidebar-avatar-wrap">
+                <img id="sidebar-player-avatar" src="" alt="Spieler">
+                <button id="inventory-button" type="button">
+                    <img src="Icons/Sidebar/inventar.png" alt="" class="inventory-icon" decoding="async">
+                </button>
+            </div>
+            <div class="sidebar-player-info">
+                <strong id="sidebar-player-name">Abenteurer</strong>
+                <span id="sidebar-feathers"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
+                <span id="sidebar-achievements">⭐ 0 Erfolge</span>
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-nav">
+            ${link("index.html", "Start", "Icons/Sidebar/start.png")}
+
+            ${group("Weitere Orte", "Icons/Sidebar/lernorte.png", [
+                sublink("kuros_nest.html", "Kuros Nest", "Icons/Sidebar/rabe-2.png"),
+                sublink("eulenschule.html", "Tessas Hasenschule", "Icons/Sidebar/hase.png"),
+                sublink("fuchs.html", "Faros Fuchsbau", "Icons/Sidebar/fuchs.png"),
+                sublink("baerental.html", "Bärental", "Icons/Sidebar/baer-2.png"),
+                sublink("puzzle.html", "Luis Puzzle", "Icons/Sidebar/chamaeleon.png")
+            ])}
+
+            ${group("Kreativ", "Icons/Sidebar/kreativ.png", [
+                sublink("malen.html", "Malstube", "Icons/Sidebar/malen.png"),
+                sublink("galerie.html", "Galerie", "Icons/Sidebar/galerie.png")
+            ])}
+
+            ${group("Läden", "Icons/Sidebar/shop.png", [
+                sublink("shop_seite.html", "Kuros Laden", "Icons/Sidebar/shop.png"),
+                sublink("bakos_basar.html", "Bakos Basar", "Icons/Sidebar/shop.png")
+            ])}
+
+            ${link("erfolge.html", "Erfolge", "Icons/Sidebar/erfolge.png")}
+            ${link("bestenliste.html", "Bestenliste", "Icons/Sidebar/highscore.png")}
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-utility">
+            ${link("einstellungen.html", "Einstellungen", "Icons/Sidebar/einstellungen.png")}
+            ${link("impressum.html", "Impressum & Datenschutz", "Icons/Sidebar/impressum.png", "sidebar-legal-link")}
+        </div>
+    `;
+}
+
+if (sidebar && !sidebar.querySelector(".sidebar-nav")) {
+    sidebar.innerHTML = buildSidebarMarkup();
+}
+
 const sidebarToggle =
     document.getElementById("sidebar-toggle");
 

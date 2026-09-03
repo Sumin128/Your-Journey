@@ -58,8 +58,8 @@ for (const file of pages) {
             }
         });
 
-        await page.goto(`http://localhost:${port}/${file}`, { waitUntil: "networkidle" }).catch((e) => errors.push("goto: " + e.message));
-        await page.waitForTimeout(600);
+        await page.goto(`http://localhost:${port}/${file}`, { waitUntil: "load", timeout: 15000 }).catch((e) => errors.push("goto: " + e.message));
+        await page.waitForTimeout(900);
         await page.screenshot({ path: join(outDir, `${name}.${label}.png`), fullPage: label === "desktop" });
 
         if (errors.length) {
