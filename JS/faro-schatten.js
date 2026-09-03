@@ -4,25 +4,31 @@
    wählt aus drei Namen. Bei richtiger Antwort verwandelt
    sich der Schatten in das bunte Tier.
 
-   Bildmaterial: die Baumkind-Sprites aus images/tamagotchi/
-   (transparente PNGs) - per CSS-Filter zu Silhouetten
-   gemacht. Neue Tiere hier einfach ergänzen.
+   Bildmaterial: transparente PNGs - die Baumkind-Sprites aus
+   images/tamagotchi/ plus mit Gemini erzeugte Tiere in
+   images/faro/schatten/ (gleicher Stil). Per CSS-Filter zu
+   Silhouetten gemacht. Neue Tiere hier einfach ergänzen.
    ===================================================== */
 
 (function () {
 
     const ANIMALS = [
-        { id: "baer", name: "Bär" },
-        { id: "eichhorn", name: "Eichhörnchen" },
-        { id: "igel", name: "Igel" },
-        { id: "otter", name: "Otter" },
-        { id: "reh", name: "Reh" }
+        { id: "baer", name: "Bär", img: "images/tamagotchi/baer_happy.png" },
+        { id: "eichhorn", name: "Eichhörnchen", img: "images/tamagotchi/eichhorn_happy.png" },
+        { id: "igel", name: "Igel", img: "images/tamagotchi/igel_happy.png" },
+        { id: "otter", name: "Otter", img: "images/tamagotchi/otter_happy.png" },
+        { id: "reh", name: "Reh", img: "images/tamagotchi/reh_happy.png" },
+        { id: "wolf", name: "Wolf", img: "images/faro/schatten/wolf.png" },
+        { id: "fuchs", name: "Fuchs", img: "images/faro/schatten/fuchs.png" },
+        { id: "hase", name: "Hase", img: "images/faro/schatten/hase.png" },
+        { id: "eule", name: "Eule", img: "images/faro/schatten/eule.png" },
+        { id: "ente", name: "Ente", img: "images/faro/schatten/ente.png" },
+        { id: "maus", name: "Maus", img: "images/faro/schatten/maus.png" },
+        { id: "frosch", name: "Frosch", img: "images/faro/schatten/frosch.png" },
+        { id: "waschbaer", name: "Waschbär", img: "images/faro/schatten/waschbaer.png" }
     ];
 
-    // Aufrechte Posen - als Silhouette besser erkennbar als
-    // "sleeping" (zusammengerollter Klumpen).
-    const POSES = ["happy", "playing"];
-    const ROUNDS = 6;
+    const ROUNDS = 8;
     const REVEAL_MS = 1500;
 
     let stageEl = null;
@@ -82,7 +88,6 @@
         answered = false;
 
         const target = order[roundIndex];
-        const pose = POSES[Math.floor(Math.random() * POSES.length)];
         const flipped = Math.random() < 0.5;
 
         // Drei Antwortmöglichkeiten: Ziel + zwei andere
@@ -105,7 +110,7 @@
 
         const img = document.createElement("img");
         img.className = "faro-shadow";
-        img.src = "images/tamagotchi/" + target.id + "_" + pose + ".png";
+        img.src = target.img;
         img.alt = "Schatten eines Tieres";
         if (flipped) {
             img.style.transform = "scaleX(-1)";
