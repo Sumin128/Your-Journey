@@ -3529,7 +3529,7 @@ justify-content:center;
 
     margin: 0;
 
-    color: var(--yj-color-ink-soft);
+    color: var(--yj-color-cream-soft);
 
     font-size: .95rem;
 
@@ -3779,8 +3779,8 @@ justify-content:center;
 
     border-radius: var(--yj-radius-sm);
 
-    background: rgba(76, 175, 80, .14);
-    color: #2e6b32;
+    background: rgba(76, 175, 80, .18);
+    color: #9fe6c4;
 
     font-size: .9rem;
 
@@ -4868,7 +4868,7 @@ justify-content:center;
 
 #achievements-summary {
 
-    color: var(--yj-color-ink-soft);
+    color: var(--yj-color-cream-soft);
     font-weight: 700;
 
 }
@@ -4928,7 +4928,7 @@ justify-content:center;
     margin: 0;
 
     font-size: 0.88rem;
-    color: var(--yj-color-ink-soft);
+    color: var(--yj-color-cream-soft);
 
 }
 
@@ -4951,15 +4951,24 @@ justify-content:center;
 .achievement-card--unlocked {
 
     background: linear-gradient(160deg, #fff2c9, #ffe2a5);
-    box-shadow: 0 8px 20px rgba(191, 138, 33, 0.35);
+    border-color: var(--yj-color-accent);
+    box-shadow: 0 8px 20px rgba(191, 138, 33, 0.4), 0 0 24px rgba(255, 200, 110, 0.25);
 
+}
+
+.achievement-card--unlocked h2 {
+    color: var(--yj-color-wood-dark);
+}
+
+.achievement-card--unlocked p {
+    color: var(--yj-color-ink-soft);
 }
 
 .achievement-card--unlocked:hover {
 
     transform: translateY(-4px);
 
-    box-shadow: 0 12px 26px rgba(191, 138, 33, 0.45);
+    box-shadow: 0 12px 26px rgba(191, 138, 33, 0.5), 0 0 30px rgba(255, 200, 110, 0.35);
 
 }
 
@@ -4972,17 +4981,21 @@ justify-content:center;
 
 .achievement-card--locked {
 
-    background: rgba(120, 100, 80, 0.12);
+    background: rgba(0, 0, 0, 0.28);
+    border-color: rgba(244, 165, 49, 0.2);
+    opacity: 0.9;
 
-    opacity: 0.65;
-    filter: grayscale(0.7);
+}
 
+.achievement-card--locked .achievement-card-icon {
+    opacity: 0.5;
+    filter: grayscale(0.6);
 }
 
 .achievement-card--locked .achievement-card-status {
 
-    background: rgba(59, 36, 22, 0.15);
-    color: var(--yj-color-ink-soft);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--yj-color-cream-soft);
 
 }
 
@@ -5564,7 +5577,8 @@ justify-content:center;
 
     padding: 18px;
 
-    color: var(--yj-color-ink-soft);
+    color: var(--yj-color-wood);
+    font-weight: 600;
     font-size: 0.85rem;
     text-align: center;
 

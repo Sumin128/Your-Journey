@@ -192,6 +192,13 @@
 .puzzle-app h3 {
     font-family: 'Fraunces', serif;
     margin: 0;
+    /* Diese App bringt ihr eigenes helles Farbschema mit - den globalen
+       Gold-Verlaufs-Text (transparenter -webkit-text-fill) hier zuruecknehmen,
+       sonst ist die Ueberschrift auf hellem Grund unsichtbar. */
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
 }
 
 .puzzle-app .wrap {

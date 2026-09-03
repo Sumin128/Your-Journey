@@ -8,6 +8,10 @@
     --yj-color-paper: #fbf3e3;
     --yj-color-paper-soft: rgba(255, 252, 246, 0.78);
     --yj-color-border: #e3b23c;
+
+    /* Text auf der dunklen Szenen-Dialogbox (.yj-panel) */
+    --yj-color-cream: #f1e2c6;
+    --yj-color-cream-soft: #d7c3a0;
     --yj-color-success: #2fbf71;
     --yj-color-danger: #ef4444;
 

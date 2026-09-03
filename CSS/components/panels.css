@@ -1,16 +1,50 @@
+/* =====================================================
+   .yj-panel – die Szenen-Dialogbox
+   Dunkle, warme, halbtransparente Box über dem
+   Hintergrund (Szene oder Waldverlauf). Heller Text.
+   Wie ein Point-&-Click-Adventure.
+   ===================================================== */
+
 .yj-panel {
     width: min(100%, var(--yj-content-width));
-    border: none;
-    border-radius: var(--yj-radius-lg);
-    background: var(--yj-color-paper-soft);
-    box-shadow: 0 0 0 1.5px rgba(227, 178, 60, 0.4) inset, var(--yj-shadow-card);
-    color: var(--yj-color-ink);
-    backdrop-filter: blur(18px) saturate(1.4);
-    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    border: 2px solid rgba(244, 165, 49, 0.42);
+    border-radius: var(--yj-radius-md);
+    background:
+        linear-gradient(180deg, rgba(46, 30, 18, 0.82) 0%, rgba(26, 16, 9, 0.9) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 224, 160, 0.16),
+        inset 0 -50px 70px -34px rgba(0, 0, 0, 0.55),
+        var(--yj-shadow-float);
+    color: var(--yj-color-cream);
+    backdrop-filter: blur(7px) saturate(1.05) brightness(0.92);
+    -webkit-backdrop-filter: blur(7px) saturate(1.05) brightness(0.92);
 }
 
 .yj-panel--paper {
     background:
-        radial-gradient(circle at top left, rgba(255, 255, 255, 0.6), transparent 42%),
-        rgba(253, 245, 231, 0.82);
+        radial-gradient(130% 80% at 50% 0%, rgba(92, 60, 32, 0.55), transparent 62%),
+        linear-gradient(180deg, rgba(48, 31, 18, 0.86) 0%, rgba(24, 15, 8, 0.93) 100%);
+}
+
+.yj-panel .yj-muted,
+.yj-panel figcaption {
+    color: var(--yj-color-cream-soft);
+}
+
+/* Links auf der Dialogbox */
+.yj-panel a:not(.yj-button):not([class*="button"]) {
+    color: var(--yj-color-accent-light);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.yj-panel a:not(.yj-button):not([class*="button"]):hover {
+    color: #ffe9b8;
+}
+
+/* strong/em auf der Dialogbox: nicht dunkler werden lassen */
+.yj-panel strong,
+.yj-panel b,
+.yj-panel em {
+    color: inherit;
 }

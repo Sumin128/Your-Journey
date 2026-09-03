@@ -1,23 +1,41 @@
 :where(.yj-page, .yj-panel, .yj-card) {
+    color: var(--yj-color-cream);
+}
+
+/* .yj-card ist weiterhin hell -> dort dunkler Text */
+:where(.yj-card) {
     color: var(--yj-color-ink);
 }
 
 :where(.yj-page, .yj-panel, .yj-card) h1,
 :where(.yj-page, .yj-panel, .yj-card) h2,
 :where(.yj-page, .yj-panel, .yj-card) h3 {
-    color: var(--yj-color-ink);
+    color: var(--yj-color-accent-light);
     font-family: var(--yj-font-display);
     font-weight: 700;
     letter-spacing: -0.01em;
     text-wrap: balance;
 }
 
-:where(.yj-page, .yj-panel, .yj-card) h1 {
-    background: linear-gradient(135deg, var(--yj-color-ink) 20%, var(--yj-color-accent-dark) 100%);
+:where(.yj-card) h1,
+:where(.yj-card) h2,
+:where(.yj-card) h3 {
+    color: var(--yj-color-wood-dark);
+}
+
+:where(.yj-page, .yj-panel) h1 {
+    background: linear-gradient(135deg, #ffe9b8 15%, var(--yj-color-accent) 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.015em;
+}
+
+:where(.yj-card) h1 {
+    background: linear-gradient(135deg, var(--yj-color-ink) 20%, var(--yj-color-accent-dark) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .yj-kicker {
@@ -26,8 +44,8 @@
     gap: 6px;
     padding: 4px 14px;
     border-radius: var(--yj-radius-pill);
-    background: rgba(244, 165, 49, 0.16);
-    color: var(--yj-color-accent-dark);
+    background: rgba(244, 165, 49, 0.22);
+    color: var(--yj-color-accent-light);
     font-family: var(--yj-font-body);
     font-size: 0.8rem;
     font-weight: 800;

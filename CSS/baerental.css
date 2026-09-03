@@ -38,12 +38,7 @@
     gap: 50px;
 
     padding: 40px 60px;
-
-    /* Warmer Waldton statt Papierweiß, damit Branos nicht auf Blatt
-       Papier steht (bis es ein echtes Hintergrundbild gibt). */
-    background:
-        radial-gradient(ellipse at 28% 55%, rgba(255, 214, 150, 0.55), rgba(255, 214, 150, 0) 55%),
-        linear-gradient(160deg, #f3e4c6 0%, #e6cfa4 55%, #d8bd8a 100%);
+    /* Hintergrund kommt von .yj-panel (dunkle Dialogbox) */
 }
 
 .bear-welcome-card > * {
@@ -83,22 +78,19 @@
    ===================================================== */
 
 .bear-intro {
-    padding: 45px;
+    padding: 40px;
 
-    color: #3c2a18;
+    color: var(--yj-color-cream);
 
     background:
-        linear-gradient(
-            145deg,
-            #f5e5b8,
-            #dcc38a
-        );
+        linear-gradient(145deg, rgba(60, 40, 22, 0.55), rgba(38, 24, 13, 0.65));
 
-    border: 2px solid #8a6635;
-    border-radius: 12px;
+    border: 2px solid rgba(244, 165, 49, 0.35);
+    border-radius: 14px;
 
     box-shadow:
-        0 12px 25px rgba(0, 0, 0, 0.22);
+        inset 0 1px 0 rgba(255, 224, 160, 0.12),
+        0 12px 25px rgba(0, 0, 0, 0.3);
 
     font-size: 18px;
     line-height: 1.6;
@@ -113,7 +105,7 @@
     font-size: 16px;
     font-weight: bold;
 
-    color: #78562c;
+    color: var(--yj-color-cream-soft);
 }
 
 
@@ -121,12 +113,13 @@
     margin: 0 0 25px;
 
     font-size: 48px;
-    color: #513519;
+    color: var(--yj-color-accent-light);
 }
 
 
 .bear-intro p {
     margin: 0 0 18px;
+    color: var(--yj-color-cream);
 }
 
 
@@ -138,9 +131,10 @@
     margin: 28px 0;
     padding: 16px 20px;
 
-    background: rgba(255, 248, 219, 0.55);
+    color: var(--yj-color-cream);
+    background: rgba(255, 224, 160, 0.1);
 
-    border-left: 5px solid #8a6635;
+    border-left: 5px solid var(--yj-color-accent);
     border-radius: 6px;
 }
 
@@ -262,23 +256,22 @@
 
     padding: 45px 50px;
 
-    color: #3c2717;
+    color: var(--yj-color-cream);
 
     background:
         radial-gradient(
             ellipse at center,
-            rgba(255, 248, 213, 0.95) 0%,
-            rgba(242, 210, 151, 0.95) 65%,
-            rgba(205, 157, 91, 0.95) 100%
+            rgba(64, 42, 23, 0.55) 0%,
+            rgba(42, 26, 14, 0.68) 70%,
+            rgba(28, 17, 9, 0.75) 100%
         );
 
-    border: 3px solid #9a632d;
+    border: 2px solid rgba(244, 165, 49, 0.4);
     border-radius: 18px 10px 20px 12px;
 
     box-shadow:
-        0 12px 25px rgba(0, 0, 0, 0.28),
-        inset 0 0 35px rgba(111, 63, 24, 0.22),
-        inset 0 0 8px rgba(78, 42, 17, 0.25);
+        0 12px 25px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 224, 160, 0.12);
 
     font-family: var(--yj-font-display);
 
@@ -287,7 +280,7 @@
 }
 
 
-/* innere alte Papierkante */
+/* innere Kante */
 
 .bear-intro::before {
     content: "";
@@ -295,7 +288,7 @@
     position: absolute;
     inset: 9px;
 
-    border: 1px solid rgba(111, 67, 31, 0.35);
+    border: 1px solid rgba(255, 224, 160, 0.18);
     border-radius: 12px 7px 15px 8px;
 
     pointer-events: none;
@@ -312,7 +305,7 @@
     font-size: 42px;
     font-style: italic;
 
-    color: #4d2d18;
+    color: var(--yj-color-accent-light);
 }
 
 
@@ -523,27 +516,26 @@
 
     padding: 45px 55px 50px;
 
-    color: #442817;
+    color: var(--yj-color-cream);
 
     background:
         radial-gradient(
             ellipse at center,
-            #fff0c5 0%,
-            #f1cf8d 65%,
-            #d9a85f 100%
+            rgba(66, 43, 24, 0.6) 0%,
+            rgba(42, 26, 14, 0.72) 65%,
+            rgba(26, 16, 9, 0.8) 100%
         );
 
-    border: 3px solid #8e5828;
+    border: 2px solid rgba(244, 165, 49, 0.42);
     border-radius: 22px 13px 19px 11px;
 
     box-shadow:
-        0 18px 38px rgba(0, 0, 0, 0.38),
-        inset 0 0 45px rgba(116, 63, 20, 0.23),
-        inset 0 0 8px rgba(76, 38, 11, 0.3);
+        0 18px 38px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 224, 160, 0.12);
 }
 
 
-/* innere Pergamentkante */
+/* innere Kante */
 
 .bear-menu-scroll::before {
     content: "";
@@ -551,7 +543,7 @@
     position: absolute;
     inset: 11px;
 
-    border: 1px solid rgba(116, 65, 28, 0.35);
+    border: 1px solid rgba(255, 224, 160, 0.16);
     border-radius: 16px 8px 14px 9px;
 
     pointer-events: none;
