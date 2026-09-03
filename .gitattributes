@@ -1,0 +1,25 @@
+# Zeilenenden vereinheitlichen: im Repo immer LF, Auschecken lokal wie das
+# System will. Verhindert die CRLF-/Doppelkodierungs-Fallen bei Skript-Edits.
+* text=auto eol=lf
+
+# Binärdateien nie anfassen (Git erkennt das meist selbst, hier explizit):
+*.png  binary
+*.PNG  binary
+*.jpg  binary
+*.JPG  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.jfif binary
+*.svg  text
+*.mp3  binary
+*.wav  binary
+*.ogg  binary
+*.m4a  binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.eot  binary
+*.pdf  binary
