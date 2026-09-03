@@ -1,0 +1,5 @@
+{
+  "name": "mirelon-gemini-mcp-local",
+  "private": true,
+  "dependencies": { "@creating-cat/gemini-image-mcp-server": "0.1.4" }
+}
