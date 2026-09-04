@@ -756,6 +756,8 @@
             var name = window.prompt("Wie soll dein Baumkind heißen?", t.name);
             if (name && name.trim()) {
                 t.name = name.trim().slice(0, 20);
+                t.names = t.names || {};
+                t.names[t.species] = t.name;
                 save();
                 renderPanel();
                 say("Ich heiße jetzt " + t.name + ".", 3000);
@@ -765,12 +767,14 @@
 
         if (act === "switch") {
             var list = unlockedList();
+            var savedNames = t.names || {};
             subMenu(list.map(function (id) {
                 var sp = PET_SPECIES[id];
                 var isActive = id === t.species;
+                var displayName = isActive ? t.name : (savedNames[id] || sp.name);
                 return '<button type="button" data-species="' + id + '"' +
                     (isActive ? ' class="pc-sub-active"' : '') + '>' +
-                    sp.icon + ' ' + sp.name + ' – ' + sp.speciesName +
+                    sp.icon + ' ' + escapeHtml(displayName) + ' – ' + sp.speciesName +
                     (isActive ? ' ✓' : '') +
                     '</button>';
             }).join(""));
@@ -780,7 +784,14 @@
         if (target && target.dataset.species) {
             var chosenSpecies = target.dataset.species;
             if (chosenSpecies !== t.species && unlockedList().indexOf(chosenSpecies) !== -1) {
+                // Aktuellen Namen für die bisherige Art sichern, bevor
+                // gewechselt wird - sonst würde eine Umbenennung beim
+                // nächsten Wechsel wieder verschwinden (bzw. auf die
+                // neue Art überspringen).
+                t.names = t.names || {};
+                t.names[t.species] = t.name;
                 t.species = chosenSpecies;
+                t.name = t.names[chosenSpecies] || PET_SPECIES[chosenSpecies].name;
                 save();
                 renderPanel();
                 renderSprite();
@@ -1038,6 +1049,19 @@
     if (["Lumi", "Flöckchen", "Pyri", "Kira", "Mimi"].indexOf(player.tamagotchi.name) !== -1) {
         player.tamagotchi.name = species().name;
     }
+
+    /* Jedes Baumkind behält seinen eigenen Namen (player.tamagotchi.names,
+       nach Art). Vorher gab es nur das eine Feld "name" - eine Umbenennung
+       ist beim Wechseln auf eine andere Art "mitgewandert" bzw. verloren
+       gegangen. Bestehende Spielstände: der bisherige Name gilt für die
+       aktuell aktive Art, alle anderen starten mit ihrem Standardnamen. */
+    if (!player.tamagotchi.names) {
+        player.tamagotchi.names = {};
+    }
+    if (!player.tamagotchi.names[player.tamagotchi.species]) {
+        player.tamagotchi.names[player.tamagotchi.species] = player.tamagotchi.name || species().name;
+    }
+    player.tamagotchi.name = player.tamagotchi.names[player.tamagotchi.species];
 
     if (applyTimeDecay()) {
         save();
