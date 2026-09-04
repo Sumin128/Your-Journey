@@ -38,7 +38,12 @@
     gap: 50px;
 
     padding: 40px 60px;
-    /* Hintergrund kommt von .yj-panel (dunkle Dialogbox) */
+
+    /* Warmer Waldton statt Papierweiß, damit Branos nicht auf Blatt
+       Papier steht (bis es ein echtes Hintergrundbild gibt). */
+    background:
+        radial-gradient(ellipse at 28% 55%, rgba(255, 214, 150, 0.55), rgba(255, 214, 150, 0) 55%),
+        linear-gradient(160deg, #f3e4c6 0%, #e6cfa4 55%, #d8bd8a 100%);
 }
 
 .bear-welcome-card > * {
@@ -78,19 +83,22 @@
    ===================================================== */
 
 .bear-intro {
-    padding: 40px;
+    padding: 45px;
 
-    color: var(--yj-color-cream);
+    color: #3c2a18;
 
     background:
-        linear-gradient(145deg, rgba(60, 40, 22, 0.55), rgba(38, 24, 13, 0.65));
+        linear-gradient(
+            145deg,
+            #f5e5b8,
+            #dcc38a
+        );
 
-    border: 2px solid rgba(var(--yj-accent-rgb), 0.35);
-    border-radius: 14px;
+    border: 2px solid #8a6635;
+    border-radius: 12px;
 
     box-shadow:
-        inset 0 1px 0 rgba(255, 224, 160, 0.12),
-        0 12px 25px rgba(0, 0, 0, 0.3);
+        0 12px 25px rgba(0, 0, 0, 0.22);
 
     font-size: 18px;
     line-height: 1.6;
@@ -105,7 +113,7 @@
     font-size: 16px;
     font-weight: bold;
 
-    color: var(--yj-color-cream-soft);
+    color: #78562c;
 }
 
 
@@ -113,13 +121,12 @@
     margin: 0 0 25px;
 
     font-size: 48px;
-    color: var(--yj-color-accent-light);
+    color: #513519;
 }
 
 
 .bear-intro p {
     margin: 0 0 18px;
-    color: var(--yj-color-cream);
 }
 
 
@@ -131,10 +138,9 @@
     margin: 28px 0;
     padding: 16px 20px;
 
-    color: var(--yj-color-cream);
-    background: rgba(255, 224, 160, 0.1);
+    background: rgba(255, 248, 219, 0.55);
 
-    border-left: 5px solid var(--yj-color-accent);
+    border-left: 5px solid #8a6635;
     border-radius: 6px;
 }
 
@@ -256,22 +262,23 @@
 
     padding: 45px 50px;
 
-    color: var(--yj-color-cream);
+    color: #3c2717;
 
     background:
         radial-gradient(
             ellipse at center,
-            rgba(64, 42, 23, 0.55) 0%,
-            rgba(42, 26, 14, 0.68) 70%,
-            rgba(28, 17, 9, 0.75) 100%
+            rgba(255, 248, 213, 0.95) 0%,
+            rgba(242, 210, 151, 0.95) 65%,
+            rgba(205, 157, 91, 0.95) 100%
         );
 
-    border: 2px solid rgba(var(--yj-accent-rgb), 0.4);
+    border: 3px solid #9a632d;
     border-radius: 18px 10px 20px 12px;
 
     box-shadow:
-        0 12px 25px rgba(0, 0, 0, 0.32),
-        inset 0 1px 0 rgba(255, 224, 160, 0.12);
+        0 12px 25px rgba(0, 0, 0, 0.28),
+        inset 0 0 35px rgba(111, 63, 24, 0.22),
+        inset 0 0 8px rgba(78, 42, 17, 0.25);
 
     font-family: var(--yj-font-display);
 
@@ -280,7 +287,7 @@
 }
 
 
-/* innere Kante */
+/* innere alte Papierkante */
 
 .bear-intro::before {
     content: "";
@@ -288,7 +295,7 @@
     position: absolute;
     inset: 9px;
 
-    border: 1px solid rgba(255, 224, 160, 0.18);
+    border: 1px solid rgba(111, 67, 31, 0.35);
     border-radius: 12px 7px 15px 8px;
 
     pointer-events: none;
@@ -305,7 +312,7 @@
     font-size: 42px;
     font-style: italic;
 
-    color: var(--yj-color-accent-light);
+    color: #4d2d18;
 }
 
 
@@ -516,26 +523,27 @@
 
     padding: 45px 55px 50px;
 
-    color: var(--yj-color-cream);
+    color: #442817;
 
     background:
         radial-gradient(
             ellipse at center,
-            rgba(66, 43, 24, 0.6) 0%,
-            rgba(42, 26, 14, 0.72) 65%,
-            rgba(26, 16, 9, 0.8) 100%
+            #fff0c5 0%,
+            #f1cf8d 65%,
+            #d9a85f 100%
         );
 
-    border: 2px solid rgba(var(--yj-accent-rgb), 0.42);
+    border: 3px solid #8e5828;
     border-radius: 22px 13px 19px 11px;
 
     box-shadow:
-        0 18px 38px rgba(0, 0, 0, 0.42),
-        inset 0 1px 0 rgba(255, 224, 160, 0.12);
+        0 18px 38px rgba(0, 0, 0, 0.38),
+        inset 0 0 45px rgba(116, 63, 20, 0.23),
+        inset 0 0 8px rgba(76, 38, 11, 0.3);
 }
 
 
-/* innere Kante */
+/* innere Pergamentkante */
 
 .bear-menu-scroll::before {
     content: "";
@@ -543,7 +551,7 @@
     position: absolute;
     inset: 11px;
 
-    border: 1px solid rgba(255, 224, 160, 0.16);
+    border: 1px solid rgba(116, 65, 28, 0.35);
     border-radius: 16px 8px 14px 9px;
 
     pointer-events: none;
@@ -678,7 +686,7 @@
 .bear-set-description h2 {
     margin: 0 0 10px;
 
-    color: var(--yj-color-accent-light);
+    color: #442313;
 
     font-size: 30px;
 }
@@ -689,7 +697,7 @@
 
     max-width: 340px;
 
-    color: var(--yj-color-cream);
+    color: #59361f;
 
     font-size: 18px;
     line-height: 1.45;
@@ -711,7 +719,7 @@
 
 
 .bear-set-action strong {
-    color: var(--yj-color-cream-soft);
+    color: #442817;
 
     font-size: 17px;
 }

@@ -2853,7 +2853,7 @@ justify-content:center;
 
     text-align:center;
 
-    color:var(--yj-color-cream-soft);
+    color:var(--yj-color-ink-soft);
 
     font-weight:700;
 
@@ -2869,7 +2869,7 @@ justify-content:center;
 
     font-weight:700;
 
-    color:var(--yj-color-cream);
+    color:var(--yj-color-ink);
 
 }
 
@@ -3013,11 +3013,11 @@ justify-content:center;
 
     border-radius:var(--yj-radius-pill);
 
-    background:rgba(255,224,160,0.1);
+    background:rgba(0,0,0,0.05);
 
     border:1px solid rgba(var(--yj-accent-rgb),0.4);
 
-    color:var(--yj-color-cream);
+    color:var(--yj-color-ink);
 
     font-weight:700;
 
@@ -3029,11 +3029,11 @@ justify-content:center;
 
 .faro-seek-chip.found{
 
-    background:rgba(155,208,143,0.22);
+    background:rgba(120,190,110,0.28);
 
     border-color:#6fae63;
 
-    color:#bfe6b2;
+    color:#2f7d3f;
 
     text-decoration:line-through;
 
@@ -3577,8 +3577,8 @@ justify-content:center;
     padding: 10px 22px;
     border: 2px solid rgba(var(--yj-accent-rgb), 0.35);
     border-radius: var(--yj-radius-pill);
-    background: rgba(255, 224, 160, 0.06);
-    color: var(--yj-color-cream-soft);
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--yj-color-ink-soft);
     font-family: var(--yj-font-display);
     font-size: 1rem;
     font-weight: 700;
@@ -3587,7 +3587,7 @@ justify-content:center;
 }
 
 .quiz-group-tab:hover {
-    color: var(--yj-color-cream);
+    color: var(--yj-color-ink);
     border-color: var(--yj-color-accent);
 }
 
@@ -3846,7 +3846,7 @@ justify-content:center;
 
     margin: 0;
 
-    color: var(--yj-color-cream-soft);
+    color: var(--yj-color-ink-soft);
 
     font-size: .95rem;
 
@@ -4096,8 +4096,8 @@ justify-content:center;
 
     border-radius: var(--yj-radius-sm);
 
-    background: rgba(76, 175, 80, .18);
-    color: #9fe6c4;
+    background: rgba(76, 175, 80, .14);
+    color: #2e6b32;
 
     font-size: .9rem;
 
@@ -5185,7 +5185,7 @@ justify-content:center;
 
 #achievements-summary {
 
-    color: var(--yj-color-cream-soft);
+    color: var(--yj-color-ink-soft);
     font-weight: 700;
 
 }
@@ -5245,7 +5245,7 @@ justify-content:center;
     margin: 0;
 
     font-size: 0.88rem;
-    color: var(--yj-color-cream-soft);
+    color: var(--yj-color-ink-soft);
 
 }
 
@@ -5269,23 +5269,15 @@ justify-content:center;
 
     background: linear-gradient(160deg, #fff2c9, #ffe2a5);
     border-color: var(--yj-color-accent);
-    box-shadow: 0 8px 20px rgba(191, 138, 33, 0.4), 0 0 24px rgba(255, 200, 110, 0.25);
+    box-shadow: 0 8px 20px rgba(191, 138, 33, 0.35), 0 0 22px rgba(255, 200, 110, 0.22);
 
-}
-
-.achievement-card--unlocked h2 {
-    color: var(--yj-color-wood-dark);
-}
-
-.achievement-card--unlocked p {
-    color: var(--yj-color-ink-soft);
 }
 
 .achievement-card--unlocked:hover {
 
     transform: translateY(-4px);
 
-    box-shadow: 0 12px 26px rgba(191, 138, 33, 0.5), 0 0 30px rgba(255, 200, 110, 0.35);
+    box-shadow: 0 12px 26px rgba(191, 138, 33, 0.45), 0 0 28px rgba(255, 200, 110, 0.3);
 
 }
 
@@ -5298,21 +5290,21 @@ justify-content:center;
 
 .achievement-card--locked {
 
-    background: rgba(0, 0, 0, 0.28);
-    border-color: rgba(var(--yj-accent-rgb), 0.2);
-    opacity: 0.9;
+    background: rgba(120, 100, 80, 0.12);
+    border-color: rgba(var(--yj-accent-rgb), 0.22);
+    opacity: 0.7;
 
 }
 
 .achievement-card--locked .achievement-card-icon {
-    opacity: 0.5;
-    filter: grayscale(0.6);
+    opacity: 0.55;
+    filter: grayscale(0.55);
 }
 
 .achievement-card--locked .achievement-card-status {
 
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--yj-color-cream-soft);
+    background: rgba(59, 36, 22, 0.15);
+    color: var(--yj-color-ink-soft);
 
 }
 
