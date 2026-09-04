@@ -376,6 +376,23 @@
     background: var(--yj-color-accent, #e0a53c);
 }
 
+/* Läuft beim "Spielen" einmal quer über die ganze Seite (siehe
+   runAcrossScreen() in JS/tamagotchi.js) - unabhängig von der
+   Position von #pet-companion. left:0 + transform:translateX(...)
+   statt links zu animieren, damit es flüssig läuft (Compositor). */
+
+.pc-runner {
+    position: fixed;
+    left: 0;
+    bottom: 40px;
+    z-index: 1790;
+    height: 72px;
+    width: auto;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 10px rgba(35, 20, 8, 0.35));
+    image-rendering: pixelated;
+}
+
 /* Schwebende Emojis bei Interaktion */
 
 .pc-float {

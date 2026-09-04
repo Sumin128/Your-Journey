@@ -531,6 +531,44 @@
         }, 1100);
     }
 
+    /* Beim Spielen flitzt das Baumkind einmal quer über die ganze
+       Seite (unabhängig davon, wo #pet-companion gerade sitzt) und
+       verschwindet dann wieder - ein kleines Extra, kein Ersatz für
+       das normale Sprite am Rand. */
+    function runAcrossScreen() {
+        if (player.tamagotchi.hidden || player.tamagotchi.isSleeping) {
+            return;
+        }
+
+        var img = document.createElement("img");
+        img.src = spriteFor("playing");
+        img.alt = "";
+        img.className = "pc-runner";
+        img.style.height = Math.round(64 + Math.random() * 26) + "px";
+        img.style.bottom = Math.round(30 + Math.random() * (window.innerHeight * 0.4)) + "px";
+
+        document.body.appendChild(img);
+
+        var goRight = Math.random() < 0.5;
+        var vw = Math.max(window.innerWidth, 320);
+        var start = goRight ? -160 : vw + 160;
+        var end = goRight ? vw + 160 : -160;
+        var mid = (start + end) / 2;
+        var flip = goRight ? "" : " scaleX(-1)";
+
+        var anim = img.animate([
+            { transform: "translateX(" + start + "px)" + flip },
+            { transform: "translateX(" + mid + "px) translateY(-16px)" + flip, offset: 0.5 },
+            { transform: "translateX(" + end + "px)" + flip }
+        ], {
+            duration: 2600 + Math.random() * 700,
+            easing: "ease-in-out"
+        });
+
+        anim.onfinish = function () { img.remove(); };
+        anim.oncancel = function () { img.remove(); };
+    }
+
     /* =====================================================
        6. WERTE, XP & PANEL-RENDERING
        ===================================================== */
@@ -781,7 +819,8 @@
             return;
         }
 
-        if (act === "play" || act === "cuddle") { cuddle(); return; }
+        if (act === "play") { cuddle(true); return; }
+        if (act === "cuddle") { cuddle(); return; }
 
         if (act === "sleep") {
             toggleSleep();
@@ -806,7 +845,7 @@
         renderSprite();
     }
 
-    function cuddle() {
+    function cuddle(runAcross) {
         var t = player.tamagotchi;
         if (t.isSleeping) {
             say("Pssst – ich schlafe gerade.", 2500);
@@ -820,6 +859,11 @@
         say(pool[Math.floor(Math.random() * pool.length)], 3000);
         addXP(2);
         afterAction();
+
+        if (runAcross) {
+            closePanel();
+            runAcrossScreen();
+        }
     }
 
     var sleepTicks = 0;
