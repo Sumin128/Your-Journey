@@ -2622,118 +2622,213 @@ border:2px solid var(--yj-color-border);
    ===================================================== */
 
 .gallery-header {
-    width: min(100%, 1200px);
+    width: min(100%, 1180px);
+    text-align: center;
+}
+
+.gallery-section {
+    width: min(100%, 1180px);
+    padding: 22px 26px 26px;
+}
+
+.gallery-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+
+    border-bottom: 1px solid rgba(var(--yj-accent-rgb), 0.28);
+}
+
+.gallery-section-head h2 {
+    margin: 0;
+}
+
+.gallery-count {
+    padding: 3px 12px;
+
+    border-radius: var(--yj-radius-pill);
+    background: rgba(0, 0, 0, 0.05);
+
+    color: var(--yj-color-ink-soft);
+    font-size: 0.8rem;
+    font-weight: 700;
 }
 
 .gallery-grid {
-    width: min(100%, 1200px);
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
 }
 
-@media (max-width: 900px) {
-    .gallery-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 520px) {
-    .gallery-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.map-card{
-
-    width:100%;
-
-    background:#f8edd7;
-
-    border:5px solid var(--yj-color-wood-dark);
-
-    border-radius:var(--yj-radius-lg);
-
-    overflow:hidden;
-
-    box-shadow: 0 1px 0 rgba(255, 226, 165, 0.2) inset, var(--yj-shadow-float);
-
-    transition: transform .3s var(--yj-ease-spring), box-shadow .3s var(--yj-ease-out);
-
+.gallery-card {
     position: relative;
-
-}
-
-.map-card-title-row {
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 8px;
-
-    padding: 10px 14px 0 14px;
-
-}
-
-.map-card-title-row h3 {
-
     margin: 0;
 
+    aspect-ratio: 4 / 3;
+
+    border: 1px solid rgba(var(--yj-accent-rgb), 0.35);
+    border-radius: var(--yj-radius-md);
+
+    background: #f3e9d6;
+    box-shadow: var(--yj-shadow-card);
+
+    overflow: hidden;
+    cursor: pointer;
+
+    transition: transform 0.25s var(--yj-ease-out), box-shadow 0.25s var(--yj-ease-out);
 }
 
-.map-image{
-
-    width:100%;
-
-    height:220px;
-
-    object-fit:cover;
-
-    display:block;
-
-    cursor:pointer;
-
+.gallery-card:hover,
+.gallery-card:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px rgba(35, 20, 8, 0.35);
+    outline: none;
 }
 
-.map-image.zoom{
+.gallery-card-img {
+    width: 100%;
+    height: 100%;
 
-    transform:scale(1.7);
+    object-fit: cover;
+    display: block;
 
-    z-index:100;
-
-    position:relative;
-
+    transition: transform 0.3s var(--yj-ease-out);
 }
 
-.map-card:hover{
-
-    transform:translateY(-8px);
-
+.gallery-card:hover .gallery-card-img {
+    transform: scale(1.05);
 }
 
-.map-card h2{
+.gallery-card-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-    margin:18px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 
-    text-align:center;
+    padding: 9px 14px 10px;
 
+    background: rgba(12, 7, 2, 0.78);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+
+    color: #fff;
+    font-family: var(--yj-font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-.map-image{
+.gallery-card-zoom {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
 
-    width:100%;
+.gallery-card:hover .gallery-card-zoom,
+.gallery-card:focus-visible .gallery-card-zoom {
+    opacity: 1;
+    transform: scale(1);
+}
 
-    height:260px;
+/* Eigene Bilder: auf weissem Grund, nichts abschneiden, mit Löschknopf */
+.gallery-card--mine .gallery-card-img {
+    background: #ffffff;
+    object-fit: contain;
+}
 
-    object-fit:cover;
+.gallery-card--mine .my-drawing-delete-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
 
-    display:block;
+    width: 32px;
+    height: 32px;
+    padding: 0;
 
-    cursor:pointer;
+    display: grid;
+    place-items: center;
 
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(20, 12, 4, 0.6);
+    color: #fff;
+
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.gallery-card--mine:hover .my-drawing-delete-button,
+.gallery-card--mine:focus-within .my-drawing-delete-button {
+    opacity: 1;
+}
+
+.gallery-card--mine .my-drawing-delete-button:hover {
+    background: var(--yj-color-danger);
+}
+
+/* Gast- / Leer-Zustand von "Meine Bilder" */
+.my-drawings-empty[hidden] {
+    display: none;
+}
+
+.gallery-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+
+    padding: 32px 20px;
+
+    border: 1px dashed rgba(var(--yj-accent-rgb), 0.5);
+    border-radius: var(--yj-radius-md);
+    background: rgba(255, 255, 255, 0.4);
+
+    text-align: center;
+}
+
+.gallery-cta-icon {
+    font-size: 2rem;
+}
+
+.gallery-cta p {
+    margin: 0;
+    max-width: 380px;
+    color: var(--yj-color-ink-soft);
+}
+
+.my-drawings-grid[hidden] {
+    display: none;
+}
+
+.my-drawings-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+
+    margin-top: 18px;
+
+    color: var(--yj-color-ink-soft);
+    font-size: 0.9rem;
+}
+
+.my-drawings-pagination[hidden] {
+    display: none;
 }
 /* =====================================================
    FARO
@@ -5979,144 +6074,6 @@ justify-content:center;
 
 }
 
-
-/*=====================================================
-   MEINE BILDER (GALERIE)
-   ===================================================== */
-
-.my-drawings-section {
-
-    width: min(100%, 1200px);
-
-    text-align: center;
-
-}
-
-.my-drawings-grid {
-
-    width: 100%;
-
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-
-    gap: 24px;
-
-    margin-top: 20px;
-
-}
-
-@media (max-width: 900px) {
-
-    .my-drawings-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-}
-
-@media (max-width: 520px) {
-
-    .my-drawings-grid {
-        grid-template-columns: 1fr;
-    }
-
-}
-
-.my-drawing-box {
-
-    position: relative;
-
-    aspect-ratio: 1 / 1.1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 10px;
-
-    border: 5px solid var(--yj-color-wood-dark);
-    border-radius: var(--yj-radius-lg);
-
-    background: #f8edd7;
-    box-shadow: 0 1px 0 rgba(255, 226, 165, 0.2) inset, var(--yj-shadow-float);
-
-    overflow: hidden;
-
-}
-
-.my-drawing-box img {
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-    border-radius: 12px;
-
-}
-
-.my-drawing-box .my-drawing-delete-button {
-
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    z-index: 2;
-
-    min-height: 0;
-    width: 30px;
-    height: 30px;
-    padding: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-    font-size: 14px;
-    line-height: 1;
-
-    opacity: 0.85;
-
-}
-
-.my-drawing-box .my-drawing-delete-button:hover {
-
-    opacity: 1;
-
-}
-
-.my-drawing-box--empty {
-
-    flex-direction: column;
-
-    gap: 10px;
-
-    padding: 18px;
-
-    color: var(--yj-color-wood);
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-align: center;
-
-}
-
-.my-drawings-pagination {
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-
-    margin-top: 18px;
-
-    color: var(--yj-color-ink-soft);
-    font-size: 0.9rem;
-
-}
-
-.my-drawings-pagination[hidden] {
-
-    display: none;
-
-}
 
 
 /*=====================================================

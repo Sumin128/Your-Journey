@@ -17,7 +17,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=38">
+        href="CSS/style.css?v=41">
 
     <link
         rel="stylesheet"
@@ -46,124 +46,74 @@
     <main id="gallery-main" class="yj-page">
 
         <section class="gallery-header yj-panel yj-panel--paper yj-enter">
-            <h1>Galerie - Erkunde die Welten</h1>
-            <p>Klicke auf eine Karte um sie in voller Größe anzuschauen.</p>
+            <h1>🖼️ Galerie</h1>
+            <p>Die gemalten Welten von Mirelon – und deine eigenen Bilder.</p>
         </section>
 
-        <div class="gallery-grid" id="gallery-grid">
 
-            <section class="map-card yj-card yj-card--interactive" data-map-id="uebersichtskarte">
-                <div class="map-card-title-row">
-                    <h3>Übersichtskarte</h3>
-                </div>
+        <!-- Die Welten -->
+        <section class="gallery-section yj-panel yj-panel--paper yj-enter">
 
-                <img
-                    src="images/startseite_v4.jpg"
-                    alt="Übersichtskarte von Kuros Wald"
-                    class="map-image"
-                    data-full="images/startseite_v4.jpg">
-            </section>
+            <div class="gallery-section-head">
+                <h2>Die Welten</h2>
+                <span class="gallery-count">7 Orte</span>
+            </div>
 
-            <section class="map-card yj-card yj-card--interactive" data-map-id="kuros-nest">
-                <div class="map-card-title-row">
-                    <h3>Kuros Nest</h3>
-                </div>
+            <div class="gallery-grid" id="gallery-grid">
 
-                <img
-                    src="images/kuros_nest_final.png"
-                    alt="Kuros Nest Karte"
-                    class="map-image"
-                    data-full="images/kuros_nest_final.png"
-                    loading="lazy">
-            </section>
+                <figure class="gallery-card" data-full="images/startseite_v4.jpg" tabindex="0" role="button" aria-label="Übersichtskarte ansehen">
+                    <img src="images/startseite_v4.jpg" alt="Übersichtskarte von Kuros Wald" class="gallery-card-img">
+                    <figcaption class="gallery-card-bar"><span>Übersichtskarte</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-            <section class="map-card yj-card yj-card--interactive" data-map-id="eulenschule">
-                <div class="map-card-title-row">
-                    <h3>Tessas Hasenschule</h3>
-                </div>
+                <figure class="gallery-card" data-full="images/kuros_nest_final.png" tabindex="0" role="button" aria-label="Kuros Nest ansehen">
+                    <img src="images/kuros_nest_final.png" alt="Kuros Nest" class="gallery-card-img" loading="lazy">
+                    <figcaption class="gallery-card-bar"><span>Kuros Nest</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-                <img
-                    src="images/hasenschule.png"
-                    alt="Tessas Hasenschule Karte"
-                    class="map-image"
-                    data-full="images/hasenschule.png"
-                    loading="lazy">
-            </section>
+                <figure class="gallery-card" data-full="images/hasenschule.png" tabindex="0" role="button" aria-label="Tessas Hasenschule ansehen">
+                    <img src="images/hasenschule.png" alt="Tessas Hasenschule" class="gallery-card-img" loading="lazy">
+                    <figcaption class="gallery-card-bar"><span>Tessas Hasenschule</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-            <section class="map-card yj-card yj-card--interactive" data-map-id="fuchsbau">
-                <div class="map-card-title-row">
-                    <h3>Faros Fuchsbau</h3>
-                </div>
+                <figure class="gallery-card" data-full="images/faros_fuchsbau3.png" tabindex="0" role="button" aria-label="Faros Fuchsbau ansehen">
+                    <img src="images/faros_fuchsbau3.png" alt="Faros Fuchsbau" class="gallery-card-img" loading="lazy">
+                    <figcaption class="gallery-card-bar"><span>Faros Fuchsbau</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-                <img
-                    src="images/faros_fuchsbau3.png"
-                    alt="Faros Fuchsbau Karte"
-                    class="map-image"
-                    data-full="images/faros_fuchsbau3.png"
-                    loading="lazy">
-            </section>
+                <figure class="gallery-card" data-full="images/baerenthal.png" tabindex="0" role="button" aria-label="Bärental ansehen">
+                    <img src="images/baerenthal.png" alt="Bärental" class="gallery-card-img" loading="lazy">
+                    <figcaption class="gallery-card-bar"><span>Bärental</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-            <section class="map-card yj-card yj-card--interactive" data-map-id="baerental">
-                <div class="map-card-title-row">
-                    <h3>Bärental</h3>
-                </div>
+                <figure class="gallery-card" data-full="images/luis_chameleon.png" tabindex="0" role="button" aria-label="Luis ansehen">
+                    <img src="images/luis_chameleon.png" alt="Luis, das Chamäleon" class="gallery-card-img" loading="lazy">
+                    <figcaption class="gallery-card-bar"><span>Luis</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-                <img
-                    src="images/baerenthal.png"
-                    alt="Bärental Karte"
-                    class="map-image"
-                    data-full="images/baerenthal.png"
-                    loading="lazy">
-            </section>
+                <figure class="gallery-card" data-full="images/luis_huette.png" tabindex="0" role="button" aria-label="Luis' Hütte ansehen">
+                    <img src="images/luis_huette.png" alt="Luis in seiner Hütte beim Malen und Puzzeln" class="gallery-card-img" loading="lazy">
+                    <figcaption class="gallery-card-bar"><span>Luis' Hütte</span><span class="gallery-card-zoom" aria-hidden="true">🔍</span></figcaption>
+                </figure>
 
-            <section class="map-card yj-card yj-card--interactive" data-map-id="luis">
-                <div class="map-card-title-row">
-                    <h3>Luis</h3>
-                </div>
+            </div>
 
-                <img
-                    src="images/luis_chameleon.png"
-                    alt="Luis, das Chamäleon"
-                    class="map-image"
-                    data-full="images/luis_chameleon.png"
-                    loading="lazy">
-            </section>
-
-            <section class="map-card yj-card yj-card--interactive" data-map-id="luis-huette">
-                <div class="map-card-title-row">
-                    <h3>Luis' Hütte</h3>
-                </div>
-
-                <img
-                    src="images/luis_huette.png"
-                    alt="Luis in seiner Hütte beim Malen und Puzzeln"
-                    class="map-image"
-                    data-full="images/luis_huette.png"
-                    loading="lazy">
-            </section>
-
-        </div>
-        
+        </section>
 
 
-        <section  class="my-drawings-section yj-panel yj-panel--paper yj-enter">
+        <!-- Meine Bilder -->
+        <section class="gallery-section yj-panel yj-panel--paper yj-enter">
 
-            <h2>🖼️ Meine Bilder</h2>
-
-            <p id="my-drawings-guest-hint" class="account-message" hidden>
-                Melde dich an, um deine gemalten Bilder hier zu sehen und zu speichern.
-            </p>
+            <div class="gallery-section-head">
+                <h2>Meine Bilder</h2>
+                <a href="malen.html" class="yj-button yj-button--compact">🎨 Malen</a>
+            </div>
 
             <p id="my-drawings-message" class="account-message" hidden></p>
 
-            <div class="my-drawings-grid" id="my-drawings-grid">
+            <div class="my-drawings-empty" id="my-drawings-empty" hidden></div>
 
-                <div class="my-drawing-box"></div>
-                <div class="my-drawing-box"></div>
-                <div class="my-drawing-box"></div>
-                <div class="my-drawing-box"></div>
-
-            </div>
+            <div class="gallery-grid my-drawings-grid" id="my-drawings-grid" hidden></div>
 
             <div class="my-drawings-pagination" id="my-drawings-pagination" hidden>
 
@@ -186,7 +136,7 @@
     <div id="map-modal" class="map-modal">
         <div class="map-modal-content">
             <button id="map-modal-close" class="map-modal-close" aria-label="Schließen">×</button>
-            <img id="map-modal-img" src="images/Kuroswelten1.png" alt="Große Karte" loading="lazy">
+            <img id="map-modal-img" src="" alt="Bild in voller Größe">
         </div>
     </div>
 
@@ -202,8 +152,8 @@
     <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=2"></script>
     <script src="JS/fireworks.js?v=1"></script>
-    <script src="JS/map.js?v=1"></script>
-    <script src="JS/my-drawings.js?v=1"></script>
+    <script src="JS/map.js?v=2"></script>
+    <script src="JS/my-drawings.js?v=2"></script>
     <script src="JS/sounds.js?v=1"></script>
 
 

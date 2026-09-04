@@ -1,58 +1,81 @@
 /* =====================================================
-   MAP POPUP (Index.html)
-   Öffnet das Kartenbild in einem kleinen Modal beim Klicken
+   GALERIE-LIGHTBOX
+   Klick auf eine .gallery-card (Welt-Bild oder eigenes
+   Bild) öffnet es gross im #map-modal. Delegiert, damit
+   auch nachträglich eingefügte eigene Bilder funktionieren.
    ===================================================== */
 
-(function setupMapModal() {
+(function setupGalleryLightbox() {
 
-const mapImages = document.querySelectorAll('.map-image');
-    const mapModal = document.getElementById('map-modal');
-    const mapModalImg = document.getElementById('map-modal-img');
-    const mapModalClose = document.getElementById('map-modal-close');
+    const modal = document.getElementById("map-modal");
+    const modalImg = document.getElementById("map-modal-img");
+    const closeButton = document.getElementById("map-modal-close");
+    const main = document.getElementById("gallery-main");
 
-    if (mapImages.length === 0 || !mapModal) {
-        console.warn('Map modal not initialized: missing elements', { mapImages, mapModal });
+    if (!modal || !modalImg || !main) {
         return;
     }
 
-    console.log('Map modal initialized', { mapImages, mapModal, mapModalImg, mapModalClose });
+    function openCard(card) {
 
-    // Klick auf kleine Karte öffnet Modal
-    // Klick auf ein Bild öffnet das Modal
-mapImages.forEach(function (image) {
+        const full = card.dataset.full || (card.querySelector("img") && card.querySelector("img").src);
 
-    image.style.cursor = 'pointer';
+        if (!full) {
+            return;
+        }
 
-    image.addEventListener('click', function () {
+        modalImg.src = full;
+        modal.classList.add("open");
 
-        mapModalImg.src = image.src;
+    }
 
-        mapModal.classList.add('open');
+    function close() {
+        modal.classList.remove("open");
+        modalImg.src = "";
+    }
+
+    main.addEventListener("click", function (event) {
+
+        if (event.target.closest(".my-drawing-delete-button")) {
+            return;
+        }
+
+        const card = event.target.closest(".gallery-card");
+
+        if (card) {
+            openCard(card);
+        }
 
     });
 
-});
+    main.addEventListener("keydown", function (event) {
 
-   
+        if (event.key !== "Enter" && event.key !== " ") {
+            return;
+        }
 
-    // Schließen per Button
-    if (mapModalClose) {
-        mapModalClose.addEventListener('click', function () {
-            mapModal.classList.remove('open');
-        });
+        const card = event.target.closest(".gallery-card");
+
+        if (card) {
+            event.preventDefault();
+            openCard(card);
+        }
+
+    });
+
+    if (closeButton) {
+        closeButton.addEventListener("click", close);
     }
 
-    // Schließen per Klick außerhalb des Inhalts
-    mapModal.addEventListener('click', function (e) {
-        if (e.target === mapModal) {
-            mapModal.classList.remove('open');
+    modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+            close();
         }
     });
 
-    // Schließen per Escape
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-            mapModal.classList.remove('open');
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            close();
         }
     });
 

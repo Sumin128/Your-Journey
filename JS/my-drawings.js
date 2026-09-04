@@ -2,36 +2,33 @@
    MY-DRAWINGS.JS
    Zeigt die eigenen, in der Malstube gespeicherten Bilder
    in der Galerie an - immer nur die eigenen (Supabase RLS
-   filtert serverseitig zusätzlich auf user_id), niemals
-   die Bilder anderer Nutzer.
+   filtert serverseitig zusätzlich auf user_id).
 
-   Zeigt bis zu 4 Bilder pro Seite (neueste zuerst). Wer mehr
-   als 4 Bilder gespeichert hat, blättert über "Weiter"/
-   "Zurück" zur nächsten Seite, statt dass ältere Bilder
-   automatisch verdrängt werden.
+   Drei Zustände:
+   - Gast:        eine Aufforderung zum Anmelden (kein Raster)
+   - angemeldet, keine Bilder: eine Aufforderung "ab in die Malstube"
+   - angemeldet mit Bildern:   ein Raster der echten Bilder (bis 8
+     pro Seite, neueste zuerst), Klick zoomt, Mülleimer löscht
    ===================================================== */
 
 (function setupMyDrawings() {
 
     const grid = document.getElementById("my-drawings-grid");
+    const emptyEl = document.getElementById("my-drawings-empty");
     const pagination = document.getElementById("my-drawings-pagination");
     const prevButton = document.getElementById("my-drawings-prev");
     const nextButton = document.getElementById("my-drawings-next");
     const pageLabel = document.getElementById("my-drawings-page-label");
 
-    if (!grid || typeof supabaseClient === "undefined" || !supabaseClient) {
+    if (!grid || !emptyEl || typeof supabaseClient === "undefined" || !supabaseClient) {
         return;
     }
 
-    const PAGE_SIZE = 4;
+    const PAGE_SIZE = 8;
 
     let allDrawings = [];
     let currentPage = 0;
 
-
-    /* =====================================================
-       1. ANZEIGE
-       ===================================================== */
 
     function setMyDrawingsMessage(text, isError) {
 
@@ -47,22 +44,48 @@
 
     }
 
-    function renderEmptyBox(box, isGuest) {
+    function showState(html) {
 
-        box.classList.add("my-drawing-box--empty");
+        grid.hidden = true;
+        grid.innerHTML = "";
+        pagination.hidden = true;
 
-        if (isGuest) {
+        emptyEl.hidden = false;
+        emptyEl.innerHTML = html;
 
-            box.innerHTML =
-                "<p>Melde dich an, um hier deine gemalten Bilder zu sehen.</p>";
+    }
 
-        } else {
+    function showGuestState() {
 
-            box.innerHTML =
-                '<p>Noch kein Bild – mal doch eins in der Malstube!</p>' +
-                '<a href="malen.html" class="yj-button yj-button--compact">🎨 Zur Malstube</a>';
+        showState(
+            '<div class="gallery-cta">' +
+            '<span class="gallery-cta-icon" aria-hidden="true">🔒</span>' +
+            '<p>Mit einem kostenlosen Konto sammelst du deine gemalten Bilder hier – auch auf einem anderen Gerät.</p>' +
+            '<button type="button" class="yj-button" id="my-drawings-login">Anmelden</button>' +
+            '</div>'
+        );
 
+        const loginBtn = document.getElementById("my-drawings-login");
+
+        if (loginBtn) {
+            loginBtn.addEventListener("click", function () {
+                if (typeof openAccountPanel === "function") {
+                    openAccountPanel();
+                }
+            });
         }
+
+    }
+
+    function showEmptyState() {
+
+        showState(
+            '<div class="gallery-cta">' +
+            '<span class="gallery-cta-icon" aria-hidden="true">🎨</span>' +
+            '<p>Noch kein Bild gespeichert. Mal eins in der Malstube!</p>' +
+            '<a href="malen.html" class="yj-button">Zur Malstube</a>' +
+            '</div>'
+        );
 
     }
 
@@ -84,7 +107,6 @@
 
     async function renderCurrentPage() {
 
-        const boxes = grid.querySelectorAll(".my-drawing-box");
         const pageStart = currentPage * PAGE_SIZE;
         const pageDrawings = allDrawings.slice(pageStart, pageStart + PAGE_SIZE);
 
@@ -104,34 +126,43 @@
             })
         );
 
-        boxes.forEach(function (box, index) {
+        emptyEl.hidden = true;
+        emptyEl.innerHTML = "";
+        grid.hidden = false;
+        grid.innerHTML = "";
 
-            box.classList.remove("my-drawing-box--empty");
-            box.innerHTML = "";
+        pageDrawings.forEach(function (drawing, index) {
 
-            const drawing = pageDrawings[index];
             const url = signedUrls[index];
 
-            if (!drawing || !url) {
-                renderEmptyBox(box, false);
+            if (!url) {
                 return;
             }
+
+            const card = document.createElement("figure");
+            card.className = "gallery-card gallery-card--mine";
+            card.dataset.full = url;
+            card.tabIndex = 0;
+            card.setAttribute("role", "button");
+            card.setAttribute("aria-label", "Eigenes Bild ansehen");
 
             const img = document.createElement("img");
             img.src = url;
             img.alt = "Eigenes gemaltes Bild";
+            img.className = "gallery-card-img";
             img.loading = "lazy";
 
             const deleteButton = document.createElement("button");
             deleteButton.type = "button";
-            deleteButton.className = "yj-button yj-button--compact my-drawing-delete-button";
+            deleteButton.className = "my-drawing-delete-button";
             deleteButton.setAttribute("aria-label", "Bild löschen");
             deleteButton.dataset.drawingId = drawing.id;
             deleteButton.dataset.storagePath = drawing.storage_path;
             deleteButton.textContent = "🗑️";
 
-            box.appendChild(img);
-            box.appendChild(deleteButton);
+            card.appendChild(img);
+            card.appendChild(deleteButton);
+            grid.appendChild(card);
 
         });
 
@@ -139,29 +170,6 @@
 
     }
 
-    function renderGuestState() {
-
-        const guestHint = document.getElementById("my-drawings-guest-hint");
-
-        if (guestHint) {
-            guestHint.hidden = false;
-        }
-
-        pagination.hidden = true;
-
-        const boxes = grid.querySelectorAll(".my-drawing-box");
-        boxes.forEach(function (box) {
-            box.classList.remove("my-drawing-box--empty");
-            box.innerHTML = "";
-            renderEmptyBox(box, true);
-        });
-
-    }
-
-
-    /* =====================================================
-       2. DATEN LADEN
-       ===================================================== */
 
     async function loadMyDrawings() {
 
@@ -169,14 +177,8 @@
         const session = sessionResult.data.session;
 
         if (!session) {
-            renderGuestState();
+            showGuestState();
             return;
-        }
-
-        const guestHint = document.getElementById("my-drawings-guest-hint");
-
-        if (guestHint) {
-            guestHint.hidden = true;
         }
 
         try {
@@ -189,41 +191,34 @@
                     .order("created_at", { ascending: false });
 
             if (queryResult.error || !queryResult.data) {
-
-                const boxes = grid.querySelectorAll(".my-drawing-box");
-                boxes.forEach(function (box) {
-                    renderEmptyBox(box, false);
-                });
-
+                showEmptyState();
                 return;
-
             }
 
             allDrawings = queryResult.data;
+
+            if (allDrawings.length === 0) {
+                showEmptyState();
+                return;
+            }
+
             const totalPages = Math.max(1, Math.ceil(allDrawings.length / PAGE_SIZE));
             currentPage = Math.min(currentPage, totalPages - 1);
 
             await renderCurrentPage();
 
         } catch (error) {
-
-            const boxes = grid.querySelectorAll(".my-drawing-box");
-            boxes.forEach(function (box) {
-                renderEmptyBox(box, false);
-            });
-
+            showEmptyState();
         }
 
     }
 
 
-    /* =====================================================
-       3. BILD LÖSCHEN
-       ===================================================== */
-
     async function deleteDrawing(button) {
 
-        const confirmed = confirm("Dieses Bild wirklich löschen? Das kann nicht rückgängig gemacht werden.");
+        const confirmed = await (typeof showMirelonConfirm === "function"
+            ? showMirelonConfirm("Dieses Bild wirklich löschen? Das kann nicht rückgängig gemacht werden.")
+            : Promise.resolve(confirm("Dieses Bild wirklich löschen?")));
 
         if (!confirmed) {
             return;
@@ -258,11 +253,10 @@
 
         const button = event.target.closest(".my-drawing-delete-button");
 
-        if (!button) {
-            return;
+        if (button) {
+            event.stopPropagation();
+            deleteDrawing(button);
         }
-
-        deleteDrawing(button);
 
     });
 
