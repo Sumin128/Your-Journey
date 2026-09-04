@@ -480,6 +480,28 @@
         spriteImg.src = spriteFor(state);
         root.classList.toggle("pc-sleeping", player.tamagotchi.isSleeping);
         renderMood();
+
+        var showBtn = document.getElementById("pc-show");
+        if (showBtn) {
+            showBtn.textContent = species().icon;
+        }
+    }
+
+    /* Kommt die Cloud-/Kontodaten erst nach dem Aufbau des Widgets an
+       (auth.js pullProfileFromCloud feuert dann "player-updated"), muss
+       das Widget nachziehen - sonst zeigt es weiter das alte Baumkind
+       (z. B. Igel-Sprite mit den Werten des gewählten Rehs). */
+    function syncFromPlayer() {
+        if (!root || !player.tamagotchi) {
+            return;
+        }
+        if (!PET_SPECIES[player.tamagotchi.species] && GEMINI_SPECIES[player.tamagotchi.species]) {
+            player.tamagotchi.species = GEMINI_SPECIES[player.tamagotchi.species];
+        }
+        renderSprite();
+        if (panel && !panel.hidden) {
+            renderPanel();
+        }
     }
 
     function flashSprite(state, ms) {
@@ -795,17 +817,51 @@
         afterAction();
     }
 
+    var sleepTicks = 0;
+
     function toggleSleep() {
         var t = player.tamagotchi;
         t.isSleeping = !t.isSleeping;
+        sleepTicks = 0;
         if (t.isSleeping) {
             say("Gute Nacht ...", 3000);
             floatEmoji("💤");
         } else {
-            t.energy = Math.min(100, t.energy + 5);
             say("Guten Morgen!", 3000);
         }
         afterAction();
+    }
+
+    /* Energie füllt sich WÄHREND des Schlafens langsam auf - vorher
+       ging das nur über Seitenwechsel bzw. mehrfaches Wecken/Schlafen.
+       Alle 4 s ein Punkt, dafür wird das Baumkind im Schlaf etwas
+       hungrig/durstig. */
+    function sleepTick() {
+        var t = player.tamagotchi;
+        if (!t.isSleeping || t.energy >= 100) {
+            return;
+        }
+        t.energy = Math.min(100, t.energy + 1);
+        sleepTicks += 1;
+
+        if (sleepTicks % 4 === 0) {
+            t.hunger = Math.max(25, t.hunger - 1);
+            t.thirst = Math.max(25, t.thirst - 1);
+        }
+
+        renderSprite();
+        if (panel && !panel.hidden) {
+            renderPanel();
+        }
+
+        if (sleepTicks % 8 === 0 && typeof savePlayer === "function") {
+            player.tamagotchi.lastTimestamp = Date.now();
+            savePlayer();
+        }
+
+        if (t.energy >= 100) {
+            say("Ich bin ausgeschlafen!", 3000);
+        }
     }
 
     /* =====================================================
@@ -904,12 +960,15 @@
     });
 
     // Alte, nie veröffentlichte Gemini-Fassung aufräumen (Waldgeist/Drache/…):
-    // unbekannte/gesperrte Art -> Igel, alte Standardnamen -> aktueller Standardname.
+    // nur wirklich unbekannte Art-Schlüssel remappen. Ein "reh", das der
+    // Spieler gewählt hat, wird hier NICHT mehr auf Igel zurückgesetzt -
+    // das hat beim Rennen mit den asynchron nachladenden Kontodaten die
+    // Auswahl verschluckt (Igel-Sprite + Reh-Werte).
     var GEMINI_SPECIES = { lumi: "igel", fox: "otter", dragon: "reh", owl: "eichhorn", cat: "baer" };
-    if (GEMINI_SPECIES[player.tamagotchi.species]) {
+    if (!PET_SPECIES[player.tamagotchi.species] && GEMINI_SPECIES[player.tamagotchi.species]) {
         player.tamagotchi.species = GEMINI_SPECIES[player.tamagotchi.species];
     }
-    if (unlockedList().indexOf(player.tamagotchi.species) === -1) {
+    if (!PET_SPECIES[player.tamagotchi.species]) {
         player.tamagotchi.species = "igel";
     }
     if (["Lumi", "Flöckchen", "Pyri", "Kira", "Mimi"].indexOf(player.tamagotchi.name) !== -1) {
@@ -920,5 +979,8 @@
         save();
     }
     build();
+
+    window.addEventListener("player-updated", syncFromPlayer);
+    setInterval(sleepTick, 4000);
 
 })();
