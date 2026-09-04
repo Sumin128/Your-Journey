@@ -35,7 +35,7 @@
     /* =====================================================
        1. BAUMKINDER
        Sprites: images/tamagotchi/<id>_<zustand>.png
-       (happy / eating / drinking / sleeping / playing).
+       (happy / eating / drinking / sleeping / playing / clean).
        Siehe docs/zauber-gefaehrte.md (Bildspezifikation).
        ===================================================== */
 
@@ -49,7 +49,8 @@
                 eating: "images/tamagotchi/igel_eating.png",
                 drinking: "images/tamagotchi/igel_drinking.png",
                 sleeping: "images/tamagotchi/igel_sleeping.png",
-                playing: "images/tamagotchi/igel_playing.png"
+                playing: "images/tamagotchi/igel_playing.png",
+                clean: "images/tamagotchi/igel_clean.png"
             },
             speeches: {
                 greeting: [
@@ -73,7 +74,8 @@
                 eating: "images/tamagotchi/otter_eating.png",
                 drinking: "images/tamagotchi/otter_drinking.png",
                 sleeping: "images/tamagotchi/otter_sleeping.png",
-                playing: "images/tamagotchi/otter_playing.png"
+                playing: "images/tamagotchi/otter_playing.png",
+                clean: "images/tamagotchi/otter_clean.png"
             },
             speeches: {
                 greeting: [
@@ -97,7 +99,8 @@
                 eating: "images/tamagotchi/reh_eating.png",
                 drinking: "images/tamagotchi/reh_drinking.png",
                 sleeping: "images/tamagotchi/reh_sleeping.png",
-                playing: "images/tamagotchi/reh_playing.png"
+                playing: "images/tamagotchi/reh_playing.png",
+                clean: "images/tamagotchi/reh_clean.png"
             },
             speeches: {
                 greeting: [
@@ -121,7 +124,8 @@
                 eating: "images/tamagotchi/eichhorn_eating.png",
                 drinking: "images/tamagotchi/eichhorn_drinking.png",
                 sleeping: "images/tamagotchi/eichhorn_sleeping.png",
-                playing: "images/tamagotchi/eichhorn_playing.png"
+                playing: "images/tamagotchi/eichhorn_playing.png",
+                clean: "images/tamagotchi/eichhorn_clean.png"
             },
             speeches: {
                 greeting: [
@@ -145,7 +149,8 @@
                 eating: "images/tamagotchi/baer_eating.png",
                 drinking: "images/tamagotchi/baer_drinking.png",
                 sleeping: "images/tamagotchi/baer_sleeping.png",
-                playing: "images/tamagotchi/baer_playing.png"
+                playing: "images/tamagotchi/baer_playing.png",
+                clean: "images/tamagotchi/baer_clean.png"
             },
             speeches: {
                 greeting: [
@@ -786,7 +791,7 @@
         if (act === "clean") {
             t.cleanliness = Math.min(100, t.cleanliness + 25);
             t.happiness = Math.min(100, t.happiness + 10);
-            flashSprite("happy", 1400);
+            flashSprite("clean", 2200);
             floatEmoji("✨");
             chime("pop");
             say("Jetzt glänz ich wieder.", 2500);
