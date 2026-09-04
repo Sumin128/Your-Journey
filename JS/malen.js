@@ -1,20 +1,18 @@
 /* =====================================================
    MALEN.JS
-   Zeichenfläche der Malstube: Maus- und Touch-Zeichnen,
-   Werkzeugkasten in drei Kategorien-Tabs (immer nur eine
-   Kategorie sichtbar, siehe .paint-tool-category-panel[hidden]):
-   - Malen: Pinsel, Stift, Füller, Edding, Sprühdose (je eigener
-     Strich-Charakter: Breite/Deckkraft/Kappe, siehe
-     getBrushRenderParams())
-   - Formen: Rechteck, Kreis, Dreieck, Stern, Herz, Linie
-     (Umriss/Gefüllt, gleiche Snapshot-Technik für alle)
-   - Werkzeuge: Radiergummi, Farbeimer, Farbverlauf, Stempel
-   Rückgängig/Leeren sind bewusst NICHT Teil der Kategorien,
-   sondern immer sichtbar (.paint-persistent-actions). Die
-   Größen-Regler (Klein/Mittel/Groß + Slider) werden je nach
-   Kategorie/Werkzeug per JS ins passende Panel verschoben,
-   siehe updateSizeControlPlacement(). Dazu Speichern in
-   Supabase Storage.
+   Malstube im Studio-Layout: Kopfzeile (Rückgängig/
+   Wiederholen/Löschen/Speichern), linke Werkzeugleiste als
+   Akkordeon (Stifte / Formen / Mehr), große Leinwand, untere
+   Farb- und Größenleiste mit Live-Vorschau.
+
+   - Stifte: Pinsel, Stift, Füller, Edding, Sprühdose (je
+     eigener Strich-Charakter, siehe getBrushRenderParams())
+   - Formen: Linie, Rechteck, Kreis, Dreieck, Stern, Herz
+     (Umriss/Gefüllt, Snapshot-Technik)
+   - Mehr: Radiergummi, Farbeimer, Farbverlauf, Stempel
+   Umriss/Gefüllt und die Stempel-Motive erscheinen als
+   kontextuelle Leiste (#paint-context) nur, wenn das
+   passende Werkzeug aktiv ist.
 
    Speichern funktioniert nur mit Konto (siehe auth.js) -
    die App bleibt ohne Konto komplett nutzbar, das Bild
@@ -36,27 +34,22 @@
     const sizeButtons = document.querySelectorAll(".paint-size-button");
     const sizeSlider = document.getElementById("paint-size-slider");
     const sizeValueLabel = document.getElementById("paint-size-value");
+    const previewEl = document.getElementById("paint-preview");
     const toolButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-tool]");
-    const fillButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-fill-mode]");
-    const stampButtons = document.querySelectorAll("#malen-toolbar .tool-button[data-stamp]");
+    const fillButtons = document.querySelectorAll(".tool-button[data-fill-mode]");
+    const stampButtons = document.querySelectorAll(".tool-button[data-stamp]");
+    const contextEl = document.getElementById("paint-context");
+    const fillGroup = document.getElementById("paint-fill-group");
     const stampMotifGroup = document.getElementById("stamp-motif-group");
-    const categoryTabs = document.querySelectorAll("#malen-toolbar .paint-category-tab[data-category]");
-    const categoryPanels = document.querySelectorAll("#malen-toolbar .paint-tool-category-panel[data-category-panel]");
-    const sizeControlEl = document.getElementById("paint-size-control");
+    const groupHeads = document.querySelectorAll("#malen-toolbar .paint-group-head");
     const undoButton = document.getElementById("paint-undo-button");
+    const redoButton = document.getElementById("paint-redo-button");
     const clearButton = document.getElementById("paint-clear-button");
     const saveButton = document.getElementById("paint-save-button");
     const messageEl = document.getElementById("paint-message");
 
-    const MAX_HISTORY_STATES = 20;
+    const MAX_HISTORY_STATES = 30;
     const SHAPE_TOOLS = ["rectangle", "circle", "triangle", "star", "heart", "line"];
-
-    /* Kategorien, deren Werkzeuge IMMER eine Größe brauchen (Malen,
-       Formen - alle Pinseltypen und Formen nutzen currentSize als
-       Strichbreite). Im "Werkzeuge"-Panel brauchen nur Radiergummi
-       und Stempel eine Größe, siehe updateSizeControlPlacement(). */
-    const SIZE_ALWAYS_PANELS = ["paint", "shapes"];
-    const TOOLS_PANEL_SIZE_TOOLS = ["eraser", "stamp"];
 
     /* Echte Maskottchen als Stempel-Motive, per Bild statt Emoji -
        einmal vorab laden, damit das erste Stempeln nicht auf das
@@ -89,6 +82,7 @@
     let lastX = 0;
     let lastY = 0;
     let history = [];
+    let redoStack = [];
 
     let shapeStartPoint = null;
     let shapeSnapshot = null;
@@ -112,6 +106,23 @@
 
         if (history.length > MAX_HISTORY_STATES) {
             history.shift();
+        }
+
+        // Jede neue Aktion verwirft die "Wiederholen"-Kette.
+        redoStack = [];
+
+        updateUndoRedoButtons();
+
+    }
+
+    function updateUndoRedoButtons() {
+
+        if (undoButton) {
+            undoButton.disabled = history.length <= 1;
+        }
+
+        if (redoButton) {
+            redoButton.disabled = redoStack.length === 0;
         }
 
     }
@@ -174,12 +185,33 @@
 
     });
 
+    function updatePreview() {
+
+        if (!previewEl) {
+            return;
+        }
+
+        // Vorschau-Punkt in der unteren Leiste: echte Farbe, Größe
+        // gedeckelt damit er die Leiste nicht sprengt.
+        const shown = Math.max(3, Math.min(currentSize, 34));
+
+        previewEl.style.setProperty("--preview-size", shown + "px");
+        previewEl.style.setProperty(
+            "--preview-color",
+            currentTool === "eraser" ? "#ffffff" : currentColor
+        );
+
+    }
+
     function setSize(size, sourceButton) {
 
         currentSize = size;
 
         sizeButtons.forEach(function (item) {
-            item.classList.toggle("is-active", item === sourceButton);
+            item.classList.toggle(
+                "is-active",
+                sourceButton ? item === sourceButton : Number(item.dataset.size) === size
+            );
         });
 
         if (sizeSlider) {
@@ -187,10 +219,11 @@
         }
 
         if (sizeValueLabel) {
-            sizeValueLabel.textContent = size + " px";
+            sizeValueLabel.textContent = size + " px";
         }
 
         updateCanvasCursor();
+        updatePreview();
 
     }
 
@@ -214,36 +247,25 @@
 
     }
 
-    /* Die Größen-Regler (Klein/Mittel/Groß + Slider) gibt es nur EIN
-       Mal im DOM - je nach aktiver Kategorie/Werkzeug wird derselbe
-       Block per appendChild() in das passende Panel verschoben, statt
-       ihn viermal zu duplizieren. */
-    function updateSizeControlPlacement() {
+    /* Kontextuelle Optionen (Umriss/Gefüllt bei Formen, Motiv beim
+       Stempel) nur einblenden, wenn das passende Werkzeug aktiv ist. */
+    function updateContextBar() {
 
-        if (!sizeControlEl) {
-            return;
+        if (fillGroup) {
+            fillGroup.hidden = !SHAPE_TOOLS.includes(currentTool);
         }
 
-        const activePanel = document.querySelector("#malen-toolbar .paint-tool-category-panel:not([hidden])");
-
-        if (!activePanel) {
-            sizeControlEl.hidden = true;
-            return;
+        if (stampMotifGroup) {
+            stampMotifGroup.hidden = currentTool !== "stamp";
         }
 
-        const panelKey = activePanel.dataset.categoryPanel;
-        const showSize = SIZE_ALWAYS_PANELS.includes(panelKey) || (panelKey === "tools" && TOOLS_PANEL_SIZE_TOOLS.includes(currentTool));
+        if (contextEl) {
+            const anyVisible =
+                (fillGroup && !fillGroup.hidden) ||
+                (stampMotifGroup && !stampMotifGroup.hidden);
 
-        if (!showSize) {
-            sizeControlEl.hidden = true;
-            return;
+            contextEl.hidden = !anyVisible;
         }
-
-        if (sizeControlEl.parentElement !== activePanel) {
-            activePanel.appendChild(sizeControlEl);
-        }
-
-        sizeControlEl.hidden = false;
 
     }
 
@@ -259,12 +281,37 @@
 
             button.classList.add("is-active");
 
-            if (stampMotifGroup) {
-                stampMotifGroup.hidden = currentTool !== "stamp";
-            }
-
+            updateContextBar();
             updateCanvasCursor();
-            updateSizeControlPlacement();
+            updatePreview();
+
+        });
+
+    });
+
+    /* Werkzeugleiste = Akkordeon: eine Gruppe offen, Klick auf einen
+       Kopf öffnet die Gruppe und schließt die anderen. */
+    groupHeads.forEach(function (head) {
+
+        head.addEventListener("click", function () {
+
+            const group = head.closest(".paint-group");
+            const willOpen = !group.classList.contains("is-open");
+
+            groupHeads.forEach(function (other) {
+
+                const otherGroup = other.closest(".paint-group");
+                const body = otherGroup.querySelector(".paint-group-body");
+                const isThis = otherGroup === group && willOpen;
+
+                otherGroup.classList.toggle("is-open", isThis);
+                other.setAttribute("aria-expanded", isThis ? "true" : "false");
+
+                if (body) {
+                    body.hidden = !isThis;
+                }
+
+            });
 
         });
 
@@ -302,29 +349,8 @@
 
     });
 
-    categoryTabs.forEach(function (tab) {
-
-        tab.addEventListener("click", function () {
-
-            categoryTabs.forEach(function (item) {
-                item.classList.remove("is-active");
-                item.setAttribute("aria-selected", "false");
-            });
-
-            categoryPanels.forEach(function (panel) {
-                panel.hidden = panel.dataset.categoryPanel !== tab.dataset.category;
-            });
-
-            tab.classList.add("is-active");
-            tab.setAttribute("aria-selected", "true");
-
-            updateSizeControlPlacement();
-
-        });
-
-    });
-
-    updateSizeControlPlacement();
+    updateContextBar();
+    updatePreview();
 
 
     /* =====================================================
@@ -983,7 +1009,7 @@
 
 
     /* =====================================================
-       4. RÜCKGÄNGIG / LEEREN
+       4. RÜCKGÄNGIG / WIEDERHOLEN / LEEREN
        ===================================================== */
 
     undoButton.addEventListener("click", function () {
@@ -992,11 +1018,32 @@
             return;
         }
 
-        history.pop();
+        redoStack.push(history.pop());
 
         restoreHistoryState(history[history.length - 1]);
 
+        updateUndoRedoButtons();
+
     });
+
+    if (redoButton) {
+
+        redoButton.addEventListener("click", function () {
+
+            if (redoStack.length === 0) {
+                return;
+            }
+
+            const state = redoStack.pop();
+
+            history.push(state);
+            restoreHistoryState(state);
+
+            updateUndoRedoButtons();
+
+        });
+
+    }
 
     clearButton.addEventListener("click", async function () {
 
