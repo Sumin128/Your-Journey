@@ -376,6 +376,12 @@
     background: var(--yj-color-accent, #e0a53c);
 }
 
+.pc-sub button.pc-sub-active {
+    border-color: var(--yj-color-accent, #e0a53c);
+    background: #f5ead4;
+    font-weight: 800;
+}
+
 /* Läuft beim "Spielen" einmal quer über die ganze Seite (siehe
    runAcrossScreen() in JS/tamagotchi.js) - unabhängig von der
    Position von #pet-companion. left:0 + transform:translateX(...)

@@ -736,7 +736,7 @@
 
         if (act === "menu") {
             var switchBtn = (unlockedList().length > 1)
-                ? '<button type="button" data-act="switch">🔄 Baumkind wechseln</button>' : '';
+                ? '<button type="button" data-act="switch">🔄 Anderes Baumkind wählen</button>' : '';
             subMenu(
                 '<button type="button" data-act="rename">✏️ Umbenennen</button>' +
                 switchBtn +
@@ -765,12 +765,27 @@
 
         if (act === "switch") {
             var list = unlockedList();
-            var idx = list.indexOf(t.species);
-            t.species = list[(idx + 1) % list.length];
-            save();
-            renderPanel();
-            renderSprite();
-            say(species().speeches.greeting[0], 3500);
+            subMenu(list.map(function (id) {
+                var sp = PET_SPECIES[id];
+                var isActive = id === t.species;
+                return '<button type="button" data-species="' + id + '"' +
+                    (isActive ? ' class="pc-sub-active"' : '') + '>' +
+                    sp.icon + ' ' + sp.name + ' – ' + sp.speciesName +
+                    (isActive ? ' ✓' : '') +
+                    '</button>';
+            }).join(""));
+            return;
+        }
+
+        if (target && target.dataset.species) {
+            var chosenSpecies = target.dataset.species;
+            if (chosenSpecies !== t.species && unlockedList().indexOf(chosenSpecies) !== -1) {
+                t.species = chosenSpecies;
+                save();
+                renderPanel();
+                renderSprite();
+                say(species().speeches.greeting[0], 3500);
+            }
             return;
         }
 
@@ -998,7 +1013,7 @@
         if (!panel || panel.hidden) {
             return;
         }
-        var btn = e.target.closest("[data-act],[data-feed],[data-drink]");
+        var btn = e.target.closest("[data-act],[data-feed],[data-drink],[data-species]");
         if (btn && root.contains(btn)) {
             handleAction(btn.dataset.act || "", btn);
             return;
