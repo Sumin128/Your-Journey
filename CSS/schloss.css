@@ -83,7 +83,43 @@
     z-index: 5;
 }
 
+/* --- Tabs (Inventar / Laden) --- */
+
+.schloss-tabs {
+
+    display: flex;
+    gap: 8px;
+
+}
+
+.schloss-tab {
+
+    padding: 8px 16px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-pill, 999px);
+    background: var(--yj-color-paper);
+
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--yj-color-ink-soft);
+
+    cursor: pointer;
+
+}
+
+.schloss-tab.is-active {
+
+    background: var(--yj-color-accent, #e0a53c);
+    color: var(--yj-color-wood-dark);
+
+}
+
 /* --- Inventar --- */
+
+.schloss-inventory[hidden] {
+    display: none;
+}
 
 .schloss-inventory {
 
@@ -135,6 +171,22 @@
     width: 44px;
     height: 44px;
     object-fit: contain;
+}
+
+.schloss-shop-price {
+
+    display: flex;
+    align-items: center;
+    gap: 3px;
+
+    font-size: 0.75rem;
+    color: var(--yj-color-ink-soft);
+
+}
+
+.schloss-shop-price .coin-icon {
+    width: 14px;
+    height: 14px;
 }
 
 /* --- Kontextmenü für ein platziertes Möbelstück --- */

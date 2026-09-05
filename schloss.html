@@ -23,7 +23,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=18">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=4">
-    <link rel="stylesheet" href="CSS/schloss.css?v=1">
+    <link rel="stylesheet" href="CSS/schloss.css?v=3">
 
     <title>Mein Schloss</title>
 
@@ -63,7 +63,13 @@
 
             <div id="schloss-room" class="schloss-room" aria-label="Dein Wohnzimmer"></div>
 
+            <div class="schloss-tabs" role="tablist">
+                <button type="button" class="schloss-tab is-active" data-schloss-tab="inventory">🪑 Inventar</button>
+                <button type="button" class="schloss-tab" data-schloss-tab="shop">🛍️ Laden</button>
+            </div>
+
             <div id="schloss-inventory" class="schloss-inventory" aria-label="Deine Möbel"></div>
+            <div id="schloss-shop" class="schloss-inventory" aria-label="Schlossladen" hidden></div>
 
         </section>
 
@@ -86,8 +92,8 @@
     <script src="JS/tamagotchi.js?v=8"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
-    <script src="JS/schloss-data.js?v=1"></script>
-    <script src="JS/schloss.js?v=1"></script>
+    <script src="JS/schloss-data.js?v=2"></script>
+    <script src="JS/schloss.js?v=2"></script>
 
 </body>
 </html>
