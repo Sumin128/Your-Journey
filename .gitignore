@@ -12,3 +12,6 @@ node_modules/
 tools/__screenshots__/
 
 Claude outputs/
+
+# Playwright-MCP Testartefakte
+.playwright-mcp/

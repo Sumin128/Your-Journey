@@ -18,7 +18,8 @@ const MIME = {
     ".jfif": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp",
     ".svg": "image/svg+xml", ".ico": "image/x-icon",
     ".woff": "font/woff", ".woff2": "font/woff2", ".ttf": "font/ttf",
-    ".mp3": "audio/mpeg", ".wav": "audio/wav", ".ogg": "audio/ogg"
+    ".mp3": "audio/mpeg", ".wav": "audio/wav", ".ogg": "audio/ogg",
+    ".glb": "model/gltf-binary", ".gltf": "model/gltf+json"
 };
 
 export function startServer(port = 0) {

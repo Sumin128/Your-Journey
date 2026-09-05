@@ -86,7 +86,7 @@ const SCHLOSS_FURNITURE = [
         id: "stuhl_wald_a", name: "Waldstuhl", category: "sitzmoebel",
         styles: ["wald"], price: 15, size: "small", rooms: ["wohnzimmer"],
         footprint: { w: 0.7, d: 0.7 },
-        designs: [{ sprite: "images/schloss/moebel/stuhl_wald_a.png", model: null }],
+        designs: [{ sprite: "images/schloss/moebel/stuhl_wald_a.png", model: "images/schloss/models/stuhl_wald_a.glb" }],
         colorable: false, colors: [], paintable: false, hasContent: false,
         unlockedBy: { type: "level", level: 3 }
     },
@@ -94,7 +94,7 @@ const SCHLOSS_FURNITURE = [
         id: "tisch_wald_a", name: "Waldtisch", category: "tische",
         styles: ["wald"], price: 20, size: "medium", rooms: ["wohnzimmer"],
         footprint: { w: 1.1, d: 1.1 },
-        designs: [{ sprite: "images/schloss/moebel/tisch_wald_a.png", model: null }],
+        designs: [{ sprite: "images/schloss/moebel/tisch_wald_a.png", model: "images/schloss/models/tisch_wald_a.glb" }],
         colorable: false, colors: [], paintable: false, hasContent: false,
         unlockedBy: { type: "level", level: 3 }
     },
@@ -105,6 +105,12 @@ const SCHLOSS_FURNITURE = [
         // Liegt flach auf dem Boden statt aufrecht zu stehen wie die
         // übrigen Cutout-Möbel (siehe flatOnFloor in JS/schloss-3d.js).
         flatOnFloor: true,
+        // GLB (images/schloss/models/teppich_wald_a.glb) liegt bereit,
+        // bleibt aber bewusst UNverdrahtet: das Einfärben (colorable
+        // unten) arbeitet konturerhaltend auf der Sprite-Textur des
+        // Cutouts - auf einem GLB-Mesh würde es nicht greifen. Der
+        // flach liegende Teppich-Cutout sieht ohnehin gut aus; erst
+        // wenn das GLB-Tinting steht, hier auf den Pfad umstellen.
         designs: [{ sprite: "images/schloss/moebel/teppich_wald_a.png", model: null }],
         // Einfärbbar: konturerhaltendes Canvas-Tinting, in der 3D-Szene
         // angeschlossen (Farbkreise beim Auswählen, siehe JS/schloss-3d.js).
@@ -113,9 +119,9 @@ const SCHLOSS_FURNITURE = [
         unlockedBy: { type: "level", level: 3 }
     },
 
-    { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: null }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "lampe_wald_a", name: "Waldlampe", category: "licht", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/lampe_wald_a.png", model: null }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: { type: "level", level: 5 } },
+    { id: "lampe_wald_a", name: "Waldlampe", category: "licht", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/lampe_wald_a.png", model: "images/schloss/models/lampe_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: { type: "level", level: 5 } },
     { id: "pflanze_wald_a", name: "Waldpflanze", category: "pflanzen", styles: ["wald"], price: 10, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/pflanze_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "rahmen_wald_a", name: "Bilderrahmen", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.3 }, designs: [{ sprite: "images/schloss/moebel/rahmen_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: true, unlockedBy: null },
 

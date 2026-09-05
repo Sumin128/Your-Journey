@@ -81,6 +81,7 @@ function initSchloss3D(canvas) {
     // aufgerufen werden als sie textureCache erreichen würden.
     const textureLoader = new THREE.TextureLoader();
     const textureCache = {};
+    const gltfLoader = new GLTFLoader(); // ebenfalls vor dem ersten addFurnitureGroup() (TDZ, siehe oben)
 
     // Innenausstattungs-Stil ("Theme"). Aktuell hat nur "wald" eine
     // shell; für alles andere (bewusst noch nicht fertige Themes)
@@ -173,6 +174,13 @@ function initSchloss3D(canvas) {
     const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 6.5, 2);
     fireLight.position.set(3.1, 1.05, -ROOM_DEPTH / 2 + 0.6);
     scene.add(fireLight);
+
+    // Dezentes Fülllicht von der Kameraseite, ohne Schatten - hebt die
+    // Schattenseite von 3D-Möbelmodellen an, damit sie nicht zu dunkel
+    // absaufen (Cutouts brauchen das nicht, schadet ihnen aber nicht).
+    const fillLight = new THREE.DirectionalLight(0xffe9cf, 0.35);
+    fillLight.position.set(1.5, 3, 7);
+    scene.add(fillLight);
 
 
     /* --- Boden --- */
@@ -676,14 +684,11 @@ function initSchloss3D(canvas) {
 
     }
 
-    // Echtes .glb-Modell in eine bestehende Möbelgruppe laden. Die
-    // Modelle werden laut docs/mein-schloss.md ("3D-Möbelmodelle") in
-    // Metern und mit Pivot auf Bodenmitte/Vorderseite +Z authored -
-    // deshalb hier nur eine kleine Absicherung (auf den Boden setzen),
-    // keine volle Normalisierung. Bei Ladefehler ruft onFail() den
-    // 2D-Cutout als Rückfall auf.
-    const gltfLoader = new GLTFLoader();
-
+    // Echtes .glb-Modell in eine bestehende Möbelgruppe laden. Maßstab
+    // wird an den footprint angepasst (Generatoren liefern beliebige
+    // Größen), X/Z zentriert, Unterkante auf den Boden. Bei Ladefehler
+    // ruft onFail() den 2D-Cutout als Rückfall auf. gltfLoader ist oben
+    // deklariert (TDZ).
     function loadFurnitureModel(group, furniture, design, onFail) {
 
         gltfLoader.load(
@@ -699,8 +704,28 @@ function initSchloss3D(canvas) {
                     }
                 });
 
-                // Unterkante auf den Boden (falls der Pivot leicht daneben liegt)
-                const box = new THREE.Box3().setFromObject(model);
+                const footprint = furniture.footprint || { w: 0.6, d: 0.6 };
+
+                // Maßstab an den footprint anpassen. Tripo/andere
+                // Generatoren liefern das Modell in irgendeiner Größe -
+                // hier auf die im Katalog hinterlegte Breite bringen
+                // (die breitere der beiden Grundflächen-Achsen zählt).
+                let box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                const modelWidth = Math.max(size.x, size.z) || 1;
+                const targetWidth = Math.max(footprint.w, footprint.d);
+                const scale = targetWidth / modelWidth;
+
+                if (isFinite(scale) && scale > 0) {
+                    model.scale.setScalar(scale);
+                }
+
+                // Nach dem Skalieren: X/Z zentrieren und Unterkante auf
+                // den Boden (unabhängig davon, wo der Pivot lag).
+                box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.x -= center.x;
+                model.position.z -= center.z;
                 if (isFinite(box.min.y)) {
                     model.position.y -= box.min.y;
                 }
