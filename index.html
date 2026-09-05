@@ -21,7 +21,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/components/index.css?v=17">
+        href="CSS/components/index.css?v=18">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=4">
 
     <title>Mirelon</title>
@@ -148,6 +148,22 @@
                 <span class="home-map-tooltip">Gehe zu Bärental</span>
             </a>
 
+            <!-- Position ist eine grobe Erst-Schätzung ("oben rechts" im
+                 Kartenbild) - bei Gelegenheit anhand der echten Karte
+                 nachjustieren (nur die vier --x/--y/--w/--h-Werte).
+                 Gesperrt/freigeschaltet wird per JS umgeschaltet, siehe
+                 JS/index.js (einzige Quelle der Wahrheit:
+                 player.progression.unlockedFeatures, wie in JS/sidebar.js). -->
+            <a
+                href="schloss.html"
+                class="home-map-hotspot home-map-hotspot--locked"
+                data-locked-feature="castle"
+                aria-disabled="true"
+                style="--x:75%; --y:2%; --w:11%; --h:15%;">
+                <span class="home-map-tooltip">Das Schloss wartet noch …</span>
+                <span class="home-map-lock-badge" aria-hidden="true">🔒</span>
+            </a>
+
 
         </section>
 
@@ -158,15 +174,17 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=29"></script>
-    <script src="JS/auth.js?v=8"></script>
-    <script src="JS/sidebar.js?v=14"></script>
+    <script src="JS/player.js?v=30"></script>
+    <script src="JS/level-data.js?v=1"></script>
+    <script src="JS/level-up.js?v=1"></script>
+    <script src="JS/auth.js?v=9"></script>
+    <script src="JS/sidebar.js?v=15"></script>
     <script src="JS/bugreport.js?v=1"></script>
-    <script src="JS/tamagotchi.js?v=7"></script>
+    <script src="JS/tamagotchi.js?v=8"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/data.js?v=3"></script>
-    <script src="JS/index.js?v=1"></script>
+    <script src="JS/index.js?v=2"></script>
     <script src="JS/map-sparkles.js?v=1"></script>
 
 

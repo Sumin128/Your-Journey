@@ -137,6 +137,105 @@ window.addEventListener("mirelon:earn-coins", async function (event) {
 });
 
 
+/* =====================================================
+   MIRELON-LEVELSYSTEM: SERVERSEITIG GUTSCHREIBEN
+   Unabhängig vom lokalen, optimistischen Update in JS/player.js
+   (dort nur für die sofortige Anzeige) - hier läuft die eigentliche,
+   maßgebliche XP-/Level-/Belohnungsvergabe über earn_xp() (siehe
+   supabase_migration_schloss.sql). Exakt dasselbe Prinzip wie beim
+   "mirelon:earn-coins"-Listener oben: der Client meldet nur den
+   Grund, nie einen Betrag. Für Gäste ohne Konto passiert hier
+   nichts, deren Fortschritt bleibt rein lokal (siehe applyEarnedXp()
+   in JS/level-data.js).
+   ===================================================== */
+
+window.addEventListener("mirelon:earn-xp", async function (event) {
+
+    if (!supabaseClient || !currentSession) {
+        return;
+    }
+
+    const reason =
+        event && event.detail && typeof event.detail.reason === "string"
+            ? event.detail.reason
+            : null;
+
+    if (!reason) {
+        return;
+    }
+
+    const rpcResult = await supabaseClient.rpc("earn_xp", { p_reason: reason });
+
+    if (rpcResult.error) {
+
+        console.warn("XP konnte nicht serverseitig gutgeschrieben werden:", rpcResult.error);
+
+        return;
+
+    }
+
+    /* Server ist die Wahrheit: der lokale, optimistische Stand aus
+       JS/player.js (applyEarnedXp()) wird hier vollständig durch den
+       serverseitig bestätigten Stand ersetzt - inkl. Coins/
+       Consumables/ownedFurniture, da ein Level-Aufstieg auch diese
+       verändern kann (siehe earn_xp()-Rückgabewert). */
+
+    const authoritative = rpcResult.data;
+
+    if (authoritative && typeof authoritative.level === "number") {
+
+        player.progression = player.progression || {};
+        player.progression.version = 1;
+        player.progression.xp = authoritative.xp;
+        player.progression.level = authoritative.level;
+        player.progression.unlockedFeatures = authoritative.unlockedFeatures || [];
+        player.progression.claimedLevelRewards = authoritative.claimedLevelRewards || [];
+
+        if (typeof authoritative.coins === "number") {
+            player.coins = authoritative.coins;
+            player.totalCoinsEarned = authoritative.totalCoinsEarned;
+            player.goldenFeathers = authoritative.goldenFeathers;
+        }
+
+        if (authoritative.consumables) {
+            player.consumables = authoritative.consumables;
+        }
+
+        if (authoritative.ownedFurniture) {
+            player.schloss = player.schloss || defaultSchloss();
+            player.schloss.ownedFurniture = authoritative.ownedFurniture;
+        }
+
+        if (authoritative.storyEvent) {
+
+            if (!Array.isArray(player.pendingStoryEvents)) {
+                player.pendingStoryEvents = [];
+            }
+
+            if (player.pendingStoryEvents.indexOf(authoritative.storyEvent) === -1) {
+                player.pendingStoryEvents.push(authoritative.storyEvent);
+            }
+
+        }
+
+        savePlayer();
+        updatePlayerUI();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        if (
+            Array.isArray(authoritative.grantedRewards) &&
+            authoritative.grantedRewards.length &&
+            typeof window.showMirelonLevelUp === "function"
+        ) {
+            window.showMirelonLevelUp(authoritative.level, authoritative.grantedRewards, authoritative.storyEvent);
+        }
+
+    }
+
+});
+
+
 async function pullProfileFromCloud() {
 
     if (!supabaseClient || !currentSession) {

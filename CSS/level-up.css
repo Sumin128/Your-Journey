@@ -1,0 +1,192 @@
+/* =====================================================
+   LEVEL-UP.CSS
+   Zwei UI-Bausteine für JS/level-up.js:
+    - .level-up-popup: kleines, nicht-blockierendes Popup für einen
+      normalen Level-Aufstieg (Muster: .mirelon-toast, style.css)
+    - .mirelon-story-*: großes Erzähl-Panel für Meilenstein-Level
+      (Muster: .mirelon-confirm-*, CSS/components/confirm-dialog.css)
+   ===================================================== */
+
+.level-up-popup {
+
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+
+    z-index: 4000;
+
+    width: min(300px, calc(100vw - 40px));
+    padding: 16px 18px;
+
+    border: 2px solid var(--yj-color-accent, #e0a53c);
+    border-radius: var(--yj-radius-lg, 16px);
+
+    background: var(--yj-color-paper, #fffaf0);
+    box-shadow: 0 12px 32px rgba(35, 20, 8, 0.35);
+
+    color: var(--yj-color-wood-dark, #4a2f16);
+    font-family: var(--yj-font-body, system-ui, sans-serif);
+
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+    pointer-events: none;
+
+    transition: opacity 0.3s ease, transform 0.3s ease;
+
+}
+
+.level-up-popup--show {
+
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+
+}
+
+.level-up-popup-close {
+
+    position: absolute;
+    top: 8px;
+    right: 10px;
+
+    border: none;
+    background: none;
+
+    font-size: 0.9rem;
+    color: var(--yj-color-ink-soft, #7a5c3e);
+    cursor: pointer;
+
+}
+
+.level-up-popup-title {
+
+    padding-right: 20px;
+    margin-bottom: 8px;
+
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: 1.05rem;
+
+}
+
+.level-up-popup-rewards {
+
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    font-size: 0.88rem;
+
+}
+
+@media (max-width: 480px) {
+    .level-up-popup {
+        right: 10px;
+        bottom: 10px;
+    }
+}
+
+
+/* --- Erzähl-Panel (z. B. Faro beim Schloss-Unlock) --- */
+
+.mirelon-story-overlay {
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 5000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity 0.2s ease;
+
+}
+
+.mirelon-story-overlay--show {
+
+    opacity: 1;
+    pointer-events: auto;
+
+}
+
+.mirelon-story-backdrop {
+
+    position: absolute;
+    inset: 0;
+
+    background: rgba(43, 26, 14, 0.6);
+
+}
+
+.mirelon-story-card {
+
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    width: min(420px, calc(100vw - 32px));
+
+    padding: 30px 26px 24px;
+
+    border: 2px solid var(--yj-color-border, #c8a06a);
+    border-radius: var(--yj-radius-lg, 16px);
+
+    background: var(--yj-color-paper, #fffaf0);
+    box-shadow: var(--yj-shadow-card, 0 12px 32px rgba(35, 20, 8, 0.35));
+
+    color: var(--yj-color-ink, #4a2f16);
+    font-family: var(--yj-font-body, system-ui, sans-serif);
+
+    transform: scale(0.92) translateY(8px);
+    transition: transform 0.25s var(--yj-ease-spring, ease);
+
+}
+
+.mirelon-story-overlay--show .mirelon-story-card {
+
+    transform: scale(1) translateY(0);
+
+}
+
+.mirelon-story-avatar {
+
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+
+    margin-bottom: 14px;
+    filter: drop-shadow(0 6px 10px rgba(35, 20, 8, 0.3));
+
+}
+
+.mirelon-story-text {
+
+    margin: 0 0 22px;
+
+    font-size: 1.02rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-align: center;
+
+}
+
+.mirelon-story-actions {
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    gap: 12px;
+
+}

@@ -296,6 +296,23 @@ main {
     }
 }
 
+/* Schloss-Hotspot vor Level 3 (siehe JS/index.js, "einzige Quelle
+   der Wahrheit" ist player.progression.unlockedFeatures, genau wie
+   bei der Sidebar-Sperre in JS/sidebar.js). Bleibt sichtbar, wirkt
+   aber gedämpft und navigiert nicht. */
+.home-map-hotspot--locked {
+    filter: grayscale(0.5) brightness(0.85);
+}
+
+.home-map-lock-badge {
+    position: absolute;
+    right: 6%;
+    top: 6%;
+    font-size: 1.1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    pointer-events: none;
+}
+
 .home-map-tooltip {
     position: absolute;
 
@@ -1225,6 +1242,31 @@ main {
 
     width:32px;
     height:32px;
+
+}
+
+/* Gesperrte Sidebar-Ziele (z. B. "Mein Schloss" vor Level 3, siehe
+   JS/sidebar.js) - bleiben sichtbar, wirken aber gedämpft und
+   navigieren nicht. */
+.sidebar-link--locked{
+
+    position: relative;
+    opacity: 0.6;
+    cursor: pointer;
+
+}
+
+.sidebar-link--locked .sidebar-icon-img{
+
+    filter: grayscale(0.6);
+
+}
+
+.sidebar-lock-badge{
+
+    position: absolute;
+    right: 10px;
+    font-size: 0.85rem;
 
 }
 

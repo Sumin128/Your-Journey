@@ -61,6 +61,55 @@ function defaultTamagotchi() {
 }
 
 
+/* Einzige Quelle für den Start-Zustand von "Mein Schloss".
+   Wird von createDefaultPlayer() und der Migration unten benutzt.
+   Feature-Spezifikation: docs/mein-schloss.md */
+
+function defaultSchloss() {
+
+    return {
+        version: 1,
+        introSeen: false,
+        style: "wald",
+        activeRoom: "wohnzimmer",
+
+        /* wirtschaftlich wertvoll - serverseitig geschützt, siehe
+           supabase_migration_schloss.sql */
+        unlockedRooms: ["wohnzimmer"],
+        ownedFurniture: [],
+
+        rooms: {
+            wohnzimmer: {
+                wallpaper: "default",
+                floor: "default",
+                placedItems: []
+            }
+        },
+
+        customFurniture: {}
+    };
+
+}
+
+/* Einzige Quelle für den Start-Zustand des allgemeinen Mirelon-
+   Levelsystems (XP/Level/Freischaltungen). Getrennt von defaultSchloss(),
+   da das Schloss nur EINE von mehreren Sachen ist, die dieses System
+   irgendwann freischaltet. Vollständig serverseitig geschützt (siehe
+   supabase_migration_schloss.sql) - der Client liest diese Werte nur,
+   ändert sie nie direkt. */
+
+function defaultProgression() {
+
+    return {
+        version: 1,
+        xp: 0,
+        level: 1,
+        unlockedFeatures: [],
+        claimedLevelRewards: []
+    };
+
+}
+
 function createDefaultPlayer() {
 
     return {
@@ -140,7 +189,18 @@ function createDefaultPlayer() {
 
         },
 
-        tamagotchi: defaultTamagotchi()
+        tamagotchi: defaultTamagotchi(),
+
+        schloss: defaultSchloss(),
+
+        progression: defaultProgression(),
+
+        /* Rein präsentationsbezogen (z. B. "Faro-Story noch nicht
+           gezeigt"), ABSICHTLICH getrennt von progression und NICHT
+           serverseitig geschützt - der Client darf das jederzeit
+           setzen/leeren, ohne dass dadurch je eine Belohnung oder
+           Freischaltung entsteht. Siehe docs/mein-schloss.md. */
+        pendingStoryEvents: []
 
     };
 
@@ -387,6 +447,83 @@ if (!player.consumables || typeof player.consumables !== "object") {
             player.tamagotchi.unlockedSpecies.filter(function (id, i, arr) {
                 return arr.indexOf(id) === i;
             });
+
+    }
+
+
+    /* Mein Schloss: fehlende Felder ausbessern (siehe defaultSchloss()
+       oben und docs/mein-schloss.md). */
+
+    if (!player.schloss) {
+
+        player.schloss = defaultSchloss();
+
+    } else {
+
+        const baseSchloss = defaultSchloss();
+
+        Object.keys(baseSchloss).forEach(function (key) {
+            if (typeof player.schloss[key] === "undefined") {
+                player.schloss[key] = baseSchloss[key];
+            }
+        });
+
+        if (!player.schloss.rooms || typeof player.schloss.rooms !== "object") {
+            player.schloss.rooms = baseSchloss.rooms;
+        }
+
+        if (!player.schloss.rooms.wohnzimmer) {
+            player.schloss.rooms.wohnzimmer = baseSchloss.rooms.wohnzimmer;
+        }
+
+        if (!Array.isArray(player.schloss.unlockedRooms)) {
+            player.schloss.unlockedRooms = ["wohnzimmer"];
+        }
+
+        if (!Array.isArray(player.schloss.ownedFurniture)) {
+            player.schloss.ownedFurniture = [];
+        }
+
+        if (!player.schloss.customFurniture || typeof player.schloss.customFurniture !== "object") {
+            player.schloss.customFurniture = {};
+        }
+
+    }
+
+
+    /* Mirelon-Levelsystem: fehlende Felder ausbessern. Werte selbst
+       (xp/level/unlockedFeatures/claimedLevelRewards) kommen bei
+       eingeloggten Nutzern ohnehin serverseitig überschrieben zurück
+       (sync_player_data() schützt "progression" als Ganzes) - hier
+       geht es nur um alte Gast-Speicherstände ohne dieses Feld. */
+
+    if (!player.progression) {
+
+        player.progression = defaultProgression();
+
+    } else {
+
+        const baseProgression = defaultProgression();
+
+        Object.keys(baseProgression).forEach(function (key) {
+            if (typeof player.progression[key] === "undefined") {
+                player.progression[key] = baseProgression[key];
+            }
+        });
+
+        if (!Array.isArray(player.progression.unlockedFeatures)) {
+            player.progression.unlockedFeatures = [];
+        }
+
+        if (!Array.isArray(player.progression.claimedLevelRewards)) {
+            player.progression.claimedLevelRewards = [];
+        }
+
+    }
+
+    if (!Array.isArray(player.pendingStoryEvents)) {
+
+        player.pendingStoryEvents = [];
 
     }
 
@@ -686,6 +823,58 @@ function updatePlayerUI() {
 
     });
 
+
+    /* =====================================================
+       MIRELON-LEVELSYSTEM: LOKALE, OPTIMISTISCHE GUTSCHRIFT
+       Genau wie bei "mirelon:earn-coins": läuft für JEDEN (Gast wie
+       angemeldet) sofort lokal, damit die Anzeige nicht auf einen
+       Server-Umlauf warten muss. Für Gäste ist das die einzige und
+       maßgebliche Buchung (siehe JS/level-data.js). Für angemeldete
+       Nutzer überschreibt der separate, echte earn_xp()-Aufruf in
+       JS/auth.js diesen Stand anschließend mit dem serverseitig
+       bestätigten Wert - hier wird also bewusst nichts "geschützt",
+       das passiert dort.
+       ===================================================== */
+
+    window.addEventListener("mirelon:earn-xp", function (event) {
+
+        const reason =
+            event && event.detail && typeof event.detail.reason === "string"
+                ? event.detail.reason
+                : null;
+
+        if (!reason || typeof MIRELON_XP_REWARDS === "undefined") {
+            return;
+        }
+
+        const xpAmount = MIRELON_XP_REWARDS[reason];
+
+        if (typeof xpAmount !== "number") {
+            return;
+        }
+
+        const result = applyEarnedXp(xpAmount);
+
+        savePlayer();
+
+        updatePlayerUI();
+
+        window.dispatchEvent(new CustomEvent("player-updated"));
+
+        // Bei angemeldeten Nutzern zeigt der separate, maßgebliche
+        // earn_xp()-Aufruf in JS/auth.js das Level-Up-UI (sonst
+        // erschiene es kurz danach ein zweites Mal, sobald die
+        // Server-Antwort da ist). Für Gäste ist DIES hier die
+        // einzige Stelle, die es je zeigen wird.
+        const loggedIn =
+            typeof isLoggedIn === "function" && isLoggedIn();
+
+        if (!loggedIn && result.grantedRewards.length && typeof window.showMirelonLevelUp === "function") {
+            window.showMirelonLevelUp(player.progression.level, result.grantedRewards, result.storyEvent);
+        }
+
+    });
+
 })();
 
 
@@ -694,9 +883,9 @@ function updatePlayerUI() {
    ===================================================== */
 
 const coinMilestoneAchievements = [
-    { count: 10, name: "Erste Münzen", description: "Verdiene insgesamt 10 Münzen.", icon: "🪙" },
-    { count: 100, name: "Münzensammler", description: "Verdiene insgesamt 100 Münzen.", icon: "🥉" },
-    { count: 1000, name: "Münzenmeister", description: "Verdiene insgesamt 1000 Münzen.", icon: "🏆" }
+    { id: "coins_10", count: 10, name: "Erste Münzen", description: "Verdiene insgesamt 10 Münzen.", icon: "🪙" },
+    { id: "coins_100", count: 100, name: "Münzensammler", description: "Verdiene insgesamt 100 Münzen.", icon: "🥉" },
+    { id: "coins_1000", count: 1000, name: "Münzenmeister", description: "Verdiene insgesamt 1000 Münzen.", icon: "🏆" }
 ];
 
 function checkCoinMilestones() {
@@ -1441,10 +1630,10 @@ function awardHighscorePoints() {
    ===================================================== */
 
 const quizCompletionAchievements = [
-    { count: 1, name: "Erstes Quiz gemeistert", description: "Schließe dein erstes Quiz bei Kuro ab.", icon: "🥉" },
-    { count: 3, name: "3 Quizze gemeistert", description: "Schließe 3 Quizze bei Kuro ab.", icon: "🥈" },
-    { count: 5, name: "5 Quizze gemeistert", description: "Schließe 5 Quizze bei Kuro ab.", icon: "🥇" },
-    { count: 10, name: "10 Quizze gemeistert", description: "Schließe 10 Quizze bei Kuro ab.", icon: "🏆" }
+    { id: "quiz_1", count: 1, name: "Erstes Quiz gemeistert", description: "Schließe dein erstes Quiz bei Kuro ab.", icon: "🥉" },
+    { id: "quiz_3", count: 3, name: "3 Quizze gemeistert", description: "Schließe 3 Quizze bei Kuro ab.", icon: "🥈" },
+    { id: "quiz_5", count: 5, name: "5 Quizze gemeistert", description: "Schließe 5 Quizze bei Kuro ab.", icon: "🥇" },
+    { id: "quiz_10", count: 10, name: "10 Quizze gemeistert", description: "Schließe 10 Quizze bei Kuro ab.", icon: "🏆" }
 ];
 
 function registerQuizCompletion() {
@@ -1460,6 +1649,8 @@ function registerQuizCompletion() {
     savePlayer();
 
     awardHighscorePoints();
+
+    window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "quiz_richtig" } }));
 
     const unlockedAchievement = quizCompletionAchievements.find(
         function (achievement) {
@@ -1495,6 +1686,7 @@ const animalFriends = [
 ];
 
 const visitAllAnimalsAchievement = {
+    id: "visit_all_animals",
     name: "Alle Tiere besucht",
     description: "Besuche Kuro, Tessa, Faro, Branos und Luis.",
     icon: "🐾"
@@ -1544,12 +1736,13 @@ function markAnimalVisited(animalId) {
    ===================================================== */
 
 const wordGameDifficultyAchievements = {
-    leicht: { name: "Wörterraten: Leicht gemeistert", description: "Gewinne eine Runde Wörterraten auf Leicht.", icon: "🌼" },
-    mittel: { name: "Wörterraten: Mittel gemeistert", description: "Gewinne eine Runde Wörterraten auf Mittel.", icon: "🌳" },
-    schwer: { name: "Wörterraten: Schwer gemeistert", description: "Gewinne eine Runde Wörterraten auf Schwer.", icon: "🔥" }
+    leicht: { id: "wordgame_leicht", name: "Wörterraten: Leicht gemeistert", description: "Gewinne eine Runde Wörterraten auf Leicht.", icon: "🌼" },
+    mittel: { id: "wordgame_mittel", name: "Wörterraten: Mittel gemeistert", description: "Gewinne eine Runde Wörterraten auf Mittel.", icon: "🌳" },
+    schwer: { id: "wordgame_schwer", name: "Wörterraten: Schwer gemeistert", description: "Gewinne eine Runde Wörterraten auf Schwer.", icon: "🔥" }
 };
 
 const wordGameMasterAchievement = {
+    id: "wordgame_master",
     name: "Wörterraten-Meister",
     description: "Gewinne eine Runde Wörterraten auf jeder Schwierigkeit.",
     icon: "📖"
@@ -1620,17 +1813,17 @@ function registerAnimalGuessWin() {
    ===================================================== */
 
 const memoryCompletionAchievements = [
-    { difficulty: "normal", count: 1, name: "Memory-Neuling", description: "Spiele Memory auf Normal 1 Mal.", icon: "🧠" },
-    { difficulty: "normal", count: 5, name: "Memory-Profi", description: "Spiele Memory auf Normal 5 Mal.", icon: "🃏" },
-    { difficulty: "normal", count: 10, name: "Memory-Meister", description: "Spiele Memory auf Normal 10 Mal.", icon: "🏅" },
+    { id: "memory_normal_1", difficulty: "normal", count: 1, name: "Memory-Neuling", description: "Spiele Memory auf Normal 1 Mal.", icon: "🧠" },
+    { id: "memory_normal_5", difficulty: "normal", count: 5, name: "Memory-Profi", description: "Spiele Memory auf Normal 5 Mal.", icon: "🃏" },
+    { id: "memory_normal_10", difficulty: "normal", count: 10, name: "Memory-Meister", description: "Spiele Memory auf Normal 10 Mal.", icon: "🏅" },
 
-    { difficulty: "schwer", count: 1, name: "Herausforderer", description: "Spiele Memory auf Schwer 1 Mal.", icon: "🔥" },
-    { difficulty: "schwer", count: 5, name: "Kartenprofi", description: "Spiele Memory auf Schwer 5 Mal.", icon: "🎴" },
-    { difficulty: "schwer", count: 10, name: "Schwer-Champion", description: "Spiele Memory auf Schwer 10 Mal.", icon: "🏆" },
+    { id: "memory_schwer_1", difficulty: "schwer", count: 1, name: "Herausforderer", description: "Spiele Memory auf Schwer 1 Mal.", icon: "🔥" },
+    { id: "memory_schwer_5", difficulty: "schwer", count: 5, name: "Kartenprofi", description: "Spiele Memory auf Schwer 5 Mal.", icon: "🎴" },
+    { id: "memory_schwer_10", difficulty: "schwer", count: 10, name: "Schwer-Champion", description: "Spiele Memory auf Schwer 10 Mal.", icon: "🏆" },
 
-    { difficulty: "extraschwer", count: 1, name: "Wagemutig", description: "Spiele Memory auf Extra Schwer 1 Mal.", icon: "💀" },
-    { difficulty: "extraschwer", count: 5, name: "Gedächtniskünstler", description: "Spiele Memory auf Extra Schwer 5 Mal.", icon: "🧩" },
-    { difficulty: "extraschwer", count: 10, name: "Memory-Legende", description: "Spiele Memory auf Extra Schwer 10 Mal.", icon: "👑" }
+    { id: "memory_extraschwer_1", difficulty: "extraschwer", count: 1, name: "Wagemutig", description: "Spiele Memory auf Extra Schwer 1 Mal.", icon: "💀" },
+    { id: "memory_extraschwer_5", difficulty: "extraschwer", count: 5, name: "Gedächtniskünstler", description: "Spiele Memory auf Extra Schwer 5 Mal.", icon: "🧩" },
+    { id: "memory_extraschwer_10", difficulty: "extraschwer", count: 10, name: "Memory-Legende", description: "Spiele Memory auf Extra Schwer 10 Mal.", icon: "👑" }
 ];
 
 function registerMemoryCompletion(difficulty) {
@@ -1693,11 +1886,11 @@ function registerMemoryCompletion(difficulty) {
    ===================================================== */
 
 const puzzleCompletionAchievements = [
-    { count: 5, name: "5 Puzzle gelöst", description: "Löse 5 Puzzle.", icon: "🧩" },
-    { count: 10, name: "10 Puzzle gelöst", description: "Löse 10 Puzzle.", icon: "🧩" },
-    { count: 20, name: "20 Puzzle gelöst", description: "Löse 20 Puzzle.", icon: "🧩" },
-    { count: 50, name: "50 Puzzle gelöst", description: "Löse 50 Puzzle.", icon: "🧩" },
-    { count: 100, name: "100 Puzzle gelöst", description: "Löse 100 Puzzle.", icon: "🧩" }
+    { id: "puzzle_5", count: 5, name: "5 Puzzle gelöst", description: "Löse 5 Puzzle.", icon: "🧩" },
+    { id: "puzzle_10", count: 10, name: "10 Puzzle gelöst", description: "Löse 10 Puzzle.", icon: "🧩" },
+    { id: "puzzle_20", count: 20, name: "20 Puzzle gelöst", description: "Löse 20 Puzzle.", icon: "🧩" },
+    { id: "puzzle_50", count: 50, name: "50 Puzzle gelöst", description: "Löse 50 Puzzle.", icon: "🧩" },
+    { id: "puzzle_100", count: 100, name: "100 Puzzle gelöst", description: "Löse 100 Puzzle.", icon: "🧩" }
 ];
 
 // Die 5 festen Bilder aus dem "Bilder aus Mirelon"-Abschnitt der
@@ -1714,6 +1907,7 @@ const puzzleGalleryImages = [
 ];
 
 const puzzleGalleryAchievement = {
+    id: "puzzle_gallery",
     name: "Puzzle-Weltenbummler",
     description: "Löse ein Puzzle mit jedem Bild aus der Galerie.",
     icon: "🗺️"
@@ -1748,6 +1942,8 @@ function registerPuzzleCompletion(galleryImageLabel) {
     savePlayer();
 
     awardHighscorePoints();
+
+    window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "puzzle_geloest" } }));
 
     const unlockedCountAchievement = puzzleCompletionAchievements.find(
         function (achievement) {
@@ -1809,6 +2005,7 @@ const LUIS_THEME_IMAGES = {
 const puzzleLuisThemeIds = Object.keys(LUIS_THEME_IMAGES);
 
 const puzzleLuisAchievement = {
+    id: "puzzle_luis_colors",
     name: "Luis in allen Farben",
     description: "Löse mit jeder Luis-Variante mindestens ein Puzzle.",
     icon: "🦎",
@@ -1856,9 +2053,9 @@ function registerPuzzleLuisVariant(themeId) {
    ===================================================== */
 
 const shopItemAchievements = [
-    { count: 1, name: "Erster Kauf", description: "Kaufe dein erstes Item in Kuros Laden.", icon: "🛍️" },
-    { count: 2, name: "Fleißiger Käufer", description: "Kaufe 2 Items in Kuros Laden.", icon: "🛒" },
-    { count: 3, name: "Sammler", description: "Kaufe alle 3 Cursor in Kuros Laden.", icon: "🎁" }
+    { id: "shop_1", count: 1, name: "Erster Kauf", description: "Kaufe dein erstes Item in Kuros Laden.", icon: "🛍️" },
+    { id: "shop_2", count: 2, name: "Fleißiger Käufer", description: "Kaufe 2 Items in Kuros Laden.", icon: "🛒" },
+    { id: "shop_3", count: 3, name: "Sammler", description: "Kaufe alle 3 Cursor in Kuros Laden.", icon: "🎁" }
 ];
 
 

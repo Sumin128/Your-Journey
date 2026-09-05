@@ -192,6 +192,8 @@
 
     function showResult() {
 
+        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen" } }));
+
         stageEl.innerHTML = "";
 
         const title = document.createElement("h2");

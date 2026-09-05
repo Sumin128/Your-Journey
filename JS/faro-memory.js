@@ -146,6 +146,8 @@
 
     function showWin() {
 
+        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen" } }));
+
         const message = document.getElementById("faro-memory-message");
         if (message) {
             message.textContent = "Alle Fährten-Paare gefunden! (" + tries + " Versuche)";

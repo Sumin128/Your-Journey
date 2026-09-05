@@ -155,3 +155,72 @@ if (onboardingSaveButton) {
 renderOnboardingAvatars();
 updateOnboardingSaveButton();
 updateOnboardingVisibility();
+
+
+/* =====================================================
+   SCHLOSS-HOTSPOT AUF DER KARTE
+   Liest dieselbe einzige Quelle der Wahrheit wie die Sidebar-Sperre
+   (player.progression.unlockedFeatures, siehe JS/sidebar.js) - kein
+   zweites Freischalt-Flag. Der Klick-auf-gesperrt-Fall nutzt dieselbe
+   Nachrichten-Funktion wie die Sidebar (window.showLockedFeatureMessage),
+   damit Text/Ton an nur einer Stelle gepflegt werden.
+   ===================================================== */
+
+function updateCastleHotspot() {
+
+    const hotspot =
+        document.querySelector('.home-map-hotspot[data-locked-feature="castle"]');
+
+    if (!hotspot) {
+        return;
+    }
+
+    const unlocked =
+        typeof player !== "undefined" &&
+        Boolean(player.progression) &&
+        Array.isArray(player.progression.unlockedFeatures) &&
+        player.progression.unlockedFeatures.indexOf("castle") !== -1;
+
+    if (!unlocked) {
+        return;
+    }
+
+    hotspot.classList.remove("home-map-hotspot--locked");
+    hotspot.removeAttribute("aria-disabled");
+    hotspot.removeAttribute("data-locked-feature");
+
+    const badge = hotspot.querySelector(".home-map-lock-badge");
+    if (badge) {
+        badge.remove();
+    }
+
+    const tooltip = hotspot.querySelector(".home-map-tooltip");
+    if (tooltip) {
+        tooltip.textContent = "Gehe zu Deinem Schloss";
+    }
+
+}
+
+updateCastleHotspot();
+
+window.addEventListener("player-updated", updateCastleHotspot);
+
+document.querySelectorAll(".home-map").forEach(function (mapEl) {
+
+    mapEl.addEventListener("click", function (event) {
+
+        const lockedHotspot = event.target.closest(".home-map-hotspot--locked");
+
+        if (!lockedHotspot) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (typeof window.showLockedFeatureMessage === "function") {
+            window.showLockedFeatureMessage(lockedHotspot.dataset.lockedFeature);
+        }
+
+    });
+
+});

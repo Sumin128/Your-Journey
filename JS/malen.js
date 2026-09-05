@@ -1120,6 +1120,8 @@
                 return;
             }
 
+            window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "malstube_bild_gespeichert" } }));
+
             setMessage("Bild gespeichert! Du findest es in deiner Galerie. 🎉", false);
 
         }, "image/png");
