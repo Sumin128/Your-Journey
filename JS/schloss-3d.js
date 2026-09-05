@@ -185,6 +185,17 @@ function initSchloss3D(canvas) {
     fireplace.position.set(3.1, 0, -ROOM_DEPTH / 2 + 0.35);
     scene.add(fireplace);
 
+    // Decke - ohne sie wirkt der Raum nach oben offen/leer statt wie
+    // ein richtiges Zimmer. Dunkler als die Wände (bekommt kaum Licht
+    // ab), damit sie nicht mit der Kamera konkurriert.
+    const ceiling = new THREE.Mesh(
+        new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
+        new THREE.MeshStandardMaterial({ color: 0x40301f, roughness: 1 })
+    );
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.y = ROOM_HEIGHT;
+    scene.add(ceiling);
+
 
     /* --- Möbel laden: Daten migrieren, dann pro Eintrag eine 3D-Gruppe --- */
 
@@ -543,6 +554,7 @@ function initSchloss3D(canvas) {
 
         const group = new THREE.Group();
         const footprint = furniture.footprint || { w: 0.6, d: 0.6 };
+        const flat = Boolean(furniture.flatOnFloor);
 
         const material = new THREE.MeshStandardMaterial({
             transparent: true,
@@ -554,19 +566,33 @@ function initSchloss3D(canvas) {
         // Platzhalter-Fläche, bis die Textur geladen ist (vermeidet ein
         // kurzes "Nichts" beim ersten Rendern).
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(footprint.w, footprint.w), material);
-        plane.position.y = footprint.w / 2;
-        plane.castShadow = true;
+
+        if (flat) {
+            // Liegt flach auf dem Boden (z. B. Teppich, Kissen) statt
+            // aufrecht zu stehen wie normale Möbel-Cutouts - sonst würde
+            // ein Teppich wie ein aufgestelltes Bild aussehen.
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = 0.01; // knapp über dem Boden, kein Z-Fighting
+            plane.receiveShadow = true;
+        } else {
+            plane.position.y = footprint.w / 2;
+            plane.castShadow = true;
+        }
+
         group.add(plane);
 
         loadFurnitureTexture(design.sprite, function (texture) {
 
             const image = texture.image;
             const aspect = (image && image.width && image.height) ? image.width / image.height : 1;
-            const height = footprint.w / aspect;
+            const secondDimension = footprint.w / aspect;
 
             plane.geometry.dispose();
-            plane.geometry = new THREE.PlaneGeometry(footprint.w, height);
-            plane.position.y = height / 2;
+            plane.geometry = new THREE.PlaneGeometry(footprint.w, secondDimension);
+
+            if (!flat) {
+                plane.position.y = secondDimension / 2;
+            }
 
             material.map = texture;
             material.needsUpdate = true;
