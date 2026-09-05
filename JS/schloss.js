@@ -1,12 +1,21 @@
 /* =====================================================
    SCHLOSS.JS
-   "Mein Schloss": Raum-Editor (Phase 1 - ein Raum, kein Shop, keine
-   Möbel-Bemalung). Reine Layout-Daten (kein RPC nötig) - Speichern
-   läuft ganz normal über savePlayer()/player-updated, siehe
-   JS/player.js. Nur die wirtschaftlich wertvollen Felder
-   (schloss.ownedFurniture/unlockedRooms) sind serverseitig
-   geschützt, siehe supabase_migration_schloss.sql.
+   "Mein Schloss": Raum-Editor. Reine Layout-Daten (kein RPC nötig für
+   Platzierung) - Speichern läuft ganz normal über savePlayer()/
+   player-updated, siehe JS/player.js. Nur die wirtschaftlich
+   wertvollen Felder (schloss.ownedFurniture/unlockedRooms) sind
+   serverseitig geschützt, siehe supabase_migration_schloss.sql.
    Feature-Spezifikation: docs/mein-schloss.md
+
+   ÜBERGANG AUF 3D (in Arbeit, siehe JS/schloss-3d.js): der 2D-Raum
+   (renderRoom/placeFurniture/tintSpriteInto/makePlacedItemDraggable/
+   openItemMenu + #schloss-room) wird durch eine Three.js-Szene
+   ersetzt. Diese Datei bleibt bewusst vollständig aktiv und
+   unangetastet, bis Kauf (renderShop/buySchlossFurniture), Inventar
+   (renderInventory), Entfernen und Speichern 1:1 in schloss-3d.js
+   nachgebaut sind - erst danach werden die 2D-Raum-Funktionen und
+   #schloss-room hier entfernt. Bis dahin ist #schloss-room im Markup
+   nur per CSS versteckt, nicht gelöscht.
    ===================================================== */
 
 (function () {

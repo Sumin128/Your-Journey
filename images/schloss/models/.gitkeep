@@ -1,0 +1,3 @@
+Zielordner für spätere echte 3D-Möbelmodelle (.glb), geladen über
+GLTFLoader in JS/schloss-3d.js. Noch leer (Phase 1 nutzt nur
+Platzhalter-Geometrie) - siehe docs/mein-schloss.md.
