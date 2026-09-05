@@ -196,6 +196,13 @@ function initSchloss3D(canvas) {
     ceiling.position.y = ROOM_HEIGHT;
     scene.add(ceiling);
 
+    // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
+    // "verwunschenen Waldschloss"-Gefühl, rein dekorativ (keine
+    // Kollision/Interaktion). Auf Mobilgeräten weniger Partikel.
+    const dustMotes = buildDustMotes(isMobile ? 24 : 50);
+    dustMotes.position.copy(windowMesh.position);
+    scene.add(dustMotes);
+
 
     /* --- Möbel laden: Daten migrieren, dann pro Eintrag eine 3D-Gruppe --- */
 
@@ -565,9 +572,27 @@ function initSchloss3D(canvas) {
 
     /* --- Render-Loop --- */
 
-    function animate() {
+    function animate(time) {
+
         requestAnimationFrame(animate);
+
+        // Lichtstaub sanft schweben lassen (siehe buildDustMotes()) -
+        // kleine Sinus-Bewegung um die Ausgangsposition, kein echtes
+        // Partikelsystem nötig für ein paar Dutzend Punkte.
+        const dustPositions = dustMotes.geometry.attributes.position.array;
+        const dustBase = dustMotes.userData.basePositions;
+        const dustPhases = dustMotes.userData.phases;
+        const t = (time || 0) * 0.001;
+
+        for (let i = 0; i < dustPhases.length; i++) {
+            dustPositions[i * 3 + 1] = dustBase[i * 3 + 1] + Math.sin(t * 0.4 + dustPhases[i]) * 0.15;
+            dustPositions[i * 3] = dustBase[i * 3] + Math.cos(t * 0.25 + dustPhases[i]) * 0.08;
+        }
+
+        dustMotes.geometry.attributes.position.needsUpdate = true;
+
         renderer.render(scene, camera);
+
     }
 
     resize();
@@ -819,6 +844,56 @@ function initSchloss3D(canvas) {
         const texture = new THREE.CanvasTexture(el);
         texture.colorSpace = THREE.SRGBColorSpace;
         return texture;
+
+    }
+
+    function buildDustMotes(count) {
+
+        const basePositions = new Float32Array(count * 3);
+        const phases = new Float32Array(count);
+
+        for (let i = 0; i < count; i++) {
+            basePositions[i * 3] = (Math.random() - 0.5) * 2.2;
+            basePositions[i * 3 + 1] = Math.random() * 2.2 - 0.3;
+            basePositions[i * 3 + 2] = Math.random() * 2.5;
+            phases[i] = Math.random() * Math.PI * 2;
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.BufferAttribute(basePositions.slice(), 3));
+
+        const material = new THREE.PointsMaterial({
+            color: 0xffe3ad,
+            size: 0.035,
+            map: makeDustTexture(),
+            transparent: true,
+            opacity: 0.5,
+            depthWrite: false
+        });
+
+        const points = new THREE.Points(geometry, material);
+        points.userData.basePositions = basePositions;
+        points.userData.phases = phases;
+
+        return points;
+
+    }
+
+    function makeDustTexture() {
+
+        const size = 32;
+        const el = document.createElement("canvas");
+        el.width = el.height = size;
+        const ctx = el.getContext("2d");
+
+        const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+        gradient.addColorStop(0, "rgba(255,240,200,1)");
+        gradient.addColorStop(1, "rgba(255,240,200,0)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+
+        return new THREE.CanvasTexture(el);
 
     }
 
