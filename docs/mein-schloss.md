@@ -88,7 +88,7 @@ schloss: {
     instanceId: "uuid",
     furnitureId: "stuhl_wald_a",  // Katalog-Referenz (JS/schloss-data.js)
     design: 0,                     // Index in furniture.designs[]
-    color: null,                   // nur bei furniture.colorable gesetzt (aktuell nicht in 3D verdrahtet)
+    color: null,                   // nur bei furniture.colorable gesetzt (Canvas-Tinting, siehe unten)
     customVariantId: null,         // vorbereitet für Phase 5 (Möbel-Bemalen)
     x: 0.4,                        // Meter, Raummitte = Ursprung
     z: -1.2,                       // Meter
@@ -112,9 +112,9 @@ platzierbaren/drehbaren Möbeln.
   "Pappaufsteller" gerendert (`createFurnitureCutout()` in `schloss-3d.js`) – Übergangslösung,
   bis echte `.glb`-Modelle existieren. `furniture.flatOnFloor: true` (Teppich, Kissen) legt ein
   Möbelstück stattdessen flach auf den Boden statt es aufrecht zu stellen.
-- Farb-Einfärben (`instance.color`, Canvas-Tinting) war im 2D-Editor fertig, ist in der 3D-
-  Szene noch **nicht** angeschlossen – das Datenfeld bleibt erhalten, die visuelle Umsetzung
-  (Masken-Tinting am echten Sprite) ist ein späterer Schritt.
+- Farb-Einfärben (`instance.color`, Canvas-Tinting) war im 2D-Editor fertig und ist seit
+  2026-09-05 auch in der 3D-Szene angeschlossen (Farbkreise erscheinen beim Auswählen eines
+  `colorable`-Möbelstücks über den Dreh-/Entfernen-Buttons).
 - Three.js läuft als ES-Modul über eine Importmap (CDN `cdn.jsdelivr.net`, Version fest
   gepinnt). **Später:** lokal unter `JS/vendor/` ausliefern statt dauerhaft von einem
   externen CDN abhängig zu sein.
@@ -190,7 +190,6 @@ Kauf-Ablauf ist identisch zum Muster aus `JS/bako.js` `buyBaumkind()`: lokale Vo
   (`JS/draw-engine.js`, noch nicht existent) statt eines zweiten Mal-Editors, mit
   Base/Mask/Details-Ebenen und einem neuen Storage-Bucket `castle-customizations`.
   `customVariantId`/`customFurniture` sind im Datenmodell schon vorbereitet.
-- **Farb-Einfärben in 3D** – Datenfeld `instance.color` existiert, visuelle Umsetzung fehlt.
 - Malstube-Stempel um Sticker (Herzen, Blumen, …) erweitern – unabhängig vom Schloss,
   trivial, noch nicht gemacht.
 
