@@ -74,7 +74,32 @@
     transform: translateX(-50%);
 
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+}
+
+.schloss-rotate-buttons {
+
+    display: flex;
     gap: 10px;
+
+}
+
+/* Farbauswahl (nur bei einfärbbaren Möbeln, z. B. Teppich) - eigene
+   Zeile über den Dreh-/Entfernen-Buttons, gleiche Optik wie die
+   Farbkreise aus dem ehemaligen 2D-Kontextmenü. */
+.schloss-item-menu-colors {
+
+    display: flex;
+    gap: 8px;
+
+    padding: 6px 10px;
+
+    border-radius: var(--yj-radius-pill, 999px);
+    background: rgba(35, 20, 8, 0.55);
+    backdrop-filter: blur(3px);
 
 }
 

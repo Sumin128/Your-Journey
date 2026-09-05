@@ -228,12 +228,13 @@ function initSchloss3D(canvas) {
         }
 
         const design = furniture.designs[instance.design] || furniture.designs[0];
-        const group = createFurnitureCutout(furniture, design);
+        const group = createFurnitureCutout(furniture, design, instance.color);
 
         group.position.set(instance.x, 0, instance.z);
         group.rotation.y = instance.rotationY || 0;
         group.userData.instanceId = instance.instanceId;
         group.userData.footprint = furniture.footprint || { w: 0.6, d: 0.6 };
+        group.userData.furniture = furniture;
 
         scene.add(group);
         placedGroups.push(group);
@@ -302,6 +303,7 @@ function initSchloss3D(canvas) {
     const rotateLeftBtn = document.getElementById("schloss-rotate-left");
     const rotateRightBtn = document.getElementById("schloss-rotate-right");
     const removeBtn = document.getElementById("schloss-rotate-remove");
+    const colorSwatchesEl = document.getElementById("schloss-color-swatches");
 
     let selected = null;
 
@@ -314,10 +316,58 @@ function initSchloss3D(canvas) {
             selectionRing.position.x = group.position.x;
             selectionRing.position.z = group.position.z;
             if (rotateControls) { rotateControls.hidden = false; }
+            renderColorSwatches(group);
         } else {
             selectionRing.visible = false;
             if (rotateControls) { rotateControls.hidden = true; }
         }
+
+    }
+
+    // Farbauswahl (nur bei furniture.colorable, z. B. Teppich) - selbe
+    // Idee wie das Kontextmenü im ehemaligen 2D-Editor, jetzt als
+    // eigene Zeile über den Dreh-/Entfernen-Buttons.
+    function renderColorSwatches(group) {
+
+        if (!colorSwatchesEl) {
+            return;
+        }
+
+        const furniture = group.userData.furniture;
+
+        colorSwatchesEl.innerHTML = "";
+
+        if (!furniture || !furniture.colorable || !furniture.colors || !furniture.colors.length) {
+            colorSwatchesEl.hidden = true;
+            return;
+        }
+
+        colorSwatchesEl.hidden = false;
+
+        furniture.colors.forEach(function (color) {
+
+            const swatch = document.createElement("button");
+            swatch.type = "button";
+            swatch.className = "schloss-color-swatch";
+            swatch.style.background = color;
+            swatch.setAttribute("aria-label", "Farbe wählen");
+
+            swatch.addEventListener("click", function () {
+
+                const instance = findInstance(group);
+
+                if (instance) {
+                    instance.color = color;
+                    saveSchloss();
+                }
+
+                applyColorToGroup(group, color);
+
+            });
+
+            colorSwatchesEl.appendChild(swatch);
+
+        });
 
     }
 
@@ -550,7 +600,7 @@ function initSchloss3D(canvas) {
 
     }
 
-    function createFurnitureCutout(furniture, design) {
+    function createFurnitureCutout(furniture, design, initialColor) {
 
         const group = new THREE.Group();
         const footprint = furniture.footprint || { w: 0.6, d: 0.6 };
@@ -562,6 +612,9 @@ function initSchloss3D(canvas) {
             side: THREE.DoubleSide,
             roughness: 0.9
         });
+
+        group.userData.material = material;
+        group.userData.spriteSrc = design.sprite;
 
         // Platzhalter-Fläche, bis die Textur geladen ist (vermeidet ein
         // kurzes "Nichts" beim ersten Rendern).
@@ -597,9 +650,80 @@ function initSchloss3D(canvas) {
             material.map = texture;
             material.needsUpdate = true;
 
+            if (initialColor) {
+                applyColorToGroup(group, initialColor);
+            }
+
         });
 
         return group;
+
+    }
+
+    // Farb-Technikprobe (Architekturplan Abschnitt A), jetzt an der
+    // 3D-Szene statt am 2D-Sprite: konturerhaltendes Einfärben per
+    // Canvas (multiply + destination-in) statt eines CSS-Filters (der
+    // würde Beschläge/Schatten mitfärben). Ergebnis pro Sprite+Farbe
+    // im Speicher zwischengespeichert - gespeichert wird weiterhin nur
+    // instance.color, die Textur wird beim Laden einfach neu erzeugt.
+    const tintedTextureCache = {};
+
+    function getTintedTexture(spriteSrc, baseTexture, color, callback) {
+
+        const cacheKey = spriteSrc + "|" + color;
+
+        if (tintedTextureCache[cacheKey]) {
+            callback(tintedTextureCache[cacheKey]);
+            return;
+        }
+
+        const image = baseTexture.image;
+
+        if (!image || !image.width) {
+            return;
+        }
+
+        const canvasEl = document.createElement("canvas");
+        canvasEl.width = image.width;
+        canvasEl.height = image.height;
+
+        const ctx = canvasEl.getContext("2d");
+
+        ctx.drawImage(image, 0, 0);
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+        ctx.globalCompositeOperation = "destination-in";
+        ctx.drawImage(image, 0, 0);
+
+        const tinted = new THREE.CanvasTexture(canvasEl);
+        tinted.colorSpace = THREE.SRGBColorSpace;
+
+        tintedTextureCache[cacheKey] = tinted;
+        callback(tinted);
+
+    }
+
+    function applyColorToGroup(group, color) {
+
+        const spriteSrc = group.userData.spriteSrc;
+        const baseTexture = textureCache[spriteSrc];
+        const material = group.userData.material;
+
+        if (!baseTexture || !material) {
+            return;
+        }
+
+        if (!color) {
+            material.map = baseTexture;
+            material.needsUpdate = true;
+            return;
+        }
+
+        getTintedTexture(spriteSrc, baseTexture, color, function (tinted) {
+            material.map = tinted;
+            material.needsUpdate = true;
+        });
 
     }
 

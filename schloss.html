@@ -23,7 +23,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=18">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=4">
-    <link rel="stylesheet" href="CSS/schloss.css?v=5">
+    <link rel="stylesheet" href="CSS/schloss.css?v=6">
 
     <!-- Three.js als ES-Modul, fest auf 0.160.0 gepinnt (kein Build-
          Schritt in diesem Projekt). Vorerst über jsdelivr, sobald die
@@ -78,9 +78,15 @@
                 <canvas id="schloss-canvas" aria-label="Dein Wohnzimmer, ein 3D-Raum zum Einrichten"></canvas>
 
                 <div id="schloss-rotate-controls" class="schloss-rotate-controls" hidden>
-                    <button type="button" id="schloss-rotate-left" aria-label="Nach links drehen">↺</button>
-                    <button type="button" id="schloss-rotate-remove" aria-label="Möbel entfernen">🗑️</button>
-                    <button type="button" id="schloss-rotate-right" aria-label="Nach rechts drehen">↻</button>
+
+                    <div id="schloss-color-swatches" class="schloss-item-menu-colors" hidden></div>
+
+                    <div class="schloss-rotate-buttons">
+                        <button type="button" id="schloss-rotate-left" aria-label="Nach links drehen">↺</button>
+                        <button type="button" id="schloss-rotate-remove" aria-label="Möbel entfernen">🗑️</button>
+                        <button type="button" id="schloss-rotate-right" aria-label="Nach rechts drehen">↻</button>
+                    </div>
+
                 </div>
 
             </div>
@@ -115,7 +121,7 @@
     <script src="JS/schloss-data.js?v=4"></script>
     <script src="JS/schloss.js?v=4"></script>
     <script src="JS/schloss-migration.js?v=1"></script>
-    <script type="module" src="JS/schloss-3d.js?v=4"></script>
+    <script type="module" src="JS/schloss-3d.js?v=5"></script>
 
 </body>
 </html>
