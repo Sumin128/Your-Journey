@@ -121,8 +121,13 @@
 
         // Frisch platzierte Möbel leicht gestaffelt statt exakt
         // übereinander (rein kosmetisch - Kind zieht sie danach sowieso
-        // frei an ihren Platz).
-        const stagger = room.placedItems.length % 6;
+        // frei an ihren Platz). Raster aus Spalte+Zeile statt nur einem
+        // 6er-Zyklus, damit sich Positionen nicht schon ab dem 7. Stück
+        // wiederholen (kein Limit für gleichzeitig platzierte Möbel).
+        const index = room.placedItems.length;
+        const col = index % 6;
+        const row = Math.floor(index / 6) % 3;
+        const wrapNudge = Math.floor(index / 18) * 0.015;
 
         room.placedItems.push({
             instanceId: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
@@ -130,8 +135,8 @@
             design: 0,
             color: null,
             customVariantId: null,
-            x: 0.22 + stagger * 0.09,
-            y: 0.5 + (stagger % 2) * 0.12,
+            x: 0.14 + col * 0.13 + wrapNudge,
+            y: 0.32 + row * 0.22 + wrapNudge,
             flipped: false,
             scale: 1,
             content: null
@@ -139,6 +144,55 @@
 
         saveSchloss();
         renderRoom();
+
+    }
+
+
+    /* --- Farb-Technikprobe (Architekturplan Abschnitt A): konturerhaltendes
+       Einfärben per Canvas. Ein reiner CSS-Filter (hue-rotate etc.) würde
+       Konturen/Schatten mitverfärben - hier wird stattdessen das Original
+       per "multiply" mit der Wunschfarbe abgedunkelt/eingefärbt und
+       anschließend per "destination-in" wieder auf die ursprüngliche
+       Silhouette (Transparenz) zurückgeschnitten. Ergebnis wird pro
+       Sprite+Farbe im Speicher zwischengespeichert (nicht persistiert -
+       gespeichert wird nur instance.color, das Bild wird beim nächsten
+       Rendern einfach neu erzeugt). --- */
+
+    const tintCache = {};
+
+    function tintSpriteInto(targetImg, spriteSrc, color) {
+
+        const cacheKey = spriteSrc + "|" + color;
+
+        if (tintCache[cacheKey]) {
+            targetImg.src = tintCache[cacheKey];
+            return;
+        }
+
+        const source = new Image();
+
+        source.onload = function () {
+
+            const canvas = document.createElement("canvas");
+            canvas.width = source.naturalWidth;
+            canvas.height = source.naturalHeight;
+
+            const ctx = canvas.getContext("2d");
+
+            ctx.drawImage(source, 0, 0);
+            ctx.globalCompositeOperation = "multiply";
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = "destination-in";
+            ctx.drawImage(source, 0, 0);
+
+            const dataUrl = canvas.toDataURL("image/png");
+            tintCache[cacheKey] = dataUrl;
+            targetImg.src = dataUrl;
+
+        };
+
+        source.src = spriteSrc;
 
     }
 
@@ -170,17 +224,18 @@
             el.style.top = (instance.y * 100) + "%";
 
             const img = document.createElement("img");
-            // Solange die Platzhalter-Sprites (schlossPlaceholderSprite())
-            // im Einsatz sind, ist eine Hintergrundfarbe hinter dem Bild
-            // unsichtbar (das SVG füllt die ganze Fläche undurchsichtig) -
-            // deshalb wird der Platzhalter bei Farbwahl direkt mit der
-            // gewählten Farbe neu erzeugt. Echte Gemini-Möbelbilder
-            // (Schritt 5/6) nutzen stattdessen das im Architekturplan
-            // beschriebene Masken-Tinting, dann fällt das hier weg.
-            img.src = (instance.color && design.emoji)
-                ? schlossPlaceholderSprite(design.emoji, instance.color)
-                : design.sprite;
             img.alt = furniture.name;
+
+            if (instance.color) {
+                // Farb-Technikprobe (Architekturplan Abschnitt A):
+                // konturerhaltendes Einfärben per Canvas statt eines
+                // CSS-Filters (der würde Beschläge/Schatten mitfärben).
+                img.src = design.sprite;
+                tintSpriteInto(img, design.sprite, instance.color);
+            } else {
+                img.src = design.sprite;
+            }
+
             el.appendChild(img);
 
             makePlacedItemDraggable(el, instance);
