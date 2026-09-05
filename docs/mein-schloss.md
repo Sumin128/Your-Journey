@@ -118,9 +118,34 @@ platzierbaren/drehbaren Möbeln.
 - Three.js läuft als ES-Modul über eine Importmap (CDN `cdn.jsdelivr.net`, Version fest
   gepinnt). **Später:** lokal unter `JS/vendor/` ausliefern statt dauerhaft von einem
   externen CDN abhängig zu sein.
-- Raum: 8 × 6 m, 3,2 m hoch. Holzboden + Steinwände (prozedurale Canvas-Texturen), gemaltes
-  Waldfenster, Kamin, Decke, warmes Umgebungs-/Fenster-/Kaminlicht mit Schatten (auf
-  Mobilgeräten reduziert). Kamera fest, kein freies Navigieren.
+- Raum: 8 × 6 m, ~4,5 m hoch. Kamera fest, kein freies Navigieren.
+
+### Raumhülle: GLB oder prozeduraler Fallback (2026-09-06)
+
+Die Raumarchitektur wird per `GLTFLoader` aus `ROOM_SHELL_MODEL` geladen. Ist der Pfad
+gesetzt und lädt das Modell, ersetzt es die prozedurale Hülle (Skalierung auf Raumbreite,
+180°-Drehung, X/Z-Zentrierung, Unterkante auf y = 0, Materialien auf `DoubleSide`); sonst
+baut `buildProceduralShell()` die Geometrie:
+
+- U-Form (offene Vorderseite zur Kamera): Boden, hohe Natursteinwände (prozedurale
+  Canvas-Textur), Decke mit sichtbaren Holzbalken.
+- Zwei hohe Fensterbögen mit weicher, gemalter Waldsicht; hoher Türbogen in der linken Wand;
+  eine Wandnische mit Steinrahmen; Sockel-/Kranzleiste.
+- Integrierter Kamin (Schornsteinbrust bis zur Decke, Sturz, Herdplatte, dunkle
+  Feuerraum-Nische) – **ohne Feuer**. Das Feuer (`buildFireMesh()`, drei animierte Kegel) und
+  das leicht flackernde `fireLight` (Punktlicht) leben separat auf `FIRE_ANCHOR` und bleiben
+  auch bei GLB-Hülle erhalten.
+- `waldzimmer-shell.glb` (erste Tripo-Generation, im Repo) ist als Hülle noch **nicht
+  verdrahtet** (`ROOM_SHELL_MODEL = ""`): kleiner, blasser Diorama-Klotz, dessen Proportionen
+  nicht zur 8×6-Möbelfläche passen. Loader-Pfad + Skalierung + Kamera sind für eine bessere
+  Hülle vorbereitet.
+
+Möbel mit `furniture.light` (Waldlampe) bekommen beim Platzieren ein echtes kleines
+Punktlicht + sichtbaren Glühkern (`addLampLight()`). Ein-/Ausschalten und Speichern des
+Leuchtzustands (`instance.lightOn`) folgt später.
+
+Der Canvas ist rahmenlos und seitenfüllend (`.schloss-scene-wrap` ohne Border/Karten-Ring,
+`height: 86vh`); die Einrichtungs-Schublade darunter ändert die Raumgröße nicht.
 - Klick wählt ein Möbelstück aus (goldener Ring am Boden), zwei Buttons drehen in 22,5°-
   Schritten, ein dritter entfernt es aus dem Raum (Besitz in `ownedFurniture` bleibt davon
   unberührt). Ziehen ist auf den Raum begrenzt, eine einfache Abstandsprüfung schiebt

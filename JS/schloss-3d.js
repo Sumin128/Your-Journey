@@ -60,8 +60,27 @@ function initSchloss3D(canvas) {
 
     const ROOM_WIDTH = 8;
     const ROOM_DEPTH = 6;
-    const ROOM_HEIGHT = 3.2;
+    const ROOM_HEIGHT = 4.5;
     const WALL_MARGIN = 0.15; // Sicherheitsabstand zur Wand, damit Möbel nicht "einwächst"
+
+    // Echte Raumhülle (GLTFLoader). Ist der Pfad gesetzt und lädt das
+    // Modell, ersetzt es die prozedurale Hülle; sonst baut
+    // buildProceduralShell() die einfache Geometrie als technischen
+    // Fallback - die Szene sieht nie "kaputt" aus.
+    //
+    // Aktuell BEWUSST leer: die erste Tripo-Generation
+    // (images/schloss/models/waldzimmer-shell.glb, im Repo abgelegt)
+    // ist als Raumhülle noch nicht gut genug - kleiner, blasser
+    // Diorama-Klotz, dessen Proportionen nicht zur 8x6-Möbelfläche
+    // passen. Sobald eine brauchbare Hülle vorliegt: hier den Pfad
+    // eintragen, der Rest (Skalierung, 180deg-Drehung, Kamera) ist
+    // unten schon vorbereitet. Details: docs/mein-schloss.md.
+    const ROOM_SHELL_MODEL = "";
+
+    // Fester Ankerpunkt für Kamin-Nische, Feuer und Kaminlicht - Feuer
+    // und Punktlicht leben unabhängig von der Hülle (procedural ODER
+    // GLB), damit der Kamin immer brennt (Vorgabe: Feuer NICHT ins GLB).
+    const FIRE_ANCHOR = new THREE.Vector3(2.7, 0, -ROOM_DEPTH / 2 + 0.45);
 
     const isMobile = window.matchMedia("(max-width: 700px)").matches;
 
@@ -95,18 +114,29 @@ function initSchloss3D(canvas) {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(shell.background);
-    scene.fog = new THREE.Fog(shell.fogColor, 9, 16);
+    scene.fog = new THREE.Fog(shell.fogColor, 14, 30);
 
     // PerspectiveCamera.fov ist der VERTIKALE Blickwinkel. Bei einem
     // hohen, schmalen Wrapper (Handy im Hochformat) würde damit der
     // horizontale Ausschnitt schrumpfen und die Seitenwände/der Kamin
     // aus dem Bild fallen. resize() rechnet deshalb den vertikalen fov
     // aus einem konstant gehaltenen HORIZONTALEN Zielwinkel zurück.
-    const TARGET_HORIZONTAL_FOV = isMobile ? 62 : 54;
+    const TARGET_HORIZONTAL_FOV = isMobile ? 60 : 50;
 
+    // Feste, leicht erhöhte Bühnenkamera (keine freie Navigation) - so
+    // weit hinten/tief, dass Boden, alle drei Wände, Fenster und Kamin
+    // ins Bild passen, aber nicht so steil, dass der Raum wie eine
+    // Grube wirkt. Wird bei geladener GLB-Hülle nachjustiert.
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
-    camera.position.set(0, 5.4, 8.2);
-    camera.lookAt(0, 1, -0.4);
+    if (isMobile) {
+        // Hochformat: näher dran und flacher, sonst nimmt der dunkle
+        // Dachraum oben zu viel Bild ein.
+        camera.position.set(0, 5.0, 8.8);
+        camera.lookAt(0, 1.9, -0.6);
+    } else {
+        camera.position.set(0, 6.0, 9.9);
+        camera.lookAt(0, 1.7, -0.7);
+    }
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -171,8 +201,8 @@ function initSchloss3D(canvas) {
     scene.add(windowLight);
     scene.add(windowLight.target);
 
-    const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 6.5, 2);
-    fireLight.position.set(3.1, 1.05, -ROOM_DEPTH / 2 + 0.6);
+    const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 7.5, 2);
+    fireLight.position.set(FIRE_ANCHOR.x, 1.1, FIRE_ANCHOR.z + 0.35);
     scene.add(fireLight);
 
     // Dezentes Fülllicht von der Kameraseite, ohne Schatten - hebt die
@@ -183,73 +213,90 @@ function initSchloss3D(canvas) {
     scene.add(fillLight);
 
 
-    /* --- Boden --- */
+    /* --- Raumhülle: echte GLB-Architektur, sonst prozeduraler Fallback --- */
 
-    // Etwas größer als der Raum: der Überstand liegt hinter den Wänden
-    // bzw. füllt (nach vorne, Richtung Kamera) den Bereich, der bei
-    // weitem Blickwinkel sonst als leerer Hintergrund unter dem Raum
-    // durchscheinen würde.
+    // Sichtbarer, texturierter Boden - etwas größer als der Raum, damit
+    // bei weitem Blickwinkel kein leerer Hintergrund unter dem Raum
+    // durchscheint. Bleibt die verlässliche Standfläche; wird nur
+    // ausgeblendet, wenn die GLB-Hülle ihren eigenen Boden mitbringt.
     const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(ROOM_WIDTH + 6, ROOM_DEPTH + 8),
+        new THREE.PlaneGeometry(ROOM_WIDTH + 8, ROOM_DEPTH + 10),
         new THREE.MeshStandardMaterial({ map: makeFloorTexture(shell.floorBaseColor), roughness: 0.9 })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.z = 2; // Überstand v. a. nach vorne (Kamera-Seite)
+    floor.position.z = 1.5;
     floor.receiveShadow = true;
     scene.add(floor);
 
+    // Anker für den Lichtstaub (Fensterbereich) - buildProceduralShell()
+    // setzt ihn auf das erste Fenster; bei GLB-Hülle bleibt der Default.
+    const dustAnchor = new THREE.Vector3(-2.7, 2.4, -ROOM_DEPTH / 2 + 0.3);
 
-    /* --- Wände + Fenster + Kamin --- */
+    // Prozedurale Hülle in einer eigenen Gruppe - so lässt sie sich in
+    // einem Rutsch ausblenden, sobald die echte GLB-Hülle geladen ist.
+    const proceduralShell = new THREE.Group();
+    scene.add(proceduralShell);
+    buildProceduralShell(proceduralShell, dustAnchor);
 
-    const wallMaterial = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
+    // Echte Raumhülle versuchen (nur wenn ein Pfad gesetzt ist):
+    // Erfolg -> prozedurale Hülle + Boden weg. Fehler (Datei fehlt /
+    // kaputt) -> prozedurale Hülle bleibt als technischer Fallback
+    // stehen, die Szene sieht nie "kaputt" aus.
+    if (ROOM_SHELL_MODEL) {
+        gltfLoader.load(
+            ROOM_SHELL_MODEL,
+            function (gltf) {
+                const model = gltf.scene;
+                model.traverse(function (o) {
+                    if (!o.isMesh) { return; }
+                    o.receiveShadow = true;
+                    o.castShadow = false;
+                    // Generator-Meshes sind meist nur nach aussen
+                    // sichtbar - von innen (Kameraposition) würde man
+                    // sonst durch die Rückwand schauen.
+                    const mats = Array.isArray(o.material) ? o.material : [o.material];
+                    mats.forEach(function (m) { if (m) { m.side = THREE.DoubleSide; } });
+                });
+                // Auf Raumbreite bringen, um 180deg drehen (die erste
+                // Tripo-Hülle öffnet nach hinten), X/Z auf den Ursprung
+                // zentrieren, Unterkante auf y=0.
+                model.rotation.y = Math.PI;
+                let box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                const s = (ROOM_WIDTH * 1.4) / (size.x || ROOM_WIDTH);
+                if (isFinite(s) && s > 0) { model.scale.setScalar(s); }
+                box = new THREE.Box3().setFromObject(model);
+                const c = box.getCenter(new THREE.Vector3());
+                model.position.x -= c.x;
+                model.position.z -= c.z;
+                if (isFinite(box.min.y)) { model.position.y -= box.min.y; }
+                scene.add(model);
+                proceduralShell.visible = false;
+                floor.visible = false;
+                // Grössere Hülle -> Kamera etwas weiter zurück.
+                camera.position.set(0, 6.5, 14.5);
+                camera.lookAt(0, 3, -1.5);
+                resize();
+                window.__schlossShell = model;
+            },
+            undefined,
+            function (err) {
+                console.warn("Schloss-Raumhülle nicht ladbar, prozeduraler Fallback:", ROOM_SHELL_MODEL, err);
+            }
+        );
+    }
 
-    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT), wallMaterial);
-    backWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
-    backWall.receiveShadow = true;
-    scene.add(backWall);
-
-    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMaterial);
-    leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
-    leftWall.receiveShadow = true;
-    scene.add(leftWall);
-
-    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMaterial.clone());
-    rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
-    rightWall.receiveShadow = true;
-    scene.add(rightWall);
-
-    // Fenster (Blickfang links) - warmes Canvas-Gemälde statt Foto,
-    // damit kein zusätzliches Bild-Asset nötig ist.
-    const windowMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(2.3, 1.7),
-        new THREE.MeshBasicMaterial({ map: makeForestWindowTexture(shell.windowSky) })
-    );
-    windowMesh.position.set(-2.3, 1.95, -ROOM_DEPTH / 2 + 0.03);
-    scene.add(windowMesh);
-
-    // Kamin (Blickfang rechts) - einfache, klar lesbare Boxen.
-    const fireplace = buildFireplace();
-    fireplace.position.set(3.1, 0, -ROOM_DEPTH / 2 + 0.35);
-    scene.add(fireplace);
-
-    // Decke - ohne sie wirkt der Raum nach oben offen/leer statt wie
-    // ein richtiges Zimmer. Dunkler als die Wände (bekommt kaum Licht
-    // ab), damit sie nicht mit der Kamera konkurriert.
-    const ceiling = new THREE.Mesh(
-        new THREE.PlaneGeometry(ROOM_WIDTH + 6, ROOM_DEPTH + 8),
-        new THREE.MeshStandardMaterial({ color: shell.ceilingColor, roughness: 1 })
-    );
-    ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.set(0, ROOM_HEIGHT, 2);
-    scene.add(ceiling);
+    // Kaminfeuer + flackerndes Punktlicht leben AUSSERHALB der Hülle
+    // (Vorgabe: Feuer gehört nicht ins GLB) - Anker: FIRE_ANCHOR.
+    const fireMesh = buildFireMesh();
+    fireMesh.position.set(FIRE_ANCHOR.x, 0.18, FIRE_ANCHOR.z + 0.12);
+    scene.add(fireMesh);
 
     // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
-    // "verwunschenen Waldschloss"-Gefühl, rein dekorativ (keine
-    // Kollision/Interaktion). Auf Mobilgeräten weniger Partikel.
+    // "verwunschenen Waldschloss"-Gefühl, rein dekorativ. Weniger
+    // Partikel auf Mobilgeräten.
     const dustMotes = buildDustMotes(isMobile ? 24 : 50);
-    dustMotes.position.copy(windowMesh.position);
+    dustMotes.position.copy(dustAnchor);
     scene.add(dustMotes);
 
 
@@ -300,6 +347,14 @@ function initSchloss3D(canvas) {
             });
         } else {
             populateWithCutout(group, furniture, design, instance.color);
+        }
+
+        // Leuchtende Möbel (furniture.light, z. B. Waldlampe) bekommen
+        // eine echte kleine Punktlichtquelle + sichtbaren Glühkern.
+        // Vorerst immer an; ein- / ausschaltbar und speicherbar wird der
+        // Zustand in einem späteren Schritt (instance.lightOn).
+        if (furniture.light) {
+            addLampLight(group, furniture.light);
         }
 
         scene.add(group);
@@ -650,12 +705,29 @@ function initSchloss3D(canvas) {
 
         dustMotes.geometry.attributes.position.needsUpdate = true;
 
+        // Kaminfeuer: leicht flackerndes Punktlicht + sanft zuckende
+        // Flammen. Rein zeitgesteuert (zwei überlagerte Sinus), kein
+        // Partikelsystem - das Feuer gehört bewusst nicht ins GLB.
+        const flick = 0.82 + Math.sin(t * 9) * 0.09 + Math.sin(t * 17.3) * 0.05;
+        fireLight.intensity = shell.fireLight.intensity * flick;
+
+        for (let i = 0; i < fireMesh.children.length; i++) {
+            const flame = fireMesh.children[i];
+            const s = 0.78 + Math.sin(t * (7 + i * 2) + i) * 0.18 + (flick - 0.82);
+            flame.scale.set(0.9 + (s - 0.9) * 0.45, s, 0.9 + (s - 0.9) * 0.45);
+            flame.rotation.y = Math.sin(t * 3 + i) * 0.25;
+        }
+
         renderer.render(scene, camera);
 
     }
 
     resize();
     animate();
+
+    // Debug-Griff fürs Kamera-/Hüllen-Feintuning (harmlos, nur lesend
+    // gedacht) - erlaubt es, in der Konsole Kamera und Szene zu prüfen.
+    window.__schloss3d = { scene: scene, camera: camera, renderer: renderer, THREE: THREE };
 
 
     /* =====================================================
@@ -927,17 +999,21 @@ function initSchloss3D(canvas) {
 
         const texture = new THREE.CanvasTexture(el);
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(2.4, 1.4);
+        texture.repeat.set(2.4, 2.0);
         texture.colorSpace = THREE.SRGBColorSpace;
         return texture;
 
     }
 
+    // Waldsicht durchs Fenster: warmer Himmel oben, weiche grüne
+    // Baumkronen dahinter, ein paar hellere Lichtflecken. Bewusst
+    // ruhig/gemalt (keine harten Zacken - die lasen sich vorher wie
+    // Feuer statt wie Wald).
     function makeForestWindowTexture(skyColors) {
 
         const colors = (skyColors && skyColors.length === 3) ? skyColors : ["#ffe2a0", "#ffb877", "#dd8a4e"];
 
-        const w = 300, h = 220;
+        const w = 300, h = 260;
         const el = document.createElement("canvas");
         el.width = w;
         el.height = h;
@@ -945,20 +1021,33 @@ function initSchloss3D(canvas) {
 
         const sky = ctx.createLinearGradient(0, 0, 0, h);
         sky.addColorStop(0, colors[0]);
-        sky.addColorStop(0.55, colors[1]);
-        sky.addColorStop(1, colors[2]);
+        sky.addColorStop(0.5, "#cfe3a8");
+        sky.addColorStop(1, "#7fae63");
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, w, h);
 
-        ctx.fillStyle = "rgba(70,45,20,0.55)";
-        for (let i = 0; i < 6; i++) {
-            const x = (i / 6) * w + 10;
-            const treeH = h * (0.45 + (i % 2) * 0.15);
+        const rng = mulberry32(19);
+
+        // hintere, dunklere Baumreihe
+        function canopy(baseY, fill) {
+            ctx.fillStyle = fill;
+            for (let i = 0; i < 7; i++) {
+                const cx = rng() * w;
+                const r = 26 + rng() * 30;
+                ctx.beginPath();
+                ctx.arc(cx, baseY + rng() * 20, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        canopy(h * 0.55, "rgba(58, 92, 52, 0.9)");
+        canopy(h * 0.72, "rgba(84, 120, 66, 0.95)");
+        canopy(h * 0.9, "rgba(108, 142, 78, 1)");
+
+        // ein paar warme Lichtflecken zwischen den Blättern
+        ctx.fillStyle = "rgba(255, 240, 190, 0.5)";
+        for (let i = 0; i < 12; i++) {
             ctx.beginPath();
-            ctx.moveTo(x, h);
-            ctx.lineTo(x + 24, h - treeH);
-            ctx.lineTo(x + 48, h);
-            ctx.closePath();
+            ctx.arc(rng() * w, h * (0.45 + rng() * 0.4), 3 + rng() * 4, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -1018,28 +1107,212 @@ function initSchloss3D(canvas) {
 
     }
 
-    function buildFireplace() {
+    // Prozedurale Raumhülle (technischer Fallback, solange keine echte
+    // waldzimmer-shell.glb vorliegt): U-Form mit Boden-Andockung, hohe
+    // Natursteinwände, Decke mit sichtbaren Holzbalken, zwei hohe
+    // Fensterbögen mit Waldsicht, hoher Türbogen in der linken Wand,
+    // integrierter Kamin (ohne Feuer - das lebt separat), Wandnischen
+    // und Sockel-/Kranzleisten für Tiefe. Setzt dustAnchor auf das
+    // erste Fenster.
+    function buildProceduralShell(group, dustAnchor) {
+
+        const wallMat = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
+        const beamMat = new THREE.MeshStandardMaterial({ color: 0x3f2c1a, roughness: 0.95 });
+        const trimMat = new THREE.MeshStandardMaterial({ color: 0x6d5133, roughness: 1 });
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x8a6b45, roughness: 1 });
+        const nicheMat = new THREE.MeshStandardMaterial({ color: 0x5f4830, roughness: 1 });
+
+        // --- Wände (Innenseiten zugewandt) ---
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT), wallMat);
+        backWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+        backWall.receiveShadow = true;
+        group.add(backWall);
+
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+        leftWall.receiveShadow = true;
+        group.add(leftWall);
+
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
+        rightWall.receiveShadow = true;
+        group.add(rightWall);
+
+        // --- Decke + sichtbare Holzbalken ---
+        // Bewusst niedriger als die Wände (CEILING_Y < ROOM_HEIGHT): von
+        // der leicht erhöhten Bühnenkamera füllt so die Deckenuntersicht
+        // den oberen Bildrand, statt dass dort ein schwarzer Streifen
+        // Hintergrund zwischen Wandkrone und Decke durchscheint.
+        // Decke: nach unten weisende Fläche (FrontSide) - von der leicht
+        // erhöhten Bühnenkamera füllt ihre Untersicht den oberen
+        // Bildrand und schliesst den Raum optisch nach oben ab.
+        const CEILING_Y = 4.4;
+        const ceiling = new THREE.Mesh(
+            new THREE.PlaneGeometry(ROOM_WIDTH + 8, ROOM_DEPTH + 10),
+            new THREE.MeshStandardMaterial({ color: 0x5a4430, roughness: 1 })
+        );
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.set(0, CEILING_Y, 1.5);
+        group.add(ceiling);
+
+        for (let i = 0; i < 4; i++) {
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH + 0.4, 0.2, 0.26), beamMat);
+            beam.position.set(0, CEILING_Y - 0.12, -ROOM_DEPTH / 2 + 0.9 + i * ((ROOM_DEPTH - 1.8) / 3));
+            group.add(beam);
+        }
+        const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, ROOM_DEPTH), beamMat);
+        ridge.position.set(0, CEILING_Y - 0.11, 0);
+        group.add(ridge);
+
+        // --- Sockel- + Kranzleiste (macht aus "Ebenen" einen Raum) ---
+        [0.1, CEILING_Y - 0.12].forEach(function (y) {
+            const b = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH, 0.2, 0.14), trimMat);
+            b.position.set(0, y, -ROOM_DEPTH / 2 + 0.07);
+            group.add(b);
+            [-1, 1].forEach(function (side) {
+                const s = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.2, ROOM_DEPTH), trimMat);
+                s.position.set(side * (ROOM_WIDTH / 2 - 0.07), y, 0);
+                group.add(s);
+            });
+        });
+
+        // --- Zwei hohe Fensterbögen mit Waldsicht (Rückwand) ---
+        const winTex = makeForestWindowTexture(shell.windowSky);
+        [-2.8, -1.1].forEach(function (x, idx) {
+            const w = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.4, 2.1),
+                new THREE.MeshBasicMaterial({ map: winTex })
+            );
+            w.position.set(x, 1.95, -ROOM_DEPTH / 2 + 0.04);
+            group.add(w);
+
+            const archTop = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.12, 8, 16, Math.PI), frameMat);
+            archTop.position.set(x, 3.0, -ROOM_DEPTH / 2 + 0.06);
+            group.add(archTop);
+            [-0.73, 0.73].forEach(function (dx) {
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.2, 0.16), frameMat);
+                post.position.set(x + dx, 1.9, -ROOM_DEPTH / 2 + 0.06);
+                group.add(post);
+            });
+
+            if (idx === 0) { dustAnchor.set(x, 2.1, -ROOM_DEPTH / 2 + 0.35); }
+        });
+
+        // --- Hoher Türbogen (linke Wand) ---
+        const door = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.6, 2.7),
+            new THREE.MeshStandardMaterial({ color: 0x241810, roughness: 1 })
+        );
+        door.rotation.y = Math.PI / 2;
+        door.position.set(-ROOM_WIDTH / 2 + 0.05, 1.35, -0.4);
+        group.add(door);
+
+        const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.16, 8, 18, Math.PI), frameMat);
+        doorArch.rotation.y = Math.PI / 2;
+        doorArch.position.set(-ROOM_WIDTH / 2 + 0.07, 2.7, -0.4);
+        group.add(doorArch);
+        [-0.82, 0.82].forEach(function (dz) {
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.7, 0.2), frameMat);
+            post.rotation.y = Math.PI / 2;
+            post.position.set(-ROOM_WIDTH / 2 + 0.07, 1.35, -0.4 + dz);
+            group.add(post);
+        });
+
+        // --- Wandnischen: flache, dunkle Einlassungen mit Steinrahmen
+        // in der Rückwand (Tiefe, ohne aufwändige Kastengeometrie) ---
+        function niche(x) {
+            const recess = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.15, 0.3), nicheMat);
+            recess.position.set(x, 1.75, -ROOM_DEPTH / 2 + 0.02);
+            group.add(recess);
+            const rim = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.08, 6, 14, Math.PI), frameMat);
+            rim.position.set(x, 2.28, -ROOM_DEPTH / 2 + 0.18);
+            group.add(rim);
+            [-0.42, 0.42].forEach(function (dx) {
+                const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.2, 0.14), frameMat);
+                post.position.set(x + dx, 1.72, -ROOM_DEPTH / 2 + 0.18);
+                group.add(post);
+            });
+        }
+        niche(0.5);
+
+        // --- Integrierter Kamin (Rückwand rechts), OHNE Feuer ---
+        const fp = new THREE.Group();
+        const stoneMat = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
+        const sootMat = new THREE.MeshStandardMaterial({ color: 0x1a1108, roughness: 1 });
+
+        const breast = new THREE.Mesh(new THREE.BoxGeometry(2.0, 3.9, 0.7), stoneMat);
+        breast.position.y = 1.95;
+        breast.receiveShadow = true;
+        fp.add(breast);
+
+        const firebox = new THREE.Mesh(new THREE.BoxGeometry(1.05, 1.1, 0.42), sootMat);
+        firebox.position.set(0, 0.6, 0.2);
+        fp.add(firebox);
+
+        const lintel = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.28, 0.66), stoneMat);
+        lintel.position.set(0, 1.32, 0.22);
+        fp.add(lintel);
+
+        const mantel = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.22, 1.0), stoneMat);
+        mantel.position.set(0, 1.62, 0.14);
+        mantel.castShadow = !isMobile;
+        fp.add(mantel);
+
+        const hearth = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.14, 0.85), stoneMat);
+        hearth.position.set(0, 0.07, 0.62);
+        hearth.receiveShadow = true;
+        fp.add(hearth);
+
+        fp.position.set(FIRE_ANCHOR.x, 0, -ROOM_DEPTH / 2);
+        group.add(fp);
+
+    }
+
+    // Kleines, animiertes Kaminfeuer (drei ineinander liegende Kegel).
+    // Skalierung/Drehung passiert im Render-Loop (animate()).
+    function buildFireMesh() {
 
         const group = new THREE.Group();
-        const stone = new THREE.MeshStandardMaterial({ color: 0x7a5638, roughness: 1 });
-        const dark = new THREE.MeshStandardMaterial({ color: 0x2a1a10, roughness: 1 });
-        const glow = new THREE.MeshBasicMaterial({ color: 0xffb15c });
+        const colors = [0xff7b2c, 0xffb14a, 0xffe08a];
 
-        const base = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 0.5), stone);
-        base.position.y = 0.7;
-        base.castShadow = true;
-        base.receiveShadow = true;
-        group.add(base);
-
-        const opening = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.3), dark);
-        opening.position.set(0, 0.55, 0.15);
-        group.add(opening);
-
-        const fire = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 8), glow);
-        fire.position.set(0, 0.42, 0.2);
-        group.add(fire);
+        for (let i = 0; i < 3; i++) {
+            const flame = new THREE.Mesh(
+                new THREE.ConeGeometry(0.24 - i * 0.05, 0.55 - i * 0.11, 8),
+                new THREE.MeshBasicMaterial({
+                    color: colors[i],
+                    transparent: true,
+                    opacity: 0.85 - i * 0.16,
+                    depthWrite: false
+                })
+            );
+            flame.position.y = 0.26 - i * 0.04;
+            group.add(flame);
+        }
 
         return group;
+
+    }
+
+    // Echte kleine Punktlichtquelle für leuchtende Möbel (Waldlampe).
+    // Kein Schatten (Performance). Sichtbarer Glühkern, damit das Licht
+    // klar "aus der Lampe" kommt.
+    function addLampLight(group, lightSpec) {
+
+        const color = new THREE.Color(lightSpec.color || "#ffd9a8");
+        const lamp = new THREE.PointLight(color, lightSpec.intensity || 6, lightSpec.distance || 3.4, 2);
+        lamp.position.set(0, lightSpec.height || 1.5, 0);
+        group.add(lamp);
+        group.userData.light = lamp;
+
+        const bulb = new THREE.Mesh(
+            new THREE.SphereGeometry(0.07, 8, 8),
+            new THREE.MeshBasicMaterial({ color: color })
+        );
+        bulb.position.copy(lamp.position);
+        group.add(bulb);
+        group.userData.bulb = bulb;
 
     }
 
