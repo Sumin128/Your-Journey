@@ -148,6 +148,78 @@ Schloss-spezifisch – schaltet künftig auch andere Dinge frei):
   nur, *ob* das Panel noch gezeigt werden muss – niemals, *ob* eine Belohnung vergeben wird
   (das entscheidet ausschließlich das serverseitige `claimedLevelRewards`).
 
+## Innenausstattungs-Stile ("Themes")
+
+`player.schloss.style` wählt einen Stil. Katalog: `SCHLOSS_THEMES` in
+[`JS/schloss-data.js`](../JS/schloss-data.js). Vier geplante Stile:
+
+| id | Name | Stand |
+|---|---|---|
+| `wald` | Waldschloss | **vollständig** (Raumhülle + 18 Möbel) |
+| `wueste` | Wüstenschloss | Datenmodell vorbereitet, `available: false`, keine Assets |
+| `rosa` | Rosa-Zauber | Datenmodell vorbereitet, `available: false`, keine Assets |
+| `feuer` | Feuerschloss | Datenmodell vorbereitet, `available: false`, keine Assets |
+
+Jeder Stil hat eine `shell` (Boden-/Wand-/Deckenfarbe, Lichtstimmung, Hintergrund/Nebel,
+Fenster-Himmelsfarben) – `JS/schloss-3d.js` liest sie beim Init und färbt Raum + Licht
+entsprechend. Nur `wald` hat aktuell eine `shell`; die anderen fallen bewusst auf die
+Wald-Hülle zurück, damit die Szene nie "kaputt" aussieht, solange sie im UI (`🎨 Stil`-Tab
+in der Einrichtungs-Schublade) als **gesperrt** ("bald") markiert sind. Ein Klick auf ein
+gesperrtes Theme wechselt NICHT, sondern zeigt nur einen Hinweis-Toast. Ein Stil wird erst
+mit eigener `shell` **und** eigenem Möbelsatz freigegeben.
+
+Der Stilwechsel bei einem *verfügbaren* Theme wird gespeichert und beim nächsten Laden der
+Seite angewendet (kein Live-Neuaufbau der Szene – für Phase 1 ausreichend, da ohnehin nur
+`wald` verfügbar ist).
+
+## 3D-Möbelmodelle (`.glb`)
+
+Möbel werden aktuell als aufrechte 2D-Bild-Cutouts gerendert. Pro Möbel kann in
+`SCHLOSS_FURNITURE[*].designs[*].model` ein Pfad zu einem echten `.glb`-Modell gesetzt werden
+(`null` = weiterhin Cutout). `JS/schloss-3d.js` lädt es dann per `GLTFLoader` in die
+Möbelgruppe; schlägt das Laden fehl, fällt es automatisch auf den Cutout zurück. So kann
+Möbel für Möbel umgestellt werden.
+
+**Erste fünf Modelle:** `stuhl_wald_a`, `tisch_wald_a`, `teppich_wald_a`, `lampe_wald_a`,
+`regal_wald_a` (die `model`-Felder sind schon als `null` angelegt).
+
+**Anforderungen an die `.glb`-Dateien** (für den 3D-Generator):
+
+- **Format:** `.glb` (binäres glTF 2.0), eine Datei pro Möbel, inkl. eingebetteter Texturen.
+- **Ablage/Benennung:** `images/schloss/models/<furnitureId>.glb`, also z. B.
+  `images/schloss/models/stuhl_wald_a.glb`.
+- **Maßstab:** in **Metern**, real-world. Die ungefähre Grundfläche pro Möbel steht als
+  `footprint {w, d}` in `JS/schloss-data.js` – Richtwerte: Stuhl 0,7 × 0,7 m, Tisch
+  1,1 × 1,1 m, Teppich 2,2 × 1,5 m (flach, sehr niedrig), Lampe 0,5 × 0,5 m (≈1,5 m hoch),
+  Regal 0,9 × 0,5 m (≈1,6 m hoch).
+- **Pivot / Ursprung:** auf **Boden-Mitte** des Möbels (X/Z zentriert, Y = 0 an der
+  Standfläche). Der Code schiebt zur Sicherheit die Unterkante noch auf Y = 0, aber sauber
+  authored ist besser.
+- **Ausrichtung:** "Vorderseite" zeigt nach **+Z**, aufrecht (Y = oben). Der Teppich liegt
+  flach in der XZ-Ebene.
+- **Stil:** warm, gemalt/storybook, passend zu den vorhandenen Möbelbildern
+  (`images/schloss/moebel/*.png` als Referenz) – **kein** Fotorealismus, **kein** harter
+  Plastik-/Glanz-Look, freundliche runde Formen, mittlere Detailtiefe.
+- **Polycount:** je Möbel möglichst **unter ~5 000 Dreiecke** (Kinder-Webseite, läuft auch
+  auf schwächeren Tablets; mehrere Möbel gleichzeitig in der Szene).
+- **Texturen:** max. **1024 × 1024**, eine (höchstens zwei) pro Möbel, als
+  Basecolor/Albedo ausreichend – gern zusätzlich eine dezente Normal-/Roughness-Map, aber
+  nicht zwingend.
+- **Keine Animationen**, keine Kameras/Lichter im Modell (die Szene bringt eigenes Licht mit).
+- **Materialien:** Standard-glTF-PBR (`KHR_materials_*`-Extensions sind ok, aber
+  konservativ – `three@0.160` GLTFLoader-kompatibel).
+- **Lizenz:** nur Assets, die für die Website genutzt und im öffentlichen GitHub-Repo liegen
+  dürfen (CC0 / eigene Erzeugung / kommerziell-nutzbare Lizenz). Kurzer Herkunfts-/Lizenz-
+  Vermerk hilfreich.
+
+Nach Anlieferung: `model:`-Feld im jeweiligen Katalog-Eintrag auf den Pfad setzen, Version in
+`schloss.html` hochzählen, per Playwright prüfen (Modell erscheint, Maßstab passt, Ziehen/
+Drehen/Entfernen unverändert).
+
+Farb-Einfärben (`instance.color`) wirkt aktuell nur auf Cutouts – für einfärbbare Möbel mit
+echtem `.glb`-Modell (Teppich) muss das Tinting später auf einen Material-Farbwechsel
+umgestellt werden.
+
 ## Schlossladen (Phase 2)
 
 Möbel ohne `unlockedBy` (also `unlockedBy: null`) sind normal per Coins kaufbar, Tab
@@ -178,8 +250,10 @@ Kauf-Ablauf ist identisch zum Muster aus `JS/bako.js` `buyBaumkind()`: lokale Vo
 
 ## Später (nicht angefangen, nur vorbereitet)
 
-- **Echte `.glb`-Möbelmodelle** statt Bild-Cutouts – `GLTFLoader` ist importiert, aber
-  ungenutzt; Zielordner `images/schloss/models/` existiert.
+- **Echte `.glb`-Möbelmodelle** – Integration ist fertig (`design.model`-Feld + GLTFLoader
+  mit Cutout-Fallback, siehe Abschnitt "3D-Möbelmodelle"), es fehlen nur die Modelldateien.
+- **Weitere Themes** (`wueste`, `rosa`, `feuer`) – brauchen je eine `shell` + eigenen
+  Möbelsatz, siehe Abschnitt "Innenausstattungs-Stile".
 - **Weitere Räume** (Phase 3) – Datenmodell (`unlockedRooms`, `SCHLOSS_ROOMS`) ist bereit,
   nur `wohnzimmer` existiert bisher.
 - **Trophäenzimmer / Haustierecke / Bilderrahmen-Inhalt** (Phase 4) – Achievement-Katalog hat

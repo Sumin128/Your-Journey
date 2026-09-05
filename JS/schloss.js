@@ -24,7 +24,10 @@
     const editorSection = document.getElementById("schloss-editor");
     const inventoryEl = document.getElementById("schloss-inventory");
     const shopEl = document.getElementById("schloss-shop");
+    const styleEl = document.getElementById("schloss-style");
     const tabButtons = document.querySelectorAll(".schloss-tab");
+    const drawer = document.getElementById("schloss-drawer");
+    const drawerToggle = document.getElementById("schloss-drawer-toggle");
 
     if (!lockedSection || !editorSection) {
         return;
@@ -222,13 +225,78 @@
 
             const tab = button.dataset.schlossTab;
             inventoryEl.hidden = tab !== "inventory";
-            if (shopEl) {
-                shopEl.hidden = tab !== "shop";
-            }
+            if (shopEl) { shopEl.hidden = tab !== "shop"; }
+            if (styleEl) { styleEl.hidden = tab !== "style"; }
+
+            // Beim Tab-Wechsel die Schublade automatisch aufklappen.
+            if (drawer) { drawer.classList.remove("is-collapsed"); }
+            if (drawerToggle) { drawerToggle.setAttribute("aria-expanded", "true"); }
 
         });
 
     });
+
+    if (drawerToggle && drawer) {
+        drawerToggle.addEventListener("click", function () {
+            const collapsed = drawer.classList.toggle("is-collapsed");
+            drawerToggle.setAttribute("aria-expanded", String(!collapsed));
+        });
+    }
+
+
+    /* --- Stil-Auswahl (Themes). Nur "wald" ist in diesem Durchgang
+       vollständig - die anderen drei sind sichtbar, aber gesperrt und
+       dürfen nicht wirken, als wären sie fertig. Ein Klick darauf sagt
+       kurz Bescheid und wechselt NICHT. --- */
+
+    function renderStyleTab() {
+
+        if (!styleEl || typeof SCHLOSS_THEMES === "undefined") {
+            return;
+        }
+
+        const activeStyle = (player.schloss && player.schloss.style) || "wald";
+
+        styleEl.innerHTML = "";
+
+        SCHLOSS_THEMES.forEach(function (themeEntry) {
+
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = "schloss-style-card" +
+                (themeEntry.id === activeStyle ? " is-active" : "") +
+                (themeEntry.available ? "" : " is-locked");
+
+            card.innerHTML =
+                '<span class="schloss-style-card-icon" aria-hidden="true">' + themeEntry.icon + '</span>' +
+                '<span>' + themeEntry.name + '</span>' +
+                (themeEntry.available ? "" : '<span class="schloss-style-card-badge">bald</span>');
+
+            card.addEventListener("click", function () {
+
+                if (!themeEntry.available) {
+                    showMirelonToast(themeEntry.name + " wird noch gebaut – bald! 🔨", "info");
+                    return;
+                }
+
+                if (themeEntry.id === ((player.schloss && player.schloss.style) || "wald")) {
+                    return;
+                }
+
+                player.schloss.style = themeEntry.id;
+                saveSchloss();
+                renderStyleTab();
+                // Die 3D-Szene übernimmt den neuen Stil beim nächsten
+                // Laden der Seite (Raumhülle wird bei init gesetzt).
+                showMirelonToast("Stil gewechselt zu " + themeEntry.name + ".", "info");
+
+            });
+
+            styleEl.appendChild(card);
+
+        });
+
+    }
 
 
     /* --- Einstieg --- */
@@ -253,6 +321,7 @@
 
         renderInventory();
         renderShop();
+        renderStyleTab();
 
     }
 

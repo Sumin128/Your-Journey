@@ -20,17 +20,24 @@
 
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
 
 }
 
-.schloss-topbar {
+/* Die Editor-Seite soll großflächig wirken - die 3D-Ansicht bekommt
+   fast die volle Höhe, die Einrichtungs-Schublade darunter nur so viel
+   wie nötig. */
+.schloss-editor {
+
+    /* .yj-page (main) ist column-flex mit align-items:center - ohne
+       ein explizites width würde #schloss-editor auf seine breiteste
+       Zeile (die Möbel-/Stil-Schublade) zusammenschrumpfen und die
+       3D-Szene mitziehen (auf Mobil rechts abgeschnitten). */
+    width: 100%;
 
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 10px;
 
 }
 
@@ -41,8 +48,14 @@
     position: relative;
 
     width: 100%;
-    aspect-ratio: 16 / 10;
-    max-height: 78vh;
+    height: 72vh;
+    min-height: 340px;
+
+    /* Auf hohen, schmalen Handys eine flachere Bühne - ein sehr
+       hoch-schmaler 3D-Raum wirkt sonst winzig mit viel Leerraum
+       (die Kamera-fov-Kompensation in JS/schloss-3d.js müsste den
+       vertikalen Blickwinkel sonst extrem aufziehen). */
+
 
     border: 5px solid var(--yj-color-wood-dark);
     border-radius: var(--yj-radius-lg);
@@ -57,8 +70,37 @@
 
 }
 
+.schloss-scene-title {
+
+    position: absolute;
+    left: 14px;
+    top: 12px;
+
+    padding: 5px 12px;
+    border-radius: var(--yj-radius-pill, 999px);
+
+    background: rgba(35, 20, 8, 0.55);
+    backdrop-filter: blur(3px);
+
+    color: #ffe3ad;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: 0.95rem;
+
+    pointer-events: none;
+
+}
+
 #schloss-canvas {
 
+    /* Absolut im Wrapper (der ist position:relative;overflow:hidden) -
+       so kann die vom Renderer per setSize() gesetzte Pixelbreite des
+       Canvas NICHT den Flex-Container aufblähen (sonst Rückkopplung:
+       Container zu breit -> nächster resize misst zu breit -> ...,
+       auf Mobil rechts abgeschnitten). Größe kommt rein aus dem
+       Wrapper (width:100% des Elternteils, height:72vh). */
+    position: absolute;
+    inset: 0;
     display: block;
     width: 100%;
     height: 100%;
@@ -123,10 +165,11 @@
     background: var(--yj-color-accent, #e0a53c);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
 
     .schloss-scene-wrap {
-        aspect-ratio: 4 / 5;
+        height: 56vh;
+        min-height: 300px;
     }
 
 }
@@ -192,11 +235,56 @@
     z-index: 5;
 }
 
-/* --- Tabs (Inventar / Laden) --- */
+/* --- Einrichtungs-Schublade (Tabs + Inhalt, einklappbar) --- */
+
+.schloss-drawer {
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-lg);
+    background: var(--yj-color-paper);
+
+    padding: 8px 10px;
+
+}
+
+.schloss-drawer-body {
+
+    margin-top: 8px;
+
+}
+
+.schloss-drawer.is-collapsed .schloss-drawer-body {
+    display: none;
+}
+
+.schloss-drawer-toggle {
+
+    margin-left: auto;
+
+    width: 34px;
+    height: 34px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: 50%;
+    background: var(--yj-color-paper);
+
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    transition: transform 0.15s ease;
+
+}
+
+.schloss-drawer.is-collapsed .schloss-drawer-toggle {
+    transform: rotate(-90deg);
+}
+
+/* --- Tabs (Inventar / Laden / Stil) --- */
 
 .schloss-tabs {
 
     display: flex;
+    align-items: center;
     gap: 8px;
 
 }
@@ -222,6 +310,60 @@
     background: var(--yj-color-accent, #e0a53c);
     color: var(--yj-color-wood-dark);
 
+}
+
+/* --- Stil-Auswahl (Themes) --- */
+
+.schloss-style {
+
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 4px 2px 8px;
+
+}
+
+.schloss-style-card {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    width: 96px;
+    padding: 12px 6px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-md, 12px);
+    background: var(--yj-color-paper);
+
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--yj-color-wood-dark);
+
+    cursor: pointer;
+
+}
+
+.schloss-style-card-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.schloss-style-card.is-active {
+    border-color: var(--yj-color-accent, #e0a53c);
+    background: var(--yj-color-cream, #fff8ea);
+}
+
+.schloss-style-card.is-locked {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.schloss-style-card-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--yj-color-ink-soft);
 }
 
 /* --- Inventar --- */

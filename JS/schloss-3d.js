@@ -23,9 +23,8 @@
    ===================================================== */
 
 import * as THREE from "three";
-// Für spätere echte .glb-Möbelmodelle vorbereitet (images/schloss/models/) -
-// noch nicht genutzt, Phase 1 rendert Möbel als Bild-Cutouts.
-// eslint-disable-next-line no-unused-vars
+// Für echte .glb-Möbelmodelle (images/schloss/models/) - opt-in pro
+// Möbel über design.model in JS/schloss-data.js, sonst 2D-Cutout.
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const canvas = document.getElementById("schloss-canvas");
@@ -83,14 +82,28 @@ function initSchloss3D(canvas) {
     const textureLoader = new THREE.TextureLoader();
     const textureCache = {};
 
+    // Innenausstattungs-Stil ("Theme"). Aktuell hat nur "wald" eine
+    // shell; für alles andere (bewusst noch nicht fertige Themes)
+    // fällt es sauber auf die Wald-Hülle zurück, damit die Szene nie
+    // "kaputt" aussieht, während das Theme im UI als gesperrt gilt.
+    const theme = getSchlossTheme(player.schloss.style);
+    const shell = theme.shell || getSchlossTheme("wald").shell;
+
 
     /* --- Grundgerüst --- */
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x2a1c12);
-    scene.fog = new THREE.Fog(0x2a1c12, 9, 16);
+    scene.background = new THREE.Color(shell.background);
+    scene.fog = new THREE.Fog(shell.fogColor, 9, 16);
 
-    const camera = new THREE.PerspectiveCamera(isMobile ? 50 : 42, 1, 0.1, 100);
+    // PerspectiveCamera.fov ist der VERTIKALE Blickwinkel. Bei einem
+    // hohen, schmalen Wrapper (Handy im Hochformat) würde damit der
+    // horizontale Ausschnitt schrumpfen und die Seitenwände/der Kamin
+    // aus dem Bild fallen. resize() rechnet deshalb den vertikalen fov
+    // aus einem konstant gehaltenen HORIZONTALEN Zielwinkel zurück.
+    const TARGET_HORIZONTAL_FOV = isMobile ? 62 : 54;
+
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
     camera.position.set(0, 5.4, 8.2);
     camera.lookAt(0, 1, -0.4);
 
@@ -99,27 +112,50 @@ function initSchloss3D(canvas) {
     renderer.shadowMap.enabled = !isMobile;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+    // Größe kommt vom Wrapper (#schloss-scene-wrap), nicht vom Canvas
+    // selbst - siehe CSS-Kommentar bei #schloss-canvas.
+    const sceneWrap = canvas.parentElement;
+
     function resize() {
 
-        const width = canvas.clientWidth || 1;
-        const height = canvas.clientHeight || 1;
+        const box = sceneWrap.getBoundingClientRect();
+        const width = box.width || 1;
+        const height = box.height || 1;
 
         renderer.setSize(width, height, false);
         renderer.setPixelRatio(Math.min(isMobile ? 1.5 : 2, window.devicePixelRatio || 1));
 
-        camera.aspect = width / height;
+        const aspect = width / height;
+        camera.aspect = aspect;
+
+        // vFov aus dem Ziel-hFov: vFov = 2·atan( tan(hFov/2) / aspect ).
+        // Nach oben gedeckelt, damit auf extremem Hochformat der
+        // vertikale Blickwinkel nicht so weit aufreißt, dass über/vor
+        // dem Raum leerer Hintergrund sichtbar wird (Boden/Decke sind
+        // zusätzlich über die Raumgrenzen hinaus vergrößert).
+        const hFovRad = TARGET_HORIZONTAL_FOV * Math.PI / 180;
+        const vFovRad = 2 * Math.atan(Math.tan(hFovRad / 2) / Math.max(aspect, 0.55));
+        camera.fov = Math.min(64, vFovRad * 180 / Math.PI);
+
         camera.updateProjectionMatrix();
 
     }
 
     window.addEventListener("resize", resize);
 
+    // ResizeObserver fängt auch Änderungen, die kein window-resize
+    // auslösen (Sidebar auf/zu, Schublade ein-/ausklappen, Tablet-
+    // Drehung, spätes Layout nach dem Laden).
+    if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(resize).observe(sceneWrap);
+    }
+
 
     /* --- Licht: warmes Fensterlicht + Kaminglühen + sanftes Umgebungslicht --- */
 
-    scene.add(new THREE.AmbientLight(0xffe3bd, 0.5));
+    scene.add(new THREE.AmbientLight(shell.ambient.color, shell.ambient.intensity));
 
-    const windowLight = new THREE.DirectionalLight(0xfff1d6, 0.85);
+    const windowLight = new THREE.DirectionalLight(shell.windowLight.color, shell.windowLight.intensity);
     windowLight.position.set(-3.2, 4.2, 1.6);
     windowLight.target.position.set(0, 0, 0);
     windowLight.castShadow = !isMobile;
@@ -134,25 +170,30 @@ function initSchloss3D(canvas) {
     scene.add(windowLight);
     scene.add(windowLight.target);
 
-    const fireLight = new THREE.PointLight(0xff9c4a, 1.4, 6.5, 2);
+    const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 6.5, 2);
     fireLight.position.set(3.1, 1.05, -ROOM_DEPTH / 2 + 0.6);
     scene.add(fireLight);
 
 
     /* --- Boden --- */
 
+    // Etwas größer als der Raum: der Überstand liegt hinter den Wänden
+    // bzw. füllt (nach vorne, Richtung Kamera) den Bereich, der bei
+    // weitem Blickwinkel sonst als leerer Hintergrund unter dem Raum
+    // durchscheinen würde.
     const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
-        new THREE.MeshStandardMaterial({ map: makeFloorTexture(), roughness: 0.9 })
+        new THREE.PlaneGeometry(ROOM_WIDTH + 6, ROOM_DEPTH + 8),
+        new THREE.MeshStandardMaterial({ map: makeFloorTexture(shell.floorBaseColor), roughness: 0.9 })
     );
     floor.rotation.x = -Math.PI / 2;
+    floor.position.z = 2; // Überstand v. a. nach vorne (Kamera-Seite)
     floor.receiveShadow = true;
     scene.add(floor);
 
 
     /* --- Wände + Fenster + Kamin --- */
 
-    const wallMaterial = new THREE.MeshStandardMaterial({ map: makeStoneTexture(), roughness: 1 });
+    const wallMaterial = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
 
     const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT), wallMaterial);
     backWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
@@ -171,11 +212,11 @@ function initSchloss3D(canvas) {
     rightWall.receiveShadow = true;
     scene.add(rightWall);
 
-    // Waldfenster (Blickfang links) - warmes Canvas-Gemälde statt Foto,
+    // Fenster (Blickfang links) - warmes Canvas-Gemälde statt Foto,
     // damit kein zusätzliches Bild-Asset nötig ist.
     const windowMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(2.3, 1.7),
-        new THREE.MeshBasicMaterial({ map: makeForestWindowTexture() })
+        new THREE.MeshBasicMaterial({ map: makeForestWindowTexture(shell.windowSky) })
     );
     windowMesh.position.set(-2.3, 1.95, -ROOM_DEPTH / 2 + 0.03);
     scene.add(windowMesh);
@@ -189,11 +230,11 @@ function initSchloss3D(canvas) {
     // ein richtiges Zimmer. Dunkler als die Wände (bekommt kaum Licht
     // ab), damit sie nicht mit der Kamera konkurriert.
     const ceiling = new THREE.Mesh(
-        new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
-        new THREE.MeshStandardMaterial({ color: 0x40301f, roughness: 1 })
+        new THREE.PlaneGeometry(ROOM_WIDTH + 6, ROOM_DEPTH + 8),
+        new THREE.MeshStandardMaterial({ color: shell.ceilingColor, roughness: 1 })
     );
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = ROOM_HEIGHT;
+    ceiling.position.set(0, ROOM_HEIGHT, 2);
     scene.add(ceiling);
 
     // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
@@ -235,13 +276,23 @@ function initSchloss3D(canvas) {
         }
 
         const design = furniture.designs[instance.design] || furniture.designs[0];
-        const group = createFurnitureCutout(furniture, design, instance.color);
 
+        const group = new THREE.Group();
         group.position.set(instance.x, 0, instance.z);
         group.rotation.y = instance.rotationY || 0;
         group.userData.instanceId = instance.instanceId;
         group.userData.footprint = furniture.footprint || { w: 0.6, d: 0.6 };
         group.userData.furniture = furniture;
+
+        // Echtes 3D-Modell, wenn design.model gesetzt ist - sonst (und
+        // als Fallback bei Ladefehler) der gemalte 2D-Cutout.
+        if (design.model) {
+            loadFurnitureModel(group, furniture, design, function onModelFail() {
+                populateWithCutout(group, furniture, design, instance.color);
+            });
+        } else {
+            populateWithCutout(group, furniture, design, instance.color);
+        }
 
         scene.add(group);
         placedGroups.push(group);
@@ -625,9 +676,52 @@ function initSchloss3D(canvas) {
 
     }
 
-    function createFurnitureCutout(furniture, design, initialColor) {
+    // Echtes .glb-Modell in eine bestehende Möbelgruppe laden. Die
+    // Modelle werden laut docs/mein-schloss.md ("3D-Möbelmodelle") in
+    // Metern und mit Pivot auf Bodenmitte/Vorderseite +Z authored -
+    // deshalb hier nur eine kleine Absicherung (auf den Boden setzen),
+    // keine volle Normalisierung. Bei Ladefehler ruft onFail() den
+    // 2D-Cutout als Rückfall auf.
+    const gltfLoader = new GLTFLoader();
 
-        const group = new THREE.Group();
+    function loadFurnitureModel(group, furniture, design, onFail) {
+
+        gltfLoader.load(
+            design.model,
+            function (gltf) {
+
+                const model = gltf.scene;
+
+                model.traverse(function (obj) {
+                    if (obj.isMesh) {
+                        obj.castShadow = !isMobile;
+                        obj.receiveShadow = true;
+                    }
+                });
+
+                // Unterkante auf den Boden (falls der Pivot leicht daneben liegt)
+                const box = new THREE.Box3().setFromObject(model);
+                if (isFinite(box.min.y)) {
+                    model.position.y -= box.min.y;
+                }
+
+                group.add(model);
+                group.userData.model = model;
+
+            },
+            undefined,
+            function (error) {
+                console.warn("Schloss-Möbelmodell nicht ladbar:", design.model, error);
+                if (typeof onFail === "function") {
+                    onFail();
+                }
+            }
+        );
+
+    }
+
+    function populateWithCutout(group, furniture, design, initialColor) {
+
         const footprint = furniture.footprint || { w: 0.6, d: 0.6 };
         const flat = Boolean(furniture.flatOnFloor);
 
@@ -680,8 +774,6 @@ function initSchloss3D(canvas) {
             }
 
         });
-
-        return group;
 
     }
 
@@ -752,14 +844,14 @@ function initSchloss3D(canvas) {
 
     }
 
-    function makeFloorTexture() {
+    function makeFloorTexture(baseColor) {
 
         const size = 512;
         const el = document.createElement("canvas");
         el.width = el.height = size;
         const ctx = el.getContext("2d");
 
-        ctx.fillStyle = "#a9793f";
+        ctx.fillStyle = baseColor || "#a9793f";
         ctx.fillRect(0, 0, size, size);
 
         const plankHeight = size / 8;
@@ -777,20 +869,22 @@ function initSchloss3D(canvas) {
 
         const texture = new THREE.CanvasTexture(el);
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(3, 2.2);
+        // Bodenfläche ist ROOM+Überstand groß (14×14) - Wiederholung
+        // entsprechend, damit die Dielenbreite gleich bleibt.
+        texture.repeat.set(5, 5);
         texture.colorSpace = THREE.SRGBColorSpace;
         return texture;
 
     }
 
-    function makeStoneTexture() {
+    function makeStoneTexture(baseColor) {
 
         const size = 512;
         const el = document.createElement("canvas");
         el.width = el.height = size;
         const ctx = el.getContext("2d");
 
-        ctx.fillStyle = "#a9855f";
+        ctx.fillStyle = baseColor || "#a9855f";
         ctx.fillRect(0, 0, size, size);
 
         const rng = mulberry32(7);
@@ -814,7 +908,9 @@ function initSchloss3D(canvas) {
 
     }
 
-    function makeForestWindowTexture() {
+    function makeForestWindowTexture(skyColors) {
+
+        const colors = (skyColors && skyColors.length === 3) ? skyColors : ["#ffe2a0", "#ffb877", "#dd8a4e"];
 
         const w = 300, h = 220;
         const el = document.createElement("canvas");
@@ -823,9 +919,9 @@ function initSchloss3D(canvas) {
         const ctx = el.getContext("2d");
 
         const sky = ctx.createLinearGradient(0, 0, 0, h);
-        sky.addColorStop(0, "#ffe2a0");
-        sky.addColorStop(0.55, "#ffb877");
-        sky.addColorStop(1, "#dd8a4e");
+        sky.addColorStop(0, colors[0]);
+        sky.addColorStop(0.55, colors[1]);
+        sky.addColorStop(1, colors[2]);
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, w, h);
 

@@ -23,7 +23,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=18">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=4">
-    <link rel="stylesheet" href="CSS/schloss.css?v=6">
+    <link rel="stylesheet" href="CSS/schloss.css?v=10">
 
     <!-- Three.js als ES-Modul, fest auf 0.160.0 gepinnt (kein Build-
          Schritt in diesem Projekt). Vorerst über jsdelivr, sobald die
@@ -69,13 +69,11 @@
 
         <section id="schloss-editor" class="schloss-editor" hidden>
 
-            <div class="schloss-topbar yj-panel yj-panel--paper yj-enter">
-                <h1>🏰 Mein Schloss</h1>
-            </div>
-
             <div id="schloss-scene-wrap" class="schloss-scene-wrap">
 
-                <canvas id="schloss-canvas" aria-label="Dein Wohnzimmer, ein 3D-Raum zum Einrichten"></canvas>
+                <canvas id="schloss-canvas" aria-label="Dein Schlosszimmer, ein 3D-Raum zum Einrichten"></canvas>
+
+                <span class="schloss-scene-title" aria-hidden="true">🏰 Mein Schloss</span>
 
                 <div id="schloss-rotate-controls" class="schloss-rotate-controls" hidden>
 
@@ -91,13 +89,24 @@
 
             </div>
 
-            <div class="schloss-tabs" role="tablist">
-                <button type="button" class="schloss-tab is-active" data-schloss-tab="inventory">🪑 Inventar</button>
-                <button type="button" class="schloss-tab" data-schloss-tab="shop">🛍️ Laden</button>
-            </div>
+            <!-- Einrichtungs-Schublade: nimmt so wenig Höhe wie möglich,
+                 damit die 3D-Ansicht großflächig bleibt. Einklappbar. -->
+            <div id="schloss-drawer" class="schloss-drawer">
 
-            <div id="schloss-inventory" class="schloss-inventory" aria-label="Deine Möbel"></div>
-            <div id="schloss-shop" class="schloss-inventory" aria-label="Schlossladen" hidden></div>
+                <div class="schloss-tabs" role="tablist">
+                    <button type="button" class="schloss-tab is-active" data-schloss-tab="inventory">🪑 Inventar</button>
+                    <button type="button" class="schloss-tab" data-schloss-tab="shop">🛍️ Laden</button>
+                    <button type="button" class="schloss-tab" data-schloss-tab="style">🎨 Stil</button>
+                    <button type="button" id="schloss-drawer-toggle" class="schloss-drawer-toggle" aria-label="Schublade ein-/ausklappen" aria-expanded="true">▾</button>
+                </div>
+
+                <div id="schloss-drawer-body" class="schloss-drawer-body">
+                    <div id="schloss-inventory" class="schloss-inventory" aria-label="Deine Möbel"></div>
+                    <div id="schloss-shop" class="schloss-inventory" aria-label="Schlossladen" hidden></div>
+                    <div id="schloss-style" class="schloss-style" aria-label="Einrichtungs-Stil" hidden></div>
+                </div>
+
+            </div>
 
         </section>
 
@@ -118,10 +127,10 @@
     <script src="JS/tamagotchi.js?v=8"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
-    <script src="JS/schloss-data.js?v=4"></script>
-    <script src="JS/schloss.js?v=4"></script>
+    <script src="JS/schloss-data.js?v=6"></script>
+    <script src="JS/schloss.js?v=5"></script>
     <script src="JS/schloss-migration.js?v=1"></script>
-    <script type="module" src="JS/schloss-3d.js?v=6"></script>
+    <script type="module" src="JS/schloss-3d.js?v=10"></script>
 
 </body>
 </html>
