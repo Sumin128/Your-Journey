@@ -1,0 +1,211 @@
+/* =====================================================
+   SCHLOSS.CSS
+   "Mein Schloss" - Raum-Editor (Phase 1: ein Raum, Platzhalter-
+   Möbelgrafiken, siehe JS/schloss-data.js).
+   ===================================================== */
+
+.schloss-page {
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+}
+
+.schloss-topbar {
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+}
+
+/* --- Raum --- */
+
+.schloss-room {
+
+    position: relative;
+
+    width: 100%;
+    aspect-ratio: 16 / 9;
+
+    border: 5px solid var(--yj-color-wood-dark);
+    border-radius: var(--yj-radius-lg);
+    overflow: hidden;
+
+    /* Platzhalter-Hintergrund, solange kein gemalter Raum existiert
+       (echtes Bild kommt mit den übrigen Gemini-Assets). */
+    background: linear-gradient(180deg, #d8c39a 0%, #c9a876 55%, #a9855a 100%);
+
+    box-shadow:
+        0 1px 0 rgba(255, 226, 165, 0.25) inset,
+        0 0 0 3px rgba(var(--yj-accent-rgb), 0.35),
+        var(--yj-shadow-float);
+
+}
+
+.schloss-placed {
+
+    position: absolute;
+
+    width: 15%;
+    aspect-ratio: 1 / 1;
+
+    padding: 0;
+    border: none;
+    background: none;
+
+    cursor: grab;
+    touch-action: none;
+
+    transform: translate(-50%, -50%);
+
+}
+
+.schloss-placed img {
+
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+
+    filter: drop-shadow(0 6px 8px rgba(35, 20, 8, 0.35));
+
+}
+
+.schloss-placed--flipped img {
+    transform: scaleX(-1);
+}
+
+.schloss-placed--dragging {
+    cursor: grabbing;
+    z-index: 5;
+}
+
+/* --- Inventar --- */
+
+.schloss-inventory {
+
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 6px 2px 12px;
+
+}
+
+.schloss-inventory-empty {
+
+    color: var(--yj-color-ink-soft);
+    font-style: italic;
+
+}
+
+.schloss-inv-item {
+
+    flex: none;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    width: 84px;
+    padding: 10px 6px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-md, 12px);
+    background: var(--yj-color-paper);
+
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--yj-color-wood-dark);
+
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+
+}
+
+.schloss-inv-item:hover {
+    transform: translateY(-2px);
+    background: var(--yj-color-cream, #fff8ea);
+}
+
+.schloss-inv-item img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+
+/* --- Kontextmenü für ein platziertes Möbelstück --- */
+
+.schloss-item-menu[hidden] {
+    display: none;
+}
+
+.schloss-item-menu {
+
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+
+    z-index: 500;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    padding: 14px 18px;
+
+    border: 2px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-lg);
+    background: var(--yj-color-paper);
+    box-shadow: 0 12px 32px rgba(35, 20, 8, 0.35);
+
+    color: var(--yj-color-wood-dark);
+
+}
+
+.schloss-item-menu-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.schloss-item-menu-colors {
+    display: flex;
+    gap: 8px;
+}
+
+.schloss-color-swatch {
+
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--yj-color-border);
+    cursor: pointer;
+
+}
+
+.schloss-item-menu-close {
+
+    position: absolute;
+    top: 6px;
+    right: 8px;
+
+    border: none;
+    background: none;
+
+    font-size: 0.9rem;
+    color: var(--yj-color-ink-soft);
+    cursor: pointer;
+
+}
+
+
+/* --- Gesperrter Zustand --- */
+
+.schloss-locked h1 {
+    margin-bottom: 8px;
+}
