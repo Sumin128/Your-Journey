@@ -2,37 +2,59 @@
    SCHLOSS-3D.JS
    "Mein Schloss" - 3D-Raumansicht (Three.js).
 
-   SCHRITT 2 (aktueller Stand): funktionierender Prototyp - ein Raum
-   mit Boden, Wänden, Fenster, Kamin, warmem Licht und Schatten, feste
-   leicht schräge Kamera, EIN Platzhalter-Möbel (Box-Geometrie), das
-   sich per Ziehen frei auf dem Boden verschieben und über zwei
-   Buttons drehen lässt. Bewegung ist auf den Raum begrenzt, eine
-   einfache Abstandsprüfung schiebt überlappende Möbel sanft
-   auseinander (keine starre Physik).
+   SCHRITT 3 (aktueller Stand): echtes Inventar/Katalog (JS/schloss-
+   data.js) angeschlossen, Speichern/Laden in player.schloss (inkl.
+   Migration alter 2D-Spielstände, siehe JS/schloss-migration.js).
+   Möbel werden als aufrechte, aus den vorhandenen Gemini-Bildern
+   geschnittene "Pappaufsteller" auf dem Boden gerendert (echte
+   .glb-Modelle sind der nächste optische Schritt, siehe
+   images/schloss/models/ + GLTFLoader-Import unten, aktuell
+   ungenutzt). Platzieren aus dem Inventar (JS/schloss.js, Event
+   "schloss:place-furniture"), Ziehen, Drehen, Entfernen - alles
+   schreibt in player.schloss.rooms.<raum>.placedItems und speichert
+   über savePlayer()/player-updated wie jede andere Layout-Änderung.
 
-   NOCH NICHT angeschlossen (folgt in Schritt 3): echtes Inventar/
-   Katalog (JS/schloss-data.js), Speichern/Laden in player.schloss,
-   Kauf-Flow, Entfernen aus dem Inventar heraus. Diese Funktionen
-   laufen bis dahin unverändert weiter in JS/schloss.js (dort auch der
-   Grund, warum #schloss-room im Markup vorerst nur versteckt statt
-   gelöscht ist).
-
-   Datenmodell-Zielrichtung (Schritt 3): player.schloss.rooms.<id>.
-   placedItems[] bekommt statt {x, y, flipped} künftig
-   {x, z, rotationY} (echte 3D-Koordinaten in Metern + Gieren in
-   Radiant) - design/color/customVariantId/scale/content bleiben
-   unverändert. Migration alter 2D-Spielstände: siehe
-   JS/schloss-migration.js (kommt mit Schritt 3).
+   Nur schloss.ownedFurniture/unlockedRooms sind serverseitig
+   geschützt (siehe supabase_migration_schloss.sql) - diese Datei
+   verändert sie nie direkt, sondern liest nur, was das Kind schon
+   besitzt (über JS/schloss-data.js SCHLOSS_FURNITURE).
 
    Feature-Spezifikation: docs/mein-schloss.md
    ===================================================== */
 
 import * as THREE from "three";
+// Für spätere echte .glb-Möbelmodelle vorbereitet (images/schloss/models/) -
+// noch nicht genutzt, Phase 1 rendert Möbel als Bild-Cutouts.
+// eslint-disable-next-line no-unused-vars
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const canvas = document.getElementById("schloss-canvas");
 
 if (canvas) {
-    initSchloss3D(canvas);
+
+    let started = false;
+
+    function isUnlocked() {
+        return Boolean(player.progression) &&
+            Array.isArray(player.progression.unlockedFeatures) &&
+            player.progression.unlockedFeatures.indexOf("castle") !== -1;
+    }
+
+    function tryStart() {
+        if (started || !isUnlocked()) {
+            return;
+        }
+        started = true;
+        initSchloss3D(canvas);
+    }
+
+    tryStart();
+
+    // Bei Login/Cloud-Pull kann sich der Freischalt-Stand erst nach
+    // dem ersten Versuch ändern (Race, siehe die Baumkind-Lehre in
+    // JS/tamagotchi.js) - deshalb hier erneut prüfen.
+    window.addEventListener("player-updated", tryStart);
+
 }
 
 function initSchloss3D(canvas) {
@@ -43,6 +65,24 @@ function initSchloss3D(canvas) {
     const WALL_MARGIN = 0.15; // Sicherheitsabstand zur Wand, damit Möbel nicht "einwächst"
 
     const isMobile = window.matchMedia("(max-width: 700px)").matches;
+
+    function activeRoom() {
+        return player.schloss.rooms[player.schloss.activeRoom || "wohnzimmer"];
+    }
+
+    function saveSchloss() {
+        savePlayer();
+        window.dispatchEvent(new CustomEvent("player-updated"));
+    }
+
+    // Muss VOR dem ersten addFurnitureGroup()-Aufruf weiter unten stehen
+    // (der läuft schon beim initialen Laden vorhandener placedItems) -
+    // sonst ReferenceError (TDZ), da createFurnitureCutout()/
+    // loadFurnitureTexture() weiter unten im Code stehen, aber früher
+    // aufgerufen werden als sie textureCache erreichen würden.
+    const textureLoader = new THREE.TextureLoader();
+    const textureCache = {};
+
 
     /* --- Grundgerüst --- */
 
@@ -132,7 +172,7 @@ function initSchloss3D(canvas) {
     scene.add(rightWall);
 
     // Waldfenster (Blickfang links) - warmes Canvas-Gemälde statt Foto,
-    // damit kein zusätzliches Bild-Asset für den Prototyp nötig ist.
+    // damit kein zusätzliches Bild-Asset nötig ist.
     const windowMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(2.3, 1.7),
         new THREE.MeshBasicMaterial({ map: makeForestWindowTexture() })
@@ -146,14 +186,92 @@ function initSchloss3D(canvas) {
     scene.add(fireplace);
 
 
-    /* --- Platzhalter-Möbel (Schritt 2: nur EIN Stück, hart codiert) --- */
+    /* --- Möbel laden: Daten migrieren, dann pro Eintrag eine 3D-Gruppe --- */
 
-    const placeholder = buildPlaceholderChair();
-    placeholder.position.set(0, 0, 0.6);
-    placeholder.userData.footprint = { w: 0.9, d: 0.9 };
-    scene.add(placeholder);
+    const room = activeRoom();
 
-    const placedGroups = [placeholder];
+    const needsMigration = (room.placedItems || []).some(function (item) {
+        return typeof item.z !== "number" || typeof item.rotationY !== "number";
+    });
+
+    room.placedItems = migrateSchlossPlacedItems(room.placedItems, ROOM_WIDTH, ROOM_DEPTH);
+
+    if (needsMigration) {
+        saveSchloss();
+    }
+
+    const placedGroups = [];
+
+    function findInstance(group) {
+        return room.placedItems.find(function (item) {
+            return item.instanceId === group.userData.instanceId;
+        });
+    }
+
+    function addFurnitureGroup(instance) {
+
+        const furniture = getSchlossFurniture(instance.furnitureId);
+
+        if (!furniture) {
+            return null;
+        }
+
+        const design = furniture.designs[instance.design] || furniture.designs[0];
+        const group = createFurnitureCutout(furniture, design);
+
+        group.position.set(instance.x, 0, instance.z);
+        group.rotation.y = instance.rotationY || 0;
+        group.userData.instanceId = instance.instanceId;
+        group.userData.footprint = furniture.footprint || { w: 0.6, d: 0.6 };
+
+        scene.add(group);
+        placedGroups.push(group);
+
+        return group;
+
+    }
+
+    room.placedItems.forEach(addFurnitureGroup);
+
+
+    /* --- Platzieren aus dem Inventar (JS/schloss.js) --- */
+
+    window.addEventListener("schloss:place-furniture", function (event) {
+
+        const furnitureId = event.detail && event.detail.furnitureId;
+
+        if (!furnitureId || !getSchlossFurniture(furnitureId)) {
+            return;
+        }
+
+        // Frisch platzierte Möbel gestaffelt statt exakt übereinander
+        // (rein kosmetisch - Kind zieht sie danach frei an ihren Platz).
+        const index = room.placedItems.length;
+        const col = index % 5;
+        const row = Math.floor(index / 5) % 3;
+
+        const instance = {
+            instanceId: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+            furnitureId: furnitureId,
+            design: 0,
+            color: null,
+            customVariantId: null,
+            x: -2.6 + col * 1.3,
+            z: 1.2 + row * 1.1,
+            rotationY: 0,
+            scale: 1,
+            content: null
+        };
+
+        room.placedItems.push(instance);
+
+        const group = addFurnitureGroup(instance);
+
+        saveSchloss();
+        selectGroup(group);
+
+    });
+
 
     // Auswahlring auf dem Boden - deutlicher, kindgerechter Hinweis
     // statt einer dünnen Outline.
@@ -192,27 +310,52 @@ function initSchloss3D(canvas) {
 
     }
 
+    function rotateSelected(delta) {
+
+        if (!selected) {
+            return;
+        }
+
+        selected.rotation.y += delta;
+
+        const instance = findInstance(selected);
+
+        if (instance) {
+            instance.rotationY = selected.rotation.y;
+            saveSchloss();
+        }
+
+    }
+
     if (rotateLeftBtn) {
-        rotateLeftBtn.addEventListener("click", function () {
-            if (selected) { selected.rotation.y += Math.PI / 8; }
-        });
+        rotateLeftBtn.addEventListener("click", function () { rotateSelected(Math.PI / 8); });
     }
 
     if (rotateRightBtn) {
-        rotateRightBtn.addEventListener("click", function () {
-            if (selected) { selected.rotation.y -= Math.PI / 8; }
-        });
+        rotateRightBtn.addEventListener("click", function () { rotateSelected(-Math.PI / 8); });
     }
 
     if (removeBtn) {
         removeBtn.addEventListener("click", function () {
-            // Schritt 2: Entfernen betrifft nur die Szene (kein
-            // Inventar-Rückfluss/Speichern - folgt in Schritt 3).
-            if (!selected) { return; }
+
+            if (!selected) {
+                return;
+            }
+
             scene.remove(selected);
+
             const index = placedGroups.indexOf(selected);
-            if (index !== -1) { placedGroups.splice(index, 1); }
+            if (index !== -1) {
+                placedGroups.splice(index, 1);
+            }
+
+            room.placedItems = room.placedItems.filter(function (item) {
+                return item.instanceId !== selected.userData.instanceId;
+            });
+
+            saveSchloss();
             selectGroup(null);
+
         });
     }
 
@@ -221,6 +364,7 @@ function initSchloss3D(canvas) {
     const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     let dragging = false;
     let dragPointerId = null;
+    let dragMoved = false;
 
     function updatePointerNDC(event) {
         const bounds = canvas.getBoundingClientRect();
@@ -251,8 +395,17 @@ function initSchloss3D(canvas) {
 
             if (group) {
                 dragging = true;
+                dragMoved = false;
                 dragPointerId = event.pointerId;
-                canvas.setPointerCapture(event.pointerId);
+                // Kann auf manchen Geräten/synthetischen Events ohne
+                // "echten" aktiven Pointer werfen - Ziehen funktioniert
+                // auch ohne Capture, nur weniger robust bei schnellen
+                // Bewegungen über den Canvas-Rand hinaus.
+                try {
+                    canvas.setPointerCapture(event.pointerId);
+                } catch (e) {
+                    /* ignorieren */
+                }
             }
 
         } else {
@@ -278,6 +431,8 @@ function initSchloss3D(canvas) {
         if (!hit) {
             return;
         }
+
+        dragMoved = true;
 
         const footprint = selected.userData.footprint || { w: 0.6, d: 0.6 };
         const halfW = ROOM_WIDTH / 2 - footprint.w / 2 - WALL_MARGIN;
@@ -319,10 +474,28 @@ function initSchloss3D(canvas) {
     });
 
     function endDrag(event) {
-        if (event.pointerId === dragPointerId) {
-            dragging = false;
-            dragPointerId = null;
+
+        if (event.pointerId !== dragPointerId) {
+            return;
         }
+
+        dragging = false;
+        dragPointerId = null;
+
+        // Nur EINMAL beim Loslassen speichern, nicht bei jedem
+        // pointermove-Tick (sonst würde ein einziges Ziehen dutzende
+        // savePlayer()/sync_player_data()-Aufrufe auslösen).
+        if (dragMoved && selected) {
+            const instance = findInstance(selected);
+            if (instance) {
+                instance.x = selected.position.x;
+                instance.z = selected.position.z;
+                saveSchloss();
+            }
+        }
+
+        dragMoved = false;
+
     }
 
     canvas.addEventListener("pointerup", endDrag);
@@ -341,11 +514,68 @@ function initSchloss3D(canvas) {
 
 
     /* =====================================================
-       Hilfsfunktionen: Canvas-Texturen + einfache Geometrie-Gruppen.
-       Alles rein prozedural (kein Bild-Asset nötig) - passend zum
-       Platzhalter-Charakter dieses Schritts. Echte, gemalte
-       Materialien/Modelle folgen später (siehe images/schloss/models/).
+       Hilfsfunktionen
        ===================================================== */
+
+    // Lädt das vorhandene 2D-Gemini-Bild eines Möbelstücks als
+    // aufrechtes, aus dem Bild geschnittenes "Pappaufsteller"-Plane -
+    // die im Architekturplan genannte Übergangslösung, bis echte
+    // .glb-Modelle (images/schloss/models/) existieren. Anders als ein
+    // THREE.Sprite (das immer zur Kamera zeigt) bleibt ein normales
+    // Plane innerhalb seiner Gruppe drehbar, damit "Drehen" sichtbar
+    // etwas bewirkt.
+    function loadFurnitureTexture(src, onLoaded) {
+
+        if (textureCache[src]) {
+            onLoaded(textureCache[src]);
+            return;
+        }
+
+        textureLoader.load(src, function (texture) {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            textureCache[src] = texture;
+            onLoaded(texture);
+        });
+
+    }
+
+    function createFurnitureCutout(furniture, design) {
+
+        const group = new THREE.Group();
+        const footprint = furniture.footprint || { w: 0.6, d: 0.6 };
+
+        const material = new THREE.MeshStandardMaterial({
+            transparent: true,
+            alphaTest: 0.4,
+            side: THREE.DoubleSide,
+            roughness: 0.9
+        });
+
+        // Platzhalter-Fläche, bis die Textur geladen ist (vermeidet ein
+        // kurzes "Nichts" beim ersten Rendern).
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(footprint.w, footprint.w), material);
+        plane.position.y = footprint.w / 2;
+        plane.castShadow = true;
+        group.add(plane);
+
+        loadFurnitureTexture(design.sprite, function (texture) {
+
+            const image = texture.image;
+            const aspect = (image && image.width && image.height) ? image.width / image.height : 1;
+            const height = footprint.w / aspect;
+
+            plane.geometry.dispose();
+            plane.geometry = new THREE.PlaneGeometry(footprint.w, height);
+            plane.position.y = height / 2;
+
+            material.map = texture;
+            material.needsUpdate = true;
+
+        });
+
+        return group;
+
+    }
 
     function makeFloorTexture() {
 
@@ -462,32 +692,6 @@ function initSchloss3D(canvas) {
         const fire = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 8), glow);
         fire.position.set(0, 0.42, 0.2);
         group.add(fire);
-
-        return group;
-
-    }
-
-    function buildPlaceholderChair() {
-
-        const group = new THREE.Group();
-        const wood = new THREE.MeshStandardMaterial({ color: 0xc08a4e, roughness: 0.8 });
-
-        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.12, 0.7), wood);
-        seat.position.y = 0.42;
-        seat.castShadow = true;
-        group.add(seat);
-
-        const back = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.12), wood);
-        back.position.set(0, 0.78, -0.29);
-        back.castShadow = true;
-        group.add(back);
-
-        [[-0.28, -0.28], [0.28, -0.28], [-0.28, 0.28], [0.28, 0.28]].forEach(function (pos) {
-            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.42, 0.09), wood);
-            leg.position.set(pos[0], 0.21, pos[1]);
-            leg.castShadow = true;
-            group.add(leg);
-        });
 
         return group;
 

@@ -71,16 +71,8 @@
 
             <div class="schloss-topbar yj-panel yj-panel--paper yj-enter">
                 <h1>🏰 Mein Schloss</h1>
-                <button id="schloss-undo" type="button" class="yj-button yj-button--secondary yj-button--compact" disabled>
-                    ↩️ Rückgängig
-                </button>
             </div>
 
-            <!-- NEU: 3D-Szene (JS/schloss-3d.js). Ersetzt schrittweise die
-                 alte 2D-Fläche darunter - die bleibt vorerst im Markup
-                 (nur ausgeblendet), bis Kauf/Inventar/Entfernen/Speichern
-                 vollständig in schloss-3d.js nachgebaut sind (siehe
-                 JS/schloss.js-Kommentar am Kopf der Datei). -->
             <div id="schloss-scene-wrap" class="schloss-scene-wrap">
 
                 <canvas id="schloss-canvas" aria-label="Dein Wohnzimmer, ein 3D-Raum zum Einrichten"></canvas>
@@ -93,10 +85,6 @@
 
             </div>
 
-            <!-- ALT: 2D-Testfläche - Schritt 3 übernimmt Kauf/Inventar/
-                 Entfernen/Speichern nach oben, danach fällt das hier weg. -->
-            <div id="schloss-room" class="schloss-room" style="display:none" aria-label="Dein Wohnzimmer (alt)"></div>
-
             <div class="schloss-tabs" role="tablist">
                 <button type="button" class="schloss-tab is-active" data-schloss-tab="inventory">🪑 Inventar</button>
                 <button type="button" class="schloss-tab" data-schloss-tab="shop">🛍️ Laden</button>
@@ -106,8 +94,6 @@
             <div id="schloss-shop" class="schloss-inventory" aria-label="Schlossladen" hidden></div>
 
         </section>
-
-        <div id="schloss-item-menu" class="schloss-item-menu" hidden></div>
 
     </main>
 
@@ -126,9 +112,10 @@
     <script src="JS/tamagotchi.js?v=8"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
-    <script src="JS/schloss-data.js?v=2"></script>
-    <script src="JS/schloss.js?v=3"></script>
-    <script type="module" src="JS/schloss-3d.js?v=1"></script>
+    <script src="JS/schloss-data.js?v=3"></script>
+    <script src="JS/schloss.js?v=4"></script>
+    <script src="JS/schloss-migration.js?v=1"></script>
+    <script type="module" src="JS/schloss-3d.js?v=3"></script>
 
 </body>
 </html>
