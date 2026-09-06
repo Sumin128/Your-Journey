@@ -20,8 +20,8 @@
 
     /* Der Schlossraum soll die Seite füllen, nicht als Karte in einem
        breiten Rahmen sitzen: das übliche main-Padding (40px) hier
-       zurücknehmen, nur links Platz für die Sidebar lassen. */
-    padding: 10px 10px 14px;
+       zurücknehmen. */
+    padding: 12px 10px 14px 12px;
 
     display: flex;
     flex-direction: column;
@@ -30,9 +30,21 @@
 
 }
 
-@media (min-width: 761px) {
+/* Desktop: die 92px breite fixe Sidebar steht LINKS über dem Content.
+   Die ganze Schloss-Seite (Bühne UND Schublade) beginnt deshalb rechts
+   daneben - kein Tab, Möbelkärtchen oder Einklapp-Button liegt dahinter. */
+@media (min-width: 961px) {
     .schloss-page {
-        padding-left: 12px;
+        margin-left: 100px;
+        padding-left: 10px;
+    }
+}
+
+/* Mobil: keine linke Sidebar, aber Platz für die fixe Topbar (56px). */
+@media (max-width: 960px) {
+    .schloss-page {
+        margin-left: 0;
+        padding-top: 72px;
     }
 }
 

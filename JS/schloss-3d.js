@@ -80,7 +80,7 @@ function initSchloss3D(canvas) {
     // Fester Ankerpunkt für Kamin-Nische, Feuer und Kaminlicht - Feuer
     // und Punktlicht leben unabhängig von der Hülle (procedural ODER
     // GLB), damit der Kamin immer brennt (Vorgabe: Feuer NICHT ins GLB).
-    const FIRE_ANCHOR = new THREE.Vector3(2.7, 0, -ROOM_DEPTH / 2 + 0.45);
+    const FIRE_ANCHOR = new THREE.Vector3(2.75, 0, -ROOM_DEPTH / 2 + 0.45);
 
     const isMobile = window.matchMedia("(max-width: 700px)").matches;
 
@@ -121,25 +121,19 @@ function initSchloss3D(canvas) {
     // horizontale Ausschnitt schrumpfen und die Seitenwände/der Kamin
     // aus dem Bild fallen. resize() rechnet deshalb den vertikalen fov
     // aus einem konstant gehaltenen HORIZONTALEN Zielwinkel zurück.
-    const TARGET_HORIZONTAL_FOV = isMobile ? 60 : 50;
+    const TARGET_HORIZONTAL_FOV = isMobile ? 68 : 56;
 
-    // Feste, leicht erhöhte Bühnenkamera (keine freie Navigation) - so
-    // weit hinten/tief, dass Boden, alle drei Wände, Fenster und Kamin
-    // ins Bild passen, aber nicht so steil, dass der Raum wie eine
-    // Grube wirkt. Wird bei geladener GLB-Hülle nachjustiert.
+    // Offene Frontansicht wie im Konzeptbild: leicht erhöht, nur sanft
+    // nach unten geneigt. Tür links, Fenster mittig, Kamin rechts sind
+    // gleichzeitig im Bild; die Rückwand ist die Hauptbühne, die
+    // Seitenwände nur ein schmaler räumlicher Rahmen.
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
     if (isMobile) {
-        // Hochformat: näher dran und deutlich nach unten geneigt, damit
-        // der Raum das Bild füllt und oben nur ein schmaler Streifen
-        // Hintergrund bleibt.
-        camera.position.set(0, 4.5, 7.2);
-        camera.lookAt(0, 1.25, -1.9);
+        camera.position.set(0, 3.5, 9.6);
+        camera.lookAt(0, 1.7, -3.0);
     } else {
-        // Leicht erhöhte Bühnenkamera, deutlich nach unten geneigt, damit
-        // der Dachbereich nur einen schmalen Streifen einnimmt und der
-        // helle, grosse Raum die Szene füllt.
-        camera.position.set(0, 6.1, 9.7);
-        camera.lookAt(0, 1.45, -1.3);
+        camera.position.set(0, 3.6, 9.5);
+        camera.lookAt(0, 1.7, -3.2);
     }
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -195,7 +189,7 @@ function initSchloss3D(canvas) {
     // Weiches Himmel/Boden-Licht - hebt Decke und Wände gleichmässig an,
     // damit der Raum hell und luftig wirkt statt in eine dunkle Ecke zu
     // kippen.
-    scene.add(new THREE.HemisphereLight(0xfff2da, 0x8a6b47, 0.45));
+    scene.add(new THREE.HemisphereLight(0xfff4e2, 0xcbb289, 0.55));
 
     const windowLight = new THREE.DirectionalLight(shell.windowLight.color, shell.windowLight.intensity);
     windowLight.position.set(-3.2, 4.2, 1.6);
@@ -213,7 +207,7 @@ function initSchloss3D(canvas) {
     scene.add(windowLight.target);
 
     const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 7.5, 2);
-    fireLight.position.set(FIRE_ANCHOR.x, 0.85, -ROOM_DEPTH / 2 + 0.6);
+    fireLight.position.set(FIRE_ANCHOR.x, 0.6, -ROOM_DEPTH / 2 + 0.05);
     scene.add(fireLight);
 
     // Dezentes Fülllicht von der Kameraseite, ohne Schatten - hebt die
@@ -301,7 +295,7 @@ function initSchloss3D(canvas) {
     // (Vorgabe: Feuer gehört nicht ins GLB) - Anker: FIRE_ANCHOR.
     const fireMesh = buildFireMesh();
     // Sitzt IN der Feuerraum-Nische, knapp hinter der Öffnungsebene.
-    fireMesh.position.set(FIRE_ANCHOR.x, 0.2, -ROOM_DEPTH / 2 + 0.24);
+    fireMesh.position.set(FIRE_ANCHOR.x, 0.1, -ROOM_DEPTH / 2 - 0.16);
     scene.add(fireMesh);
 
     // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
@@ -1124,72 +1118,64 @@ function initSchloss3D(canvas) {
         // --- Himmel: warm oben, dunstig-hell zur Baumlinie ---
         const sky = ctx.createLinearGradient(0, 0, 0, h);
         sky.addColorStop(0, colors[0]);
-        sky.addColorStop(0.34, colors[1]);
-        sky.addColorStop(0.62, "#e7e8c4");
-        sky.addColorStop(1, "#cfe0b4");
+        sky.addColorStop(0.3, colors[1]);
+        sky.addColorStop(0.55, "#f3eccf");
+        sky.addColorStop(1, "#dfe6c2");
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, w, h);
 
-        // weicher Dunstband über der Baumlinie
-        const haze = ctx.createLinearGradient(0, h * 0.45, 0, h * 0.78);
-        haze.addColorStop(0, "rgba(255,250,235,0)");
-        haze.addColorStop(0.5, "rgba(250,246,228,0.55)");
-        haze.addColorStop(1, "rgba(240,244,220,0)");
-        ctx.fillStyle = haze;
-        ctx.fillRect(0, h * 0.4, w, h * 0.42);
+        // warmer Dunst am Horizont
+        const horizon = ctx.createRadialGradient(w * 0.55, h * 0.56, 10, w * 0.55, h * 0.56, w * 0.7);
+        horizon.addColorStop(0, "rgba(255,244,210,0.7)");
+        horizon.addColorStop(1, "rgba(255,244,210,0)");
+        ctx.fillStyle = horizon;
+        ctx.fillRect(0, 0, w, h);
 
-        // Eine unregelmässig gewölbte Baummasse als Silhouette-Pfad.
-        function foliageBand(baseY, height, colour, lumpCount, jitter) {
+        // Eine Nadelbaum-Treelinie: rundlich-spitze Wipfel, hintere Reihen
+        // heller/dunstiger (atmosphärische Tiefe).
+        function treeLine(baseY, treeH, colour, count, jitter) {
             ctx.fillStyle = colour;
-            ctx.beginPath();
-            ctx.moveTo(-20, h + 20);
-            ctx.lineTo(-20, baseY);
-            let x = -20;
-            for (let i = 0; i <= lumpCount; i++) {
-                const nx = (w + 40) * (i / lumpCount) - 20;
-                const lump = height * (0.55 + rng() * 0.9);
-                const midX = (x + nx) / 2 + (rng() - 0.5) * jitter;
-                const ctrlY = baseY - lump - (rng() - 0.5) * jitter;
-                ctx.quadraticCurveTo(midX, ctrlY, nx, baseY - height * (0.2 + rng() * 0.5));
-                x = nx;
+            for (let i = -1; i <= count; i++) {
+                const cx = (w + 60) * (i / count) - 30 + (rng() - 0.5) * jitter;
+                const th = treeH * (0.6 + rng() * 0.8);
+                const tw = th * (0.32 + rng() * 0.12);
+                ctx.beginPath();
+                ctx.moveTo(cx - tw, baseY);
+                ctx.quadraticCurveTo(cx - tw * 0.5, baseY - th * 0.55, cx, baseY - th);
+                ctx.quadraticCurveTo(cx + tw * 0.5, baseY - th * 0.55, cx + tw, baseY);
+                ctx.closePath();
+                ctx.fill();
             }
-            ctx.lineTo(w + 20, h + 20);
-            ctx.closePath();
-            ctx.fill();
+            // Boden-Verbindung
+            ctx.fillRect(0, baseY - 2, w, h - baseY + 4);
         }
 
-        // hinterste Reihe: hell, niedrig kontrastarm (weit weg)
-        foliageBand(h * 0.66, 34, "rgba(150, 178, 128, 0.85)", 5, 46);
-        // Dunstschleier dazwischen -> Abstand Vorder-/Hintergrund
-        ctx.fillStyle = "rgba(244, 246, 224, 0.4)";
+        // sanfte Hügel im Dunst
+        ctx.fillStyle = "rgba(176, 196, 150, 0.75)";
+        ctx.beginPath();
+        ctx.moveTo(0, h * 0.62);
+        ctx.quadraticCurveTo(w * 0.35, h * 0.5, w * 0.7, h * 0.6);
+        ctx.quadraticCurveTo(w * 0.9, h * 0.66, w, h * 0.58);
+        ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+        ctx.fill();
+
+        treeLine(h * 0.60, 70, "rgba(150, 178, 138, 0.8)", 9, 26);
+        ctx.fillStyle = "rgba(240, 244, 222, 0.35)";
         ctx.fillRect(0, h * 0.5, w, h * 0.5);
-        // mittlere Reihe: sattes Grün
-        foliageBand(h * 0.78, 52, "rgba(96, 132, 74, 0.96)", 4, 60);
-        // vordere Reihe: dunkler, grössere Wölbungen
-        foliageBand(h * 0.93, 66, "rgba(64, 96, 56, 1)", 3, 78);
+        treeLine(h * 0.74, 110, "rgba(96, 132, 92, 0.95)", 7, 40);
+        treeLine(h * 0.9, 150, "rgba(58, 92, 62, 1)", 5, 54);
 
-        // ein paar dunkle Blattbüschel am unteren Rand (Vordergrund)
-        ctx.fillStyle = "rgba(48, 74, 44, 1)";
-        for (let i = 0; i < 5; i++) {
-            const bx = rng() * w;
-            const by = h - rng() * h * 0.12;
-            const br = 26 + rng() * 34;
-            ctx.beginPath();
-            ctx.ellipse(bx, by, br, br * (0.6 + rng() * 0.4), (rng() - 0.5), 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // vereinzelte warme Lichtflecken zwischen den Blättern
-        for (let i = 0; i < 9; i++) {
+        // warme Lichtflecken zwischen den Wipfeln
+        for (let i = 0; i < 8; i++) {
             const gx = rng() * w;
-            const gy = h * (0.55 + rng() * 0.35);
-            const gr = 2 + rng() * 5;
-            const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr * 2.5);
-            glow.addColorStop(0, "rgba(255,246,205,0.7)");
-            glow.addColorStop(1, "rgba(255,246,205,0)");
+            const gy = h * (0.5 + rng() * 0.32);
+            const gr = 3 + rng() * 6;
+            const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr * 3);
+            glow.addColorStop(0, "rgba(255,247,210,0.75)");
+            glow.addColorStop(1, "rgba(255,247,210,0)");
             ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(gx, gy, gr * 2.5, 0, Math.PI * 2);
+            ctx.arc(gx, gy, gr * 3, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -1249,328 +1235,337 @@ function initSchloss3D(canvas) {
 
     }
 
-    // Prozedurale Raumhülle (technischer Fallback, solange keine echte
-    // waldzimmer-shell.glb vorliegt): U-Form mit Boden-Andockung, hohe
-    // Natursteinwände, Decke mit sichtbaren Holzbalken, zwei hohe
-    // Fensterbögen mit Waldsicht, hoher Türbogen in der linken Wand,
-    // integrierter Kamin (ohne Feuer - das lebt separat), Wandnischen
-    // und Sockel-/Kranzleisten für Tiefe. Setzt dustAnchor auf das
-    // erste Fenster.
+    // Prozeduraler Wald-Schlossraum. Komposition nach dem Konzeptbild:
+    // offene Vorderseite, Rueckwand als Hauptbuehne mit DREI echten
+    // Oeffnungen - links hohe Holztuer mit schlankem Steinbogen, mittig
+    // grosses dreiteiliges Fenster tief nach hinten eingelassen, rechts
+    // ein nach hinten eingelassener Kamin. Helle Decke, drei schlanke
+    // Balken. Nichts ragt in die 8x6-Moebelzone.
     function buildProceduralShell(group, dustAnchor) {
 
-        // Gemeinsame Material-Sprache: raue Bruchstein-Wand, EIN
-        // behauener, etwas hellerer "Werkstein" für ALLE Rahmen (Fenster,
-        // Tür, Nische, Kamin), EIN dunkler Stein für Vertiefungen und EIN
-        // warmes Holz für Balken/Leisten. So wirkt der Raum zusammen-
-        // hängend statt wie einzeln gesetzte Bauteile.
         const wallMat = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
+        wallMat.map.repeat.set(2.4, 1.7);
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0xd7c4a0, roughness: 0.9 });
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x6f4a29, roughness: 0.85 });
+        const beamMat = new THREE.MeshStandardMaterial({ color: 0x5e3e25, roughness: 0.9 });
+        const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x40311f, roughness: 1 });
 
-        const dressedTex = makeStoneTexture(shell.wallBaseColor);
-        dressedTex.repeat.set(1.6, 1.4);
-        const frameMat = new THREE.MeshStandardMaterial({ map: dressedTex, color: 0xe4d4b8, roughness: 0.92 });
+        const WALL_Z = -ROOM_DEPTH / 2;
+        const HW = ROOM_WIDTH / 2;
+        const CEILING_Y = 4.4;
 
-        const stoneDarkMat = new THREE.MeshStandardMaterial({ color: 0x4b3a2b, roughness: 1 });
-        const woodMat = new THREE.MeshStandardMaterial({ color: 0x7a4f2c, roughness: 0.85 });
-        const beamMat = new THREE.MeshStandardMaterial({ color: 0x6f4c2c, roughness: 0.9 });
-        const trimMat = woodMat;
-        const nicheMat = stoneDarkMat;
+        // --- Oeffnungen in der Rueckwand ---
+        const WIN = { x1: -2.85, x2: 0.55, y1: 0.95, yTop: 3.5 };
+        const winW = WIN.x2 - WIN.x1;
+        const COLW = 0.16;
+        const BAYW = (winW - 2 * COLW) / 3;
+        const BAY_SPRING = WIN.yTop - BAYW / 2;
+        const FP = { x1: 2.05, w: 1.4, y1: 0.05, yTop: 1.65 };
+        const FP_R = FP.w / 2;
+        const FP_SPRING = FP.yTop - FP_R;
+        const fpCx = FP.x1 + FP_R;
 
-        // --- Wände (Innenseiten zugewandt) ---
-        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT), wallMat);
-        backWall.position.set(0, ROOM_HEIGHT / 2, -ROOM_DEPTH / 2);
+        // === Rueckwand: EINE Steinflaeche mit ausgeschnittenen Boegen ===
+        const bwShape = new THREE.Shape();
+        bwShape.moveTo(-HW, 0);
+        bwShape.lineTo(HW, 0);
+        bwShape.lineTo(HW, ROOM_HEIGHT);
+        bwShape.lineTo(-HW, ROOM_HEIGHT);
+        bwShape.lineTo(-HW, 0);
+
+        for (let b = 0; b < 3; b++) {
+            const bx = WIN.x1 + b * (BAYW + COLW);
+            const cx = bx + BAYW / 2;
+            const h = new THREE.Path();
+            h.moveTo(bx, WIN.y1);
+            h.lineTo(bx, BAY_SPRING);
+            h.absarc(cx, BAY_SPRING, BAYW / 2, Math.PI, 0, true);
+            h.lineTo(bx + BAYW, WIN.y1);
+            h.lineTo(bx, WIN.y1);
+            bwShape.holes.push(h);
+        }
+        const fh = new THREE.Path();
+        fh.moveTo(FP.x1, FP.y1);
+        fh.lineTo(FP.x1, FP_SPRING);
+        fh.absarc(fpCx, FP_SPRING, FP_R, Math.PI, 0, true);
+        fh.lineTo(FP.x1 + FP.w, FP.y1);
+        fh.lineTo(FP.x1, FP.y1);
+        bwShape.holes.push(fh);
+
+        const bwGeo = new THREE.ShapeGeometry(bwShape, 14);
+        bwGeo.computeBoundingBox();
+        const bb = bwGeo.boundingBox;
+        const uv = bwGeo.attributes.uv, ps = bwGeo.attributes.position;
+        for (let i = 0; i < uv.count; i++) {
+            uv.setXY(i,
+                (ps.getX(i) - bb.min.x) / (bb.max.x - bb.min.x),
+                (ps.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
+        }
+        const backWall = new THREE.Mesh(bwGeo, wallMat);
+        backWall.position.z = WALL_Z;
         backWall.receiveShadow = true;
         group.add(backWall);
 
-        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
-        leftWall.rotation.y = Math.PI / 2;
-        leftWall.position.set(-ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
-        leftWall.receiveShadow = true;
-        group.add(leftWall);
+        // === Seitenwaende (schmaler raeumlicher Rahmen) ===
+        [-1, 1].forEach(function (s) {
+            const w = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
+            w.rotation.y = -s * Math.PI / 2;
+            w.position.set(s * HW, ROOM_HEIGHT / 2, 0);
+            w.receiveShadow = true;
+            group.add(w);
+        });
 
-        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
-        rightWall.rotation.y = -Math.PI / 2;
-        rightWall.position.set(ROOM_WIDTH / 2, ROOM_HEIGHT / 2, 0);
-        rightWall.receiveShadow = true;
-        group.add(rightWall);
-
-        // --- Decke + sichtbare Holzbalken ---
-        // Bewusst niedriger als die Wände (CEILING_Y < ROOM_HEIGHT): von
-        // der leicht erhöhten Bühnenkamera füllt so die Deckenuntersicht
-        // den oberen Bildrand, statt dass dort ein schwarzer Streifen
-        // Hintergrund zwischen Wandkrone und Decke durchscheint.
-        // Decke: nach unten weisende Fläche (FrontSide) - von der leicht
-        // erhöhten Bühnenkamera füllt ihre Untersicht den oberen
-        // Bildrand und schliesst den Raum optisch nach oben ab.
-        const CEILING_Y = 4.4;
+        // === Decke: heller Putz (unbeleuchtet, damit sie nie dunkel
+        // absäuft) + drei schlanke dunkle Balken als Akzent ===
         const ceiling = new THREE.Mesh(
             new THREE.PlaneGeometry(ROOM_WIDTH + 8, ROOM_DEPTH + 10),
-            new THREE.MeshStandardMaterial({ color: 0x9a7c56, roughness: 1 })
+            new THREE.MeshBasicMaterial({ color: 0xf0e7d2 })
         );
         ceiling.rotation.x = Math.PI / 2;
         ceiling.position.set(0, CEILING_Y, 1.5);
         group.add(ceiling);
 
-        // Nur drei schlanke Balken - genug für "gestaltete Decke", ohne
-        // dass der Dachbereich schwer und dunkel wirkt.
-        for (let i = 0; i < 3; i++) {
-            const beam = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH + 0.4, 0.16, 0.2), beamMat);
-            beam.position.set(0, CEILING_Y - 0.1, -ROOM_DEPTH / 2 + 1.2 + i * ((ROOM_DEPTH - 2.4) / 2));
+        // Balken nur über der hinteren Raumhälfte - so liegen ihre
+        // vorderen Enden weit von der Kamera weg und wirken nicht wie
+        // vorspringende Klötze.
+        [-2.7, -0.2, 2.3].forEach(function (x) {
+            const bl = ROOM_DEPTH * 0.62;
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.17, bl), beamMat);
+            beam.position.set(x, CEILING_Y - 0.11, WALL_Z + bl / 2 - 0.05);
             group.add(beam);
+        });
+
+        // === schmale Holz-Sockelleiste (drei Waende, wandbuendig) ===
+        [
+            { g: [ROOM_WIDTH, 0.12, 0.05], p: [0, 0.06, WALL_Z + 0.03] },
+            { g: [0.05, 0.12, ROOM_DEPTH], p: [-HW + 0.03, 0.06, 0] },
+            { g: [0.05, 0.12, ROOM_DEPTH], p: [HW - 0.03, 0.06, 0] }
+        ].forEach(function (c) {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(c.g[0], c.g[1], c.g[2]), woodMat);
+            m.position.set(c.p[0], c.p[1], c.p[2]);
+            group.add(m);
+        });
+
+        // === GROSSES DREITEILIGES FENSTER ===
+        const winCx = (WIN.x1 + WIN.x2) / 2;
+        const winMidY = (WIN.y1 + WIN.yTop) / 2;
+
+        // Waldsicht: mehrere weiche, gemalte Tiefenebenen HINTER der
+        // Wand - hintere volle Ebene (Himmel + Nebel + Wald), davor zwei
+        // grösstenteils transparente Baumkronen-Ebenen für Räumlichkeit.
+        const viewFar = new THREE.Mesh(
+            new THREE.PlaneGeometry(winW + 3.4, WIN.yTop + 3.2),
+            new THREE.MeshBasicMaterial({ map: makeForestWindowTexture(shell.windowSky, 1) })
+        );
+        viewFar.position.set(winCx, winMidY + 0.4, WALL_Z - 1.9);
+        group.add(viewFar);
+
+        const viewMid = new THREE.Mesh(
+            new THREE.PlaneGeometry(winW + 2.0, WIN.yTop + 1.4),
+            new THREE.MeshBasicMaterial({ map: makeForestCanopy(7, 0.55), transparent: true, depthWrite: false })
+        );
+        viewMid.position.set(winCx, winMidY - 0.1, WALL_Z - 1.05);
+        group.add(viewMid);
+
+        const viewNear = new THREE.Mesh(
+            new THREE.PlaneGeometry(winW + 1.2, WIN.yTop + 0.6),
+            new THREE.MeshBasicMaterial({ map: makeForestCanopy(3, 0.9), transparent: true, depthWrite: false })
+        );
+        viewNear.position.set(winCx, winMidY - 0.35, WALL_Z - 0.5);
+        group.add(viewNear);
+
+        // aeussere Laibung: dunkle Flaechen, laufen NACH HINTEN (nicht in den Raum)
+        const outerMat = new THREE.MeshStandardMaterial({ color: 0x594732, roughness: 1 });
+        const oRev = 0.7;
+        [
+            { g: [winW + 0.06, 0.05, oRev], p: [winCx, WIN.y1, WALL_Z - oRev / 2] },
+            { g: [0.05, WIN.yTop - WIN.y1 + 0.5, oRev], p: [WIN.x1, winMidY + 0.2, WALL_Z - oRev / 2] },
+            { g: [0.05, WIN.yTop - WIN.y1 + 0.5, oRev], p: [WIN.x2, winMidY + 0.2, WALL_Z - oRev / 2] }
+        ].forEach(function (c) {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(c.g[0], c.g[1], c.g[2]), outerMat);
+            m.position.set(c.p[0], c.p[1], c.p[2]);
+            group.add(m);
+        });
+
+        // zwei schlanke Trennsaeulen (in der Wandebene, ragen ~0.05)
+        for (let k = 1; k <= 2; k++) {
+            const colX = WIN.x1 + k * BAYW + (k - 0.5) * COLW;
+            const col = new THREE.Mesh(new THREE.BoxGeometry(COLW, WIN.yTop - WIN.y1 + 0.15, 0.13), frameMat);
+            col.position.set(colX, (WIN.y1 + WIN.yTop) / 2, WALL_Z + 0.05);
+            group.add(col);
+            const cap = new THREE.Mesh(new THREE.BoxGeometry(COLW + 0.12, 0.09, 0.17), frameMat);
+            cap.position.set(colX, BAY_SPRING, WALL_Z + 0.06);
+            group.add(cap);
         }
-        const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, ROOM_DEPTH), beamMat);
-        ridge.position.set(0, CEILING_Y - 0.09, 0);
-        group.add(ridge);
 
-        // --- Sockel- + Kranzleiste (macht aus "Ebenen" einen Raum) ---
-        [0.1, CEILING_Y - 0.12].forEach(function (y) {
-            const b = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH, 0.2, 0.14), trimMat);
-            b.position.set(0, y, -ROOM_DEPTH / 2 + 0.07);
-            group.add(b);
-            [-1, 1].forEach(function (side) {
-                const s = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.2, ROOM_DEPTH), trimMat);
-                s.position.set(side * (ROOM_WIDTH / 2 - 0.07), y, 0);
-                group.add(s);
+        // schlanker Wulst an jedem Bogen + duenne Laibungspfosten
+        for (let b = 0; b < 3; b++) {
+            const cx = WIN.x1 + b * (BAYW + COLW) + BAYW / 2;
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(BAYW / 2, 0.045, 6, 22, Math.PI), frameMat);
+            ring.position.set(cx, BAY_SPRING, WALL_Z + 0.05);
+            group.add(ring);
+            [-1, 1].forEach(function (s) {
+                const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.055, BAY_SPRING - WIN.y1, 0.1), frameMat);
+                jamb.position.set(cx + s * BAYW / 2, (WIN.y1 + BAY_SPRING) / 2, WALL_Z + 0.05);
+                group.add(jamb);
             });
-        });
+        }
 
-        // --- Zwei hohe Fensterbögen mit gemalter Waldsicht, Werkstein-
-        // Laibung, Sprossenkreuz und Fensterbank. Die Rückwand ist eine
-        // geschlossene Fläche; Tiefe entsteht durch die zurückgesetzte
-        // Waldsicht + eine echte Laibung (Seiten/Sturz) + den proud
-        // stehenden Rahmen davor. ---
-        const WALL_Z = -ROOM_DEPTH / 2;
-        const WIN_W = 1.5;        // lichte Fensterbreite
-        const WIN_BOT = 0.9;      // Unterkante
-        const WIN_TOP = 3.15;     // Oberkante des geraden Teils
-        const REVEAL = 0.34;      // Laibungstiefe (Wand -> Raum)
+        // schmale Fensterbank (ragt nur ~0.05 vor)
+        const sill = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.3, 0.08, 0.12), frameMat);
+        sill.position.set(winCx, WIN.y1 - 0.03, WALL_Z + 0.02);
+        group.add(sill);
 
-        [-2.8, -1.1].forEach(function (x, idx) {
+        dustAnchor.set(winCx, winMidY, WALL_Z + 0.6);
 
-            const winTex = makeForestWindowTexture(shell.windowSky, idx + 1);
-
-            // Waldsicht knapp vor der Wand (an der "äusseren" Fensterebene)
-            const w = new THREE.Mesh(
-                new THREE.PlaneGeometry(WIN_W, WIN_TOP - WIN_BOT + 0.5),
-                new THREE.MeshBasicMaterial({ map: winTex })
-            );
-            w.position.set(x, (WIN_TOP + WIN_BOT) / 2 + 0.1, WALL_Z + 0.02);
-            group.add(w);
-
-            // Laibung: vier Flächen, die von der Fensterebene zur inneren
-            // Wandkante nach vorne laufen - so sieht man echte Tiefe.
-            const midY = (WIN_TOP + WIN_BOT) / 2;
-            const revealCfg = [
-                { g: [0.06, WIN_TOP - WIN_BOT, REVEAL], p: [-WIN_W / 2, midY, WALL_Z + REVEAL / 2 + 0.02] },
-                { g: [0.06, WIN_TOP - WIN_BOT, REVEAL], p: [WIN_W / 2, midY, WALL_Z + REVEAL / 2 + 0.02] },
-                { g: [WIN_W, 0.06, REVEAL], p: [0, WIN_TOP, WALL_Z + REVEAL / 2 + 0.02] },
-                { g: [WIN_W, 0.06, REVEAL], p: [0, WIN_BOT, WALL_Z + REVEAL / 2 + 0.02] }
-            ];
-            revealCfg.forEach(function (c) {
-                const face = new THREE.Mesh(new THREE.BoxGeometry(c.g[0], c.g[1], c.g[2]), frameMat);
-                face.position.set(x + c.p[0], c.p[1], c.p[2]);
-                group.add(face);
-            });
-
-            // Umlaufender Werkstein-Rahmen an der inneren Wandkante
-            const FZ = WALL_Z + REVEAL + 0.06;
-            [
-                [0, WIN_BOT - 0.12, WIN_W + 0.5, 0.2],
-                [-(WIN_W / 2 + 0.16), midY, 0.24, WIN_TOP - WIN_BOT + 0.4],
-                [(WIN_W / 2 + 0.16), midY, 0.24, WIN_TOP - WIN_BOT + 0.4]
-            ].forEach(function (b) {
-                const bar = new THREE.Mesh(new THREE.BoxGeometry(b[2], b[3], 0.16), frameMat);
-                bar.position.set(x + b[0], b[1], FZ);
-                group.add(bar);
-            });
-
-            // Rundbogen oben: gefülltes Tympanon (kein Spalt) + Wulst
-            const tymp = new THREE.Mesh(new THREE.CircleGeometry(WIN_W / 2 + 0.16, 22, 0, Math.PI), frameMat);
-            tymp.position.set(x, WIN_TOP, FZ - 0.02);
-            group.add(tymp);
-            const archRing = new THREE.Mesh(new THREE.TorusGeometry(WIN_W / 2 + 0.16, 0.14, 8, 22, Math.PI), frameMat);
-            archRing.position.set(x, WIN_TOP, FZ + 0.02);
-            group.add(archRing);
-            // Laibung des Bogens (schliesst die Nische oben ab)
-            const archReveal = new THREE.Mesh(
-                new THREE.CircleGeometry(WIN_W / 2, 20, 0, Math.PI),
-                frameMat
-            );
-            archReveal.position.set(x, WIN_TOP, WALL_Z + 0.04);
-            group.add(archReveal);
-
-            // Sprossenkreuz vor der Waldsicht
-            const barV = new THREE.Mesh(new THREE.BoxGeometry(0.06, WIN_TOP - WIN_BOT + 0.3, 0.05), woodMat);
-            barV.position.set(x, midY + 0.1, WALL_Z + 0.06);
-            group.add(barV);
-            const barH = new THREE.Mesh(new THREE.BoxGeometry(WIN_W - 0.05, 0.06, 0.05), woodMat);
-            barH.position.set(x, midY + 0.1, WALL_Z + 0.06);
-            group.add(barH);
-
-            // Fensterbank, ragt in den Raum
-            const sill = new THREE.Mesh(new THREE.BoxGeometry(WIN_W + 0.7, 0.16, REVEAL + 0.24), frameMat);
-            sill.position.set(x, WIN_BOT - 0.08, WALL_Z + REVEAL / 2 + 0.12);
-            sill.castShadow = !isMobile;
-            group.add(sill);
-
-            if (idx === 0) { dustAnchor.set(x, 2.1, WALL_Z + 0.5); }
-        });
-
-        // --- Geschlossene, schwere Holztür in einer vollständigen
-        // Werkstein-Laibung (linke Wand). Die Tür ist ZU - dahinter
-        // liegt Wand, KEIN dunkler Durchgang. Die Öffnung ist rundum von
-        // Stein gefasst (Pfeiler + gefülltes Tympanon + Wulst), es kann
-        // keine schwarze Lücke über der Tür entstehen. Lokale Achsen der
-        // Tür-Gruppe: X entlang der Wand (Welt-Z), Z in den Raum. ---
+        // === HOHE HOLZTUER MIT SCHLANKEM STEINBOGEN (linke Wand) ===
         const doorGroup = new THREE.Group();
-        const doorWoodMat = new THREE.MeshStandardMaterial({ color: 0x6b3f22, roughness: 0.8 });
-        const doorGrooveMat = new THREE.MeshStandardMaterial({ color: 0x3d2211, roughness: 1 });
-        const ironMat = new THREE.MeshStandardMaterial({ color: 0x2b2521, roughness: 0.5, metalness: 0.35 });
+        const doorWoodMat = new THREE.MeshStandardMaterial({ color: 0x5f3a20, roughness: 0.82 });
+        const grooveMat = new THREE.MeshStandardMaterial({ color: 0x3a2212, roughness: 1 });
+        const ironMat = new THREE.MeshStandardMaterial({ color: 0x2b2521, roughness: 0.5, metalness: 0.3 });
+        const DW = 1.3, DH = 2.55, DR = DW / 2, DSPRING = DH - DR;
 
-        const DOOR_W = 1.4, DOOR_H = 2.6;
+        const dBack = new THREE.Mesh(new THREE.PlaneGeometry(DW + 0.7, DH + 0.9), wallMat);
+        dBack.position.set(0, DH / 2 - 0.15, -0.03);
+        doorGroup.add(dBack);
 
-        // Wandfläche direkt hinter dem Türblatt (die Tür ist ZU): sie
-        // verdeckt garantiert jede Ritze, egal wie die Kamera steht.
-        const doorBack = new THREE.Mesh(new THREE.PlaneGeometry(DOOR_W + 0.8, DOOR_H + 1.0), wallMat);
-        doorBack.position.set(0, 0.1, -0.03);
-        doorGroup.add(doorBack);
-
-        // Türblatt
-        const leaf = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W, DOOR_H, 0.13), doorWoodMat);
-        leaf.position.set(0, 0, 0.08);
+        const leafShape = new THREE.Shape();
+        leafShape.moveTo(-DR, 0);
+        leafShape.lineTo(-DR, DSPRING);
+        leafShape.absarc(0, DSPRING, DR, Math.PI, 0, true);
+        leafShape.lineTo(DR, 0);
+        leafShape.lineTo(-DR, 0);
+        const leaf = new THREE.Mesh(
+            new THREE.ExtrudeGeometry(leafShape, { depth: 0.08, bevelEnabled: false }),
+            doorWoodMat
+        );
+        leaf.position.set(0, 0, 0.0);
         leaf.castShadow = !isMobile;
         doorGroup.add(leaf);
 
         for (let i = -1; i <= 1; i++) {
-            const groove = new THREE.Mesh(new THREE.BoxGeometry(0.035, DOOR_H - 0.16, 0.14), doorGrooveMat);
-            groove.position.set(i * 0.42, 0, 0.082);
-            doorGroup.add(groove);
+            const gr = new THREE.Mesh(new THREE.BoxGeometry(0.03, DH - 0.25, 0.11), grooveMat);
+            gr.position.set(i * 0.38, DSPRING / 2 + 0.1, 0.082);
+            doorGroup.add(gr);
         }
-        [0.78, -0.78].forEach(function (y) {
-            const band = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W + 0.04, 0.13, 0.15), ironMat);
-            band.position.set(0, y, 0.08);
+        [DH * 0.24, DH * 0.62].forEach(function (y) {
+            const band = new THREE.Mesh(new THREE.BoxGeometry(DW, 0.09, 0.12), ironMat);
+            band.position.set(0, y, 0.05);
             doorGroup.add(band);
-            for (let n = -2; n <= 2; n++) {
-                const rivet = new THREE.Mesh(new THREE.SphereGeometry(0.028, 6, 6), ironMat);
-                rivet.position.set(n * 0.32, y, 0.17);
-                doorGroup.add(rivet);
-            }
         });
-        const handle = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.022, 6, 16), ironMat);
-        handle.position.set(0.48, 0, 0.19);
-        doorGroup.add(handle);
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.017, 6, 16), ironMat);
+        ring.position.set(0.42, DH * 0.42, 0.11);
+        doorGroup.add(ring);
 
-        // Werkstein-Laibung: zwei schlanke Pfeiler, ein gefülltes
-        // Halbkreis-Tympanon über der Tür + Wulst als Bogenkante. Die
-        // Öffnung ist rundum von Stein gefasst -> keine schwarze Lücke.
         [-1, 1].forEach(function (s) {
-            const jamb = new THREE.Mesh(new THREE.BoxGeometry(0.2, DOOR_H + 0.3, 0.4), frameMat);
-            jamb.position.set(s * (DOOR_W / 2 + 0.1), 0.05, 0.12);
-            doorGroup.add(jamb);
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, DSPRING + 0.1, 0.11), frameMat);
+            post.position.set(s * (DR + 0.05), (DSPRING + 0.1) / 2, 0.04);
+            doorGroup.add(post);
         });
-        const doorLintel = new THREE.Mesh(new THREE.BoxGeometry(DOOR_W + 0.4, 0.2, 0.44), frameMat);
-        doorLintel.position.set(0, DOOR_H / 2 + 0.1, 0.13);
-        doorGroup.add(doorLintel);
-        const doorTymp = new THREE.Mesh(new THREE.CircleGeometry(DOOR_W / 2 + 0.1, 22, 0, Math.PI), frameMat);
-        doorTymp.position.set(0, DOOR_H / 2 + 0.2, 0.09);
-        doorGroup.add(doorTymp);
-        const doorArchRing = new THREE.Mesh(new THREE.TorusGeometry(DOOR_W / 2 + 0.1, 0.12, 8, 22, Math.PI), frameMat);
-        doorArchRing.position.set(0, DOOR_H / 2 + 0.2, 0.14);
-        doorGroup.add(doorArchRing);
+        const archBand = new THREE.Mesh(new THREE.TorusGeometry(DR + 0.05, 0.065, 6, 24, Math.PI), frameMat);
+        archBand.position.set(0, DSPRING, 0.04);
+        doorGroup.add(archBand);
 
         doorGroup.rotation.y = Math.PI / 2;
-        doorGroup.position.set(-ROOM_WIDTH / 2 + 0.06, 1.35, -0.4);
+        doorGroup.position.set(-HW, 0, -0.7);
         group.add(doorGroup);
 
-        // --- Wandnische: zurückgesetzte Steinfläche mit Werkstein-Rahmen
-        // + gefülltem Bogen (dieselbe Sprache wie Fenster + Tür) ---
-        function niche(x) {
-            const NW = 0.72, NH = 1.15, NB = 1.15;
-            const back = new THREE.Mesh(new THREE.PlaneGeometry(NW, NH), stoneDarkMat);
-            back.position.set(x, NB + NH / 2, -ROOM_DEPTH / 2 + 0.02);
-            group.add(back);
-            [-1, 1].forEach(function (s) {
-                const side = new THREE.Mesh(new THREE.BoxGeometry(0.06, NH, 0.22), frameMat);
-                side.position.set(x + s * NW / 2, NB + NH / 2, -ROOM_DEPTH / 2 + 0.12);
-                group.add(side);
-            });
-            const shelf = new THREE.Mesh(new THREE.BoxGeometry(NW + 0.3, 0.1, 0.28), frameMat);
-            shelf.position.set(x, NB, -ROOM_DEPTH / 2 + 0.14);
-            group.add(shelf);
-            const nTymp = new THREE.Mesh(new THREE.CircleGeometry(NW / 2, 18, 0, Math.PI), stoneDarkMat);
-            nTymp.position.set(x, NB + NH, -ROOM_DEPTH / 2 + 0.03);
-            group.add(nTymp);
-            const nRing = new THREE.Mesh(new THREE.TorusGeometry(NW / 2 + 0.06, 0.07, 6, 16, Math.PI), frameMat);
-            nRing.position.set(x, NB + NH, -ROOM_DEPTH / 2 + 0.14);
-            group.add(nRing);
-        }
-        niche(0.4);
+        // === TIEF EINGELASSENER KAMIN (Rueckwand rechts) ===
+        // Kaminmaul ist bereits als Rundbogen aus der Rueckwand
+        // geschnitten. Dahinter eine echte, geschlossene Feuerkammer aus
+        // dunklen Steinen (Rueckwand + Seiten + Rundbogen-Decke + Boden);
+        // davor nur ein dezenter Holz-Mantel und eine flache Herdplatte.
+        const CAV = 0.62;
+        const cavH = FP.yTop - FP.y1;
+        darkStoneMat.side = THREE.DoubleSide;
 
-        // --- Integrierter Kamin (Rückwand rechts): Werkstein-Fassung
-        // rund um eine ECHTE Feuerraum-Nische (zurückgesetzte Rückwand,
-        // dunklere Seiten-/Bodensteine, sichtbarer Sturz). OHNE Feuer. ---
-        const fp = new THREE.Group();
-
-        const OPEN_W = 1.05, OPEN_BOT = 0.18, OPEN_H = 1.16;
-        const OPEN_TOP = OPEN_BOT + OPEN_H;
-        const BREAST_D = 0.72;
-        const CAV_D = 0.5;
-        const frontZ = BREAST_D / 2;               // Brust-Vorderkante (lokal)
-        const cavBackZ = frontZ - CAV_D;           // Rückwand der Nische
-
-        // Fassung drumherum: Pfeiler links/rechts, Kopf oben, Sockel
-        const jambW = (2.0 - OPEN_W) / 2;
+        const cavBack = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.2, cavH + 0.6), darkStoneMat);
+        cavBack.position.set(fpCx, FP.y1 + cavH / 2 + 0.1, WALL_Z - CAV);
+        group.add(cavBack);
         [-1, 1].forEach(function (s) {
-            const jamb = new THREE.Mesh(new THREE.BoxGeometry(jambW, 3.9, BREAST_D), frameMat);
-            jamb.position.set(s * (OPEN_W / 2 + jambW / 2), 1.95, 0);
-            jamb.receiveShadow = true;
-            fp.add(jamb);
+            const side = new THREE.Mesh(new THREE.PlaneGeometry(CAV + 0.1, cavH + 0.6), darkStoneMat);
+            side.rotation.y = s * Math.PI / 2;
+            side.position.set(fpCx + s * (FP.w / 2 - 0.01), FP.y1 + cavH / 2 + 0.1, WALL_Z - CAV / 2);
+            group.add(side);
         });
-        const head = new THREE.Mesh(new THREE.BoxGeometry(OPEN_W + 0.02, 3.9 - OPEN_TOP, BREAST_D), frameMat);
-        head.position.set(0, OPEN_TOP + (3.9 - OPEN_TOP) / 2, 0);
-        head.receiveShadow = true;
-        fp.add(head);
-        const sillBase = new THREE.Mesh(new THREE.BoxGeometry(OPEN_W + 0.02, OPEN_BOT, BREAST_D), frameMat);
-        sillBase.position.set(0, OPEN_BOT / 2, 0);
-        fp.add(sillBase);
-
-        // sichtbarer Sturz (ragt vor)
-        const lintel = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.24, BREAST_D + 0.14), frameMat);
-        lintel.position.set(0, OPEN_TOP + 0.02, 0.05);
-        lintel.castShadow = !isMobile;
-        fp.add(lintel);
-
-        // Feuerraum-Nische: Rückwand zurückgesetzt, Seiten/Decke/Boden
-        const cavBack = new THREE.Mesh(new THREE.PlaneGeometry(OPEN_W + 0.06, OPEN_H + 0.06), stoneDarkMat);
-        cavBack.position.set(0, OPEN_BOT + OPEN_H / 2, cavBackZ);
-        fp.add(cavBack);
-        [-1, 1].forEach(function (s) {
-            const cavSide = new THREE.Mesh(new THREE.PlaneGeometry(CAV_D, OPEN_H + 0.06), stoneDarkMat);
-            cavSide.rotation.y = s * Math.PI / 2;
-            cavSide.position.set(s * (OPEN_W / 2 - 0.005), OPEN_BOT + OPEN_H / 2, cavBackZ + CAV_D / 2);
-            fp.add(cavSide);
-        });
-        const cavTop = new THREE.Mesh(new THREE.PlaneGeometry(OPEN_W, CAV_D), stoneDarkMat);
+        // dunkle Decke der Kammer (flach, doppelseitig - so gibt es aus
+        // keinem Kamerawinkel einen hellen Spalt oben in der Öffnung)
+        const cavTop = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.1, CAV + 0.1), darkStoneMat);
         cavTop.rotation.x = Math.PI / 2;
-        cavTop.position.set(0, OPEN_TOP - 0.005, cavBackZ + CAV_D / 2);
-        fp.add(cavTop);
-        const cavFloor = new THREE.Mesh(new THREE.PlaneGeometry(OPEN_W, CAV_D + 0.1), new THREE.MeshStandardMaterial({ color: 0x1c130c, roughness: 1 }));
+        cavTop.position.set(fpCx, FP.yTop - 0.03, WALL_Z - CAV / 2);
+        group.add(cavTop);
+        const cavFloor = new THREE.Mesh(
+            new THREE.PlaneGeometry(FP.w + 0.1, CAV + 0.05),
+            new THREE.MeshStandardMaterial({ color: 0x18110a, roughness: 1 })
+        );
         cavFloor.rotation.x = -Math.PI / 2;
-        cavFloor.position.set(0, OPEN_BOT + 0.004, cavBackZ + CAV_D / 2);
+        cavFloor.position.set(fpCx, FP.y1 + 0.012, WALL_Z - CAV / 2 + 0.02);
         cavFloor.receiveShadow = true;
-        fp.add(cavFloor);
+        group.add(cavFloor);
 
-        // Kaminsims + Herdplatte
-        const mantel = new THREE.Mesh(new THREE.BoxGeometry(2.34, 0.22, 1.0), frameMat);
-        mantel.position.set(0, OPEN_TOP + 0.42, 0.12);
-        mantel.castShadow = !isMobile;
-        fp.add(mantel);
-        const hearth = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.14, 0.9), frameMat);
-        hearth.position.set(0, 0.07, 0.6);
-        hearth.receiveShadow = true;
-        fp.add(hearth);
+        // dezenter Holz-Mantel (Balken) direkt auf dem Bogenscheitel
+        const fMantel = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.55, 0.17, 0.24), beamMat);
+        fMantel.position.set(fpCx, FP.yTop + 0.04, WALL_Z + 0.09);
+        fMantel.castShadow = !isMobile;
+        group.add(fMantel);
 
-        fp.position.set(FIRE_ANCHOR.x, 0, -ROOM_DEPTH / 2);
-        group.add(fp);
+        // flache Herdplatte direkt vor der Öffnung (nur 0.05 hoch,
+        // ~0.34 tief - liegt vor der Wand, hinter der Möbelzone)
+        const fHearth = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.24, 0.05, 0.36), frameMat);
+        fHearth.position.set(fpCx, 0.026, WALL_Z + 0.22);
+        fHearth.receiveShadow = true;
+        group.add(fHearth);
+
+    }
+
+    // Vordere, grösstenteils transparente Baumkronen-Ebene: eine weiche,
+    // lumpige Silhouette am UNTEREN Rand (Blick über die Wipfel ins Tal),
+    // oben transparent. Zusammen mit makeForestWindowTexture ergibt das
+    // die "mehreren weichen Tiefenebenen" hinter der Rückwand.
+    function makeForestCanopy(seed, alpha) {
+
+        const a = alpha == null ? 1 : alpha;
+        const w = 384, h = 300;
+        const el = document.createElement("canvas");
+        el.width = w;
+        el.height = h;
+        const ctx = el.getContext("2d");
+        const rng = mulberry32(61 + seed * 47);
+
+        // eine geschlossene, weich gewölbte Kronen-Masse unten
+        function blobRow(baseY, amp, col) {
+            ctx.fillStyle = col;
+            ctx.beginPath();
+            ctx.moveTo(-16, h + 16);
+            ctx.lineTo(-16, baseY);
+            let x = -16;
+            while (x < w + 16) {
+                const nx = x + 30 + rng() * 46;
+                const cy = baseY - amp * (0.4 + rng() * 0.9);
+                ctx.quadraticCurveTo((x + nx) / 2, cy, nx, baseY - amp * (0.1 + rng() * 0.35));
+                x = nx;
+            }
+            ctx.lineTo(w + 16, h + 16);
+            ctx.closePath();
+            ctx.fill();
+        }
+        blobRow(h * 0.80, 34, "rgba(70, 100, 62, " + (a * 0.85).toFixed(2) + ")");
+        blobRow(h * 0.92, 40, "rgba(52, 80, 48, " + a + ")");
+
+        // ein paar rundliche Einzelkronen, die etwas höher ragen
+        ctx.fillStyle = "rgba(58, 86, 52, " + a + ")";
+        for (let i = 0; i < 4; i++) {
+            const cx = rng() * w;
+            const cy = h * (0.62 + rng() * 0.16);
+            const r = 26 + rng() * 30;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, r, r * (0.7 + rng() * 0.3), 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const tex = new THREE.CanvasTexture(el);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
 
     }
 
