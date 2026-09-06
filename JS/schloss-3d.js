@@ -925,6 +925,15 @@ function initSchloss3D(canvas) {
                     model.scale.setScalar(scale);
                 }
 
+                // Manche Tripo-GLBs kommen nicht mit der Vorderseite nach
+                // +Z (align_image ist nicht 100% konsistent). furniture.
+                // modelRotationY dreht das Modell einmalig gerade, ohne die
+                // vom Kind gesetzte instance.rotationY (auf der Gruppe) zu
+                // beruehren.
+                if (typeof furniture.modelRotationY === "number") {
+                    model.rotation.y += furniture.modelRotationY;
+                }
+
                 // Nach dem Skalieren: X/Z zentrieren und Unterkante auf
                 // den Boden (unabhängig davon, wo der Pivot lag).
                 box = new THREE.Box3().setFromObject(model);
@@ -1416,30 +1425,36 @@ function initSchloss3D(canvas) {
         ceiling.position.set(0, CEILING_Y, 6);
         group.add(ceiling);
 
-        // Deckenbalken wie im Konzeptbild: ein kraeftiger Querbalken als
-        // "Sturz" ueber der offenen Vorderseite (BEAM_FRONT) + ein
-        // Querbalken an der Rueckwand; dazwischen drei Laengsbalken, die
-        // beidseitig sauber in einen Querbalken stossen - keine
-        // schwebenden Enden. Kein Schatten (dekorativ). Neue Balkentextur.
-        const BEAM_W = 0.16, BEAM_FRONT = 2.6;
-        const beamTopY = CEILING_Y + 0.005;
-        const beamRunLen = BEAM_FRONT - WALL_Z + BEAM_W;
-        // Schmale Querbalken (flach an der Decke) vorne + an der Rueckwand
-        // als sauberer Anschluss fuer die Laengsbalken.
-        [WALL_Z + BEAM_W / 2, BEAM_FRONT].forEach(function (z) {
-            const cross = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH, 0.14, BEAM_W), beamMat);
-            cross.position.set(0, beamTopY - 0.07, z);
-            group.add(cross);
-        });
-        // Drei kraeftige Laengsbalken: Oberkante an der Decke, haengen als
-        // sichtbare Balken ~0.32 herunter und stossen beidseitig in einen
-        // Querbalken (vorne der Sturz, hinten die Rueckwand) - keine freien
-        // Enden, in der Perspektive klar als Deckenbalken lesbar.
-        [-2.5, 0, 2.5].forEach(function (x) {
-            const beam = new THREE.Mesh(new THREE.BoxGeometry(BEAM_W, 0.32, beamRunLen), beamMat);
-            beam.position.set(x, beamTopY - 0.16, WALL_Z + beamRunLen / 2);
+        // Genau drei kraeftige, parallele Laengsbalken - breit, aber nur
+        // flach unter die Kalkputz-Decke reichend (Oberkante in die Decke
+        // eingelassen), damit auch der mittlere, direkt zur Kamera
+        // laufende Balken nur als schmaler Streifen liest und kein Keil
+        // herunterhaengt. Sie laufen an der Kamera vorbei nach vorne
+        // (kein sichtbares Ende, kein Balkenkopf) und stossen hinten in
+        // die Rueckwand. Kein Querbalken/Sturz im vorderen Bild. Kein
+        // Schatten (dekorativ). Neue Balkenholz-Textur.
+        // Vorderes Ende knapp VOR der Kamera enden lassen: dort liegt die
+        // Decke schon ausserhalb des oberen Bildrands, also ist das
+        // Balkenende nie sichtbar - und der mittlere, zur Kamera laufende
+        // Balken bildet keinen Keil mehr im oberen Bild.
+        const beamFront = camera.position.z + 2;      // klar hinter der Kamera -> kein sichtbares Ende
+        const beamLen = beamFront - WALL_Z + 0.1;
+        // Aussenbalken kraeftig mit kleinem Reveal; der mittlere laeuft
+        // direkt zur Kamera und wird schmal + fast deckenbuendig gehalten,
+        // damit seine perspektivische Verjuengung im oberen Bild nur ein
+        // feiner Strich bleibt, kein dunkler Keil / keine Konstruktion.
+        [{ x: -2.5, w: 0.26, h: 0.06, rev: 0.045 },
+         { x: 0, w: 0.09, h: 0.02, rev: 0.007 },
+         { x: 2.5, w: 0.26, h: 0.06, rev: 0.045 }].forEach(function (b) {
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, beamLen), beamMat);
+            beam.position.set(b.x, CEILING_Y - b.rev + b.h / 2, WALL_Z + beamLen / 2 - 0.05);
             group.add(beam);
         });
+        // Optional: ein sehr schmaler, unauffaelliger Balken direkt an der
+        // Rueckwand als sauberer Abschluss der Laengsbalken.
+        const backLedge = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH, 0.06, 0.06), beamMat);
+        backLedge.position.set(0, CEILING_Y - 0.03 + 0.005, WALL_Z + 0.05);
+        group.add(backLedge);
 
         // === Durchgehende warme Holz-Fussleiste entlang aller Waende ===
         // Flach an der Wand (ragt nur ~0.04 in den Raum), Hoehe 0.16.
