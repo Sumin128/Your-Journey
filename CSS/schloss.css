@@ -354,6 +354,27 @@
 
 }
 
+/* "Neue Möbel bei Tamo" ist ein Link zur Werkstatt-Seite, kein
+   Umschalt-Tab - optisch als warmer Holz-Knopf abgesetzt, rechts. */
+.schloss-tab.schloss-tab--link {
+
+    margin-left: auto;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #6b4423;
+    color: #ffe7b5;
+    border-color: #4a2f18;
+
+}
+
+.schloss-tab.schloss-tab--link:hover {
+
+    background: #7d5330;
+
+}
+
 /* --- Stil-Auswahl (Themes) --- */
 
 .schloss-style {

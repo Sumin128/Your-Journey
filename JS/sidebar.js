@@ -101,7 +101,8 @@ function buildSidebarMarkup() {
 
             ${group("Läden", "Icons/Sidebar/shop.png", [
                 sublink("shop_seite.html", "Kuros Laden", "Icons/Sidebar/shop.png"),
-                sublink("bakos_basar.html", "Bakos Basar", "Icons/Sidebar/shop.png")
+                sublink("bakos_basar.html", "Bakos Basar", "Icons/Sidebar/shop.png"),
+                sublink("tamo_werkstatt.html", "Tamos Werkstatt", "Icons/Sidebar/shop.png")
             ])}
 
             ${link("erfolge.html", "Erfolge", "Icons/Sidebar/erfolge.png")}

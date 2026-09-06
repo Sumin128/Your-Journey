@@ -71,7 +71,8 @@ insert into public.schloss_furniture (id, price) values
     ('uhr_wald_a', 18),
     ('kerze_wald_a', 6),
     ('truhe_wald_a', 28),
-    ('blumenkasten_wald_a', 12)
+    ('blumenkasten_wald_a', 12),
+    ('teppich_rund_wald_a', 16)
 on conflict (id) do update set price = excluded.price;
 
 

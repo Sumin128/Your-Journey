@@ -23,7 +23,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=18">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=4">
-    <link rel="stylesheet" href="CSS/schloss.css?v=15">
+    <link rel="stylesheet" href="CSS/schloss.css?v=16">
 
     <!-- Three.js als ES-Modul, fest auf 0.160.0 gepinnt (kein Build-
          Schritt in diesem Projekt). Vorerst über jsdelivr, sobald die
@@ -97,13 +97,12 @@
                 <div class="schloss-tabs" role="tablist">
                     <button type="button" id="schloss-drawer-toggle" class="schloss-drawer-toggle" aria-label="Schublade ein-/ausklappen" aria-expanded="true">▾</button>
                     <button type="button" class="schloss-tab is-active" data-schloss-tab="inventory">🪑 Inventar</button>
-                    <button type="button" class="schloss-tab" data-schloss-tab="shop">🛍️ Laden</button>
                     <button type="button" class="schloss-tab" data-schloss-tab="style">🎨 Stil</button>
+                    <a href="tamo_werkstatt.html" class="schloss-tab schloss-tab--link">🪵 Neue Möbel bei Tamo</a>
                 </div>
 
                 <div id="schloss-drawer-body" class="schloss-drawer-body">
                     <div id="schloss-inventory" class="schloss-inventory" aria-label="Deine Möbel"></div>
-                    <div id="schloss-shop" class="schloss-inventory" aria-label="Schlossladen" hidden></div>
                     <div id="schloss-style" class="schloss-style" aria-label="Einrichtungs-Stil" hidden></div>
                 </div>
 
@@ -123,13 +122,13 @@
     <script src="JS/level-data.js?v=1"></script>
     <script src="JS/level-up.js?v=1"></script>
     <script src="JS/auth.js?v=9"></script>
-    <script src="JS/sidebar.js?v=15"></script>
+    <script src="JS/sidebar.js?v=16"></script>
     <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=8"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/schloss-data.js?v=15"></script>
-    <script src="JS/schloss.js?v=5"></script>
+    <script src="JS/schloss.js?v=6"></script>
     <script src="JS/schloss-migration.js?v=1"></script>
     <script type="module" src="JS/schloss-3d.js?v=24"></script>
 

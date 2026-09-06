@@ -23,7 +23,6 @@
     const lockedText = document.getElementById("schloss-locked-text");
     const editorSection = document.getElementById("schloss-editor");
     const inventoryEl = document.getElementById("schloss-inventory");
-    const shopEl = document.getElementById("schloss-shop");
     const styleEl = document.getElementById("schloss-style");
     const tabButtons = document.querySelectorAll(".schloss-tab");
     const drawer = document.getElementById("schloss-drawer");
@@ -92,132 +91,20 @@
     }
 
 
-    /* --- Schlossladen (Phase 2): jedes Möbelstück mit unlockedBy === null
-       ist normal per Coins kaufbar. Level-Belohnungs-Möbel (unlockedBy.type
-       === "level", z. B. das Startpaket) taucht hier bewusst NICHT auf -
-       das bleibt ausschließlich über earn_xp()-Level-Aufstiege erreichbar,
-       siehe supabase_migration_schloss_shop.sql. Kauf-Ablauf ist exakt das
-       Muster aus JS/bako.js buyBaumkind(): lokale Vorab-Prüfung -> RPC (bei
-       Login) bzw. lokaler Abzug (Gast) -> serverseitigen Wert übernehmen ->
-       ownedFurniture ergänzen -> speichern. --- */
-
-    function renderShop() {
-
-        if (!shopEl) {
-            return;
-        }
-
-        shopEl.innerHTML = "";
-
-        const owned = player.schloss.ownedFurniture || [];
-
-        const purchasable = SCHLOSS_FURNITURE.filter(function (furniture) {
-            return furniture.unlockedBy === null && owned.indexOf(furniture.id) === -1;
-        });
-
-        if (!purchasable.length) {
-            const empty = document.createElement("p");
-            empty.className = "schloss-inventory-empty";
-            empty.textContent = "Du hast schon alles aus dem Laden! 🎉";
-            shopEl.appendChild(empty);
-            return;
-        }
-
-        purchasable.forEach(function (furniture) {
-
-            const card = document.createElement("button");
-            card.type = "button";
-            card.className = "schloss-inv-item schloss-shop-item";
-            card.innerHTML =
-                '<img src="' + furniture.designs[0].sprite + '" alt="">' +
-                '<span>' + furniture.name + '</span>' +
-                '<span class="schloss-shop-price"><img src="images/muenze.png" alt="" class="coin-icon"> ' + furniture.price + '</span>';
-
-            card.addEventListener("click", function () {
-                buySchlossFurniture(furniture.id, card);
-            });
-
-            shopEl.appendChild(card);
-
-        });
-
-    }
-
-    async function buySchlossFurniture(furnitureId, button) {
-
-        const furniture = getSchlossFurniture(furnitureId);
-
-        if (!furniture) {
-            return;
-        }
-
-        if ((player.schloss.ownedFurniture || []).indexOf(furnitureId) !== -1) {
-            showMirelonToast(furniture.name + " gehört dir schon.", "info");
-            return;
-        }
-
-        if ((player.coins || 0) < furniture.price) {
-            showMirelonToast("Dir fehlen noch " + (furniture.price - player.coins) + " Münzen.", "error");
-            return;
-        }
-
-        if (button) {
-            button.disabled = true;
-        }
-
-        try {
-
-            const loggedIn = typeof isLoggedIn === "function" && isLoggedIn();
-
-            if (loggedIn) {
-
-                const result = await supabaseClient.rpc("purchase_schloss_furniture", { p_furniture_id: furnitureId });
-
-                if (result.error) {
-                    throw result.error;
-                }
-
-                if (result.data && typeof result.data.coins === "number") {
-                    player.coins = result.data.coins;
-                }
-
-            } else {
-
-                player.coins -= furniture.price;
-
-            }
-
-            if (!Array.isArray(player.schloss.ownedFurniture)) {
-                player.schloss.ownedFurniture = [];
-            }
-
-            if (player.schloss.ownedFurniture.indexOf(furnitureId) === -1) {
-                player.schloss.ownedFurniture.push(furnitureId);
-            }
-
-            showMirelonToast("🛍️ " + furniture.name + " gehört jetzt dir!", "info");
-
-            saveSchloss();
-            renderInventory();
-            renderShop();
-
-        } catch (e) {
-
-            showMirelonToast("Kauf fehlgeschlagen: " + (e && e.message ? e.message : e), "error");
-
-        } finally {
-
-            if (button) {
-                button.disabled = false;
-            }
-
-        }
-
-    }
+    /* --- Möbel KAUFEN läuft nicht mehr hier: der Laden ist eine eigene
+       Seite (tamo_werkstatt.html / JS/tamo.js), die dieselbe
+       purchase_schloss_furniture-Logik nutzt. Im Schloss bleiben nur
+       Inventar + Stil; ein Klick auf "Neue Möbel bei Tamo" ist ein
+       normaler Link. --- */
 
     tabButtons.forEach(function (button) {
 
         button.addEventListener("click", function () {
+
+            // Reine Link-Tabs (zu Tamo) navigieren normal, kein Tab-Wechsel.
+            if (button.classList.contains("schloss-tab--link")) {
+                return;
+            }
 
             tabButtons.forEach(function (other) {
                 other.classList.toggle("is-active", other === button);
@@ -225,7 +112,6 @@
 
             const tab = button.dataset.schlossTab;
             inventoryEl.hidden = tab !== "inventory";
-            if (shopEl) { shopEl.hidden = tab !== "shop"; }
             if (styleEl) { styleEl.hidden = tab !== "style"; }
 
             // Beim Tab-Wechsel die Schublade automatisch aufklappen.
@@ -320,7 +206,6 @@
         editorSection.hidden = false;
 
         renderInventory();
-        renderShop();
         renderStyleTab();
 
     }

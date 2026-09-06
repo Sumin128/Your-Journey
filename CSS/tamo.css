@@ -1,0 +1,253 @@
+/* =====================================================
+   TAMO BIBER – SCHLOSSWERKSTATT  (tamo_werkstatt.html / JS/tamo.js)
+   Warme Holzwerkstatt: Baupläne, Werkzeug, Späne, keine sterile
+   Produkttabelle. An Kuros/Bakos Shop-Grundgeruest angelehnt, aber
+   mit eigener Tischler-Identität.
+   ===================================================== */
+
+#tamo-main {
+    background:
+        radial-gradient(circle at 50% -10%, #4a361e 0%, #2a1d10 62%);
+}
+
+.tamo-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 26px 16px 96px;
+    gap: 18px;
+}
+
+.tamo-page > * {
+    width: 100%;
+}
+
+/* --- Intro mit Tamo --- */
+
+.tamo-intro {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 18px 22px;
+    flex-wrap: wrap;
+    /* warmes Holz-Panel statt Standard-Papier */
+    background:
+        linear-gradient(180deg, #fbf1dd 0%, #f3e2c1 100%);
+    border: 2px solid #6b4423;
+}
+
+.tamo-portrait {
+    width: clamp(120px, 20vw, 168px);
+    height: auto;
+    object-fit: contain;
+    flex: none;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.35));
+}
+
+.tamo-intro-text {
+    flex: 1;
+    min-width: 240px;
+}
+
+.tamo-intro-text h1 {
+    margin: 0 0 8px;
+    color: var(--yj-color-wood-dark, #5b3a1c);
+    font-size: clamp(1.35rem, 1.1rem + 1.1vw, 2rem);
+}
+
+.tamo-intro-text p {
+    margin: 0 0 12px;
+    color: var(--yj-color-ink-soft, #6b573f);
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.tamo-coins {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: #2c1c10;
+    color: #ffe7b5;
+    font-weight: 900;
+    font-size: clamp(13px, 1.6vw, 17px);
+}
+
+/* --- Werkbank-Streifen (rein dekorativ) --- */
+
+.tamo-workbench {
+    display: flex;
+    justify-content: center;
+    gap: clamp(10px, 3vw, 26px);
+    font-size: clamp(18px, 3vw, 26px);
+    padding: 4px 0 0;
+    filter: saturate(0.85);
+    opacity: 0.9;
+    user-select: none;
+}
+
+/* --- Regal / Kategorien --- */
+
+.tamo-shelf {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.tamo-loading {
+    text-align: center;
+    color: #e9d4ad;
+    font-style: italic;
+    padding: 30px 0;
+}
+
+.tamo-cat {
+    background:
+        linear-gradient(180deg, #f6e7c9 0%, #ecd7ab 100%);
+    border: 2px solid #6b4423;
+    /* untere Kante als schmale Holz-Regalleiste */
+    border-bottom-width: 7px;
+    border-bottom-color: #7d5330;
+    border-radius: 16px;
+    padding: 14px 16px 18px;
+    box-shadow:
+        0 10px 26px rgba(0, 0, 0, 0.34),
+        inset 0 2px 0 rgba(255, 255, 255, 0.45);
+}
+
+.tamo-cat-title {
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--yj-color-wood-dark, #5b3a1c);
+    font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+    border-bottom: 2px dashed #c8a877;
+    padding-bottom: 8px;
+}
+
+.tamo-cat-icon {
+    font-size: 1.2em;
+}
+
+.tamo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+/* --- Möbelkarte --- */
+
+.tamo-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 8px 12px;
+    background: #fffdf8;
+    border: 2px solid #b98a58;
+    border-radius: 13px;
+    text-align: center;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.tamo-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(90, 58, 28, 0.28);
+}
+
+/* "Holzbrett", auf dem das Möbel steht */
+.tamo-card-plank {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background:
+        linear-gradient(180deg, #f0dcb8 0%, #e2c496 100%);
+    box-shadow: inset 0 -6px 10px rgba(120, 82, 40, 0.22);
+}
+
+.tamo-card-img {
+    max-width: 88%;
+    max-height: 88%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(80, 52, 24, 0.3));
+}
+
+.tamo-card-name {
+    font-weight: 800;
+    color: var(--yj-color-wood-dark, #5b3a1c);
+    font-size: 0.92rem;
+    line-height: 1.15;
+}
+
+.tamo-card-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 900;
+    color: #7a5a2e;
+}
+
+.tamo-buy {
+    margin-top: 2px;
+}
+
+.tamo-card.is-busy {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Schon besessen */
+.tamo-card.is-owned {
+    background: #eef7ea;
+    border-color: var(--yj-color-success, #2f9e44);
+}
+
+.tamo-card.is-owned .tamo-card-img {
+    opacity: 0.9;
+}
+
+.tamo-card-owned {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 900;
+    font-size: 0.85rem;
+    color: #2f7d36;
+    background: #d9f0d6;
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+
+.tamo-hint {
+    text-align: center;
+    color: #e9d4ad;
+    font-size: 0.88rem;
+    margin: 4px 0 0;
+}
+
+/* --- Mobil --- */
+
+@media (max-width: 720px) {
+
+    .tamo-page {
+        padding: 16px 12px 90px;
+    }
+
+    .tamo-intro {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+    }
+
+    .tamo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
