@@ -48,19 +48,18 @@ const SCHLOSS_THEMES = [
         icon: "🌲",
         available: true,
         shell: {
-            floorBaseColor: "#a9793f",
-            wallBaseColor: "#a9855f",
-            ceilingColor: 0x40301f,
-            // Hintergrund + Nebel bewusst = Deckenfarbe: bei sehr
-            // hohem Hochformat kann die Kamera knapp über die Decke
-            // hinausblicken - so verschmilzt dieser Rand mit ihr
-            // statt als dunkler "Balken" aufzufallen.
-            background: 0x40301f,
-            fogColor: 0x40301f,
-            ambient: { color: 0xffe3bd, intensity: 0.5 },
-            windowLight: { color: 0xfff1d6, intensity: 0.85 },
+            floorBaseColor: "#b98c53",
+            wallBaseColor: "#c3a982",
+            ceilingColor: 0x6f573b,
+            // Hintergrund + Nebel: warmes, HELLES Cremeweiss. Der schmale
+            // Bereich, den die Kamera ueber der Wandkrone sieht, wirkt so
+            // luftig-hell statt als dunkler Dachbalken.
+            background: 0xf2e6cb,
+            fogColor: 0xf2e6cb,
+            ambient: { color: 0xffeccb, intensity: 0.6 },
+            windowLight: { color: 0xfff3de, intensity: 1.25 },
             fireLight: { color: 0xff9c4a, intensity: 1.4 },
-            windowSky: ["#ffe2a0", "#ffb877", "#dd8a4e"]
+            windowSky: ["#fdeaba", "#ffd08a", "#e9a566"]
         }
     },
     { id: "wueste", name: "Wüstenschloss", icon: "🏜️", available: false, shell: null },
@@ -105,6 +104,10 @@ const SCHLOSS_FURNITURE = [
         // Liegt flach auf dem Boden statt aufrecht zu stehen wie die
         // übrigen Cutout-Möbel (siehe flatOnFloor in JS/schloss-3d.js).
         flatOnFloor: true,
+        // Boden-Dekoration: nimmt NICHT an der Möbel-zu-Möbel-Kollision
+        // teil (Tisch/Stuhl dürfen auf dem Teppich stehen), bleibt aber
+        // an die Raumgrenzen gebunden. Siehe JS/schloss-3d.js.
+        placementType: "floorDecor",
         // GLB (images/schloss/models/teppich_wald_a.glb) liegt bereit,
         // bleibt aber bewusst UNverdrahtet: das Einfärben (colorable
         // unten) arbeitet konturerhaltend auf der Sprite-Textur des
@@ -122,8 +125,14 @@ const SCHLOSS_FURNITURE = [
     { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // light: echte kleine Punktlichtquelle beim Platzieren (JS/schloss-3d.js
-    // addLampLight). Ein-/ausschaltbar + speicherbar folgt später.
-    { id: "lampe_wald_a", name: "Waldlampe", category: "licht", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/lampe_wald_a.png", model: "images/schloss/models/lampe_wald_a.glb" }], light: { color: "#ffd9a8", intensity: 6, distance: 3.6, height: 1.5 }, colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: { type: "level", level: 5 } },
+    // addLampLight). Per Klick auf die Lampe an/aus schaltbar, Zustand
+    // in instance.lightOn gespeichert.
+    // model bewusst null: lampe_wald_a.glb (im Repo) ist EIN einziges
+    // Mesh/Primitiv mit einem abstehenden Tripo-Artefakt-Zipfel, der
+    // sich nicht isoliert entfernen laesst. Bis eine saubere Fassung
+    // vorliegt, laeuft die Lampe als 2D-Cutout - Punktlicht + Leuchtkern
+    // greifen dort genauso.
+    { id: "lampe_wald_a", name: "Waldlampe", category: "licht", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/lampe_wald_a.png", model: null }], light: { color: "#ffdca6", intensity: 6.5, distance: 3.8, height: 1.05 }, colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: { type: "level", level: 5 } },
     { id: "pflanze_wald_a", name: "Waldpflanze", category: "pflanzen", styles: ["wald"], price: 10, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/pflanze_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "rahmen_wald_a", name: "Bilderrahmen", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.3 }, designs: [{ sprite: "images/schloss/moebel/rahmen_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: true, unlockedBy: null },
 

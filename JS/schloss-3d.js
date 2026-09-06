@@ -114,7 +114,7 @@ function initSchloss3D(canvas) {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(shell.background);
-    scene.fog = new THREE.Fog(shell.fogColor, 14, 30);
+    scene.fog = new THREE.Fog(shell.fogColor, 20, 42);
 
     // PerspectiveCamera.fov ist der VERTIKALE Blickwinkel. Bei einem
     // hohen, schmalen Wrapper (Handy im Hochformat) würde damit der
@@ -129,13 +129,17 @@ function initSchloss3D(canvas) {
     // Grube wirkt. Wird bei geladener GLB-Hülle nachjustiert.
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
     if (isMobile) {
-        // Hochformat: näher dran und flacher, sonst nimmt der dunkle
-        // Dachraum oben zu viel Bild ein.
-        camera.position.set(0, 5.0, 8.8);
-        camera.lookAt(0, 1.9, -0.6);
+        // Hochformat: näher dran und deutlich nach unten geneigt, damit
+        // der Raum das Bild füllt und oben nur ein schmaler Streifen
+        // Hintergrund bleibt.
+        camera.position.set(0, 4.5, 7.2);
+        camera.lookAt(0, 1.25, -1.9);
     } else {
-        camera.position.set(0, 6.0, 9.9);
-        camera.lookAt(0, 1.7, -0.7);
+        // Leicht erhöhte Bühnenkamera, deutlich nach unten geneigt, damit
+        // der Dachbereich nur einen schmalen Streifen einnimmt und der
+        // helle, grosse Raum die Szene füllt.
+        camera.position.set(0, 6.1, 9.7);
+        camera.lookAt(0, 1.45, -1.3);
     }
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -166,7 +170,9 @@ function initSchloss3D(canvas) {
         // zusätzlich über die Raumgrenzen hinaus vergrößert).
         const hFovRad = TARGET_HORIZONTAL_FOV * Math.PI / 180;
         const vFovRad = 2 * Math.atan(Math.tan(hFovRad / 2) / Math.max(aspect, 0.55));
-        camera.fov = Math.min(64, vFovRad * 180 / Math.PI);
+        // Vertikalen Blickwinkel deckeln - im Hochformat enger, sonst
+        // sieht man über/unter dem Raum zu viel leeren Hintergrund.
+        camera.fov = Math.min(isMobile ? 52 : 62, vFovRad * 180 / Math.PI);
 
         camera.updateProjectionMatrix();
 
@@ -185,6 +191,11 @@ function initSchloss3D(canvas) {
     /* --- Licht: warmes Fensterlicht + Kaminglühen + sanftes Umgebungslicht --- */
 
     scene.add(new THREE.AmbientLight(shell.ambient.color, shell.ambient.intensity));
+
+    // Weiches Himmel/Boden-Licht - hebt Decke und Wände gleichmässig an,
+    // damit der Raum hell und luftig wirkt statt in eine dunkle Ecke zu
+    // kippen.
+    scene.add(new THREE.HemisphereLight(0xfff2da, 0x8a6b47, 0.45));
 
     const windowLight = new THREE.DirectionalLight(shell.windowLight.color, shell.windowLight.intensity);
     windowLight.position.set(-3.2, 4.2, 1.6);
@@ -208,7 +219,7 @@ function initSchloss3D(canvas) {
     // Dezentes Fülllicht von der Kameraseite, ohne Schatten - hebt die
     // Schattenseite von 3D-Möbelmodellen an, damit sie nicht zu dunkel
     // absaufen (Cutouts brauchen das nicht, schadet ihnen aber nicht).
-    const fillLight = new THREE.DirectionalLight(0xffe9cf, 0.35);
+    const fillLight = new THREE.DirectionalLight(0xffe9cf, 0.42);
     fillLight.position.set(1.5, 3, 7);
     scene.add(fillLight);
 
@@ -289,7 +300,7 @@ function initSchloss3D(canvas) {
     // Kaminfeuer + flackerndes Punktlicht leben AUSSERHALB der Hülle
     // (Vorgabe: Feuer gehört nicht ins GLB) - Anker: FIRE_ANCHOR.
     const fireMesh = buildFireMesh();
-    fireMesh.position.set(FIRE_ANCHOR.x, 0.18, FIRE_ANCHOR.z + 0.12);
+    fireMesh.position.set(FIRE_ANCHOR.x, 0.06, FIRE_ANCHOR.z - 0.02);
     scene.add(fireMesh);
 
     // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
@@ -349,12 +360,12 @@ function initSchloss3D(canvas) {
             populateWithCutout(group, furniture, design, instance.color);
         }
 
-        // Leuchtende Möbel (furniture.light, z. B. Waldlampe) bekommen
-        // eine echte kleine Punktlichtquelle + sichtbaren Glühkern.
-        // Vorerst immer an; ein- / ausschaltbar und speicherbar wird der
-        // Zustand in einem späteren Schritt (instance.lightOn).
+        // Leuchtende Möbel (furniture.light, z. B. Waldlampe): echte
+        // kleine Punktlichtquelle + warmer Leuchtkern. Zustand aus
+        // instance.lightOn (fehlt der Wert -> an).
         if (furniture.light) {
             addLampLight(group, furniture.light);
+            setLampState(group, instance.lightOn !== false);
         }
 
         scene.add(group);
@@ -393,7 +404,8 @@ function initSchloss3D(canvas) {
             z: 1.2 + row * 1.1,
             rotationY: 0,
             scale: 1,
-            content: null
+            content: null,
+            lightOn: true
         };
 
         room.placedItems.push(instance);
@@ -425,8 +437,25 @@ function initSchloss3D(canvas) {
     const rotateRightBtn = document.getElementById("schloss-rotate-right");
     const removeBtn = document.getElementById("schloss-rotate-remove");
     const colorSwatchesEl = document.getElementById("schloss-color-swatches");
+    const lightToggleBtn = document.getElementById("schloss-light-toggle");
 
     let selected = null;
+
+    function updateLightToggle(group) {
+
+        if (!lightToggleBtn) { return; }
+
+        const isLamp = Boolean(group && group.userData.furniture && group.userData.furniture.light);
+        lightToggleBtn.hidden = !isLamp;
+
+        if (isLamp) {
+            const inst = findInstance(group);
+            const on = !inst || inst.lightOn !== false;
+            lightToggleBtn.textContent = on ? "💡" : "🌙";
+            lightToggleBtn.setAttribute("aria-pressed", String(on));
+        }
+
+    }
 
     function selectGroup(group) {
 
@@ -438,11 +467,31 @@ function initSchloss3D(canvas) {
             selectionRing.position.z = group.position.z;
             if (rotateControls) { rotateControls.hidden = false; }
             renderColorSwatches(group);
+            updateLightToggle(group);
         } else {
             selectionRing.visible = false;
             if (rotateControls) { rotateControls.hidden = true; }
+            if (lightToggleBtn) { lightToggleBtn.hidden = true; }
         }
 
+    }
+
+    if (lightToggleBtn) {
+        lightToggleBtn.addEventListener("click", function () {
+
+            if (!selected) { return; }
+
+            const instance = findInstance(selected);
+            if (!instance) { return; }
+
+            const nextOn = instance.lightOn === false; // war aus -> an
+            instance.lightOn = nextOn;
+            setLampState(selected, nextOn);
+            lightToggleBtn.textContent = nextOn ? "💡" : "🌙";
+            lightToggleBtn.setAttribute("aria-pressed", String(nextOn));
+            saveSchloss();
+
+        });
     }
 
     // Farbauswahl (nur bei furniture.colorable, z. B. Teppich) - selbe
@@ -563,6 +612,13 @@ function initSchloss3D(canvas) {
         return null;
     }
 
+    // Boden-Dekoration (z. B. Teppich): liegt flach auf, kollidiert
+    // nicht mit normalen Möbeln.
+    function isFloorDecor(group) {
+        return Boolean(group && group.userData.furniture &&
+            group.userData.furniture.placementType === "floorDecor");
+    }
+
     canvas.addEventListener("pointerdown", function (event) {
 
         updatePointerNDC(event);
@@ -623,31 +679,38 @@ function initSchloss3D(canvas) {
         let x = Math.max(-halfW, Math.min(halfW, point.x));
         let z = Math.max(-halfD, Math.min(halfD, point.z));
 
-        // Einfache, verzeihende Überlappungsprüfung: kein hartes
-        // Blockieren, sondern ein sanftes Auseinanderschieben, falls
-        // sich zwei Möbel-"Kreise" zu stark überschneiden.
-        placedGroups.forEach(function (other) {
+        // Boden-Dekoration (Teppich) nimmt NICHT an der Möbel-Kollision
+        // teil - weder als geschobenes noch als schiebendes Objekt.
+        // Tisch/Stuhl dürfen darauf stehen. Raumgrenzen gelten weiter.
+        if (!isFloorDecor(selected)) {
 
-            if (other === selected) {
-                return;
-            }
+            // Einfache, verzeihende Überlappungsprüfung: kein hartes
+            // Blockieren, sondern ein sanftes Auseinanderschieben, falls
+            // sich zwei Möbel-"Kreise" zu stark überschneiden.
+            placedGroups.forEach(function (other) {
 
-            const otherFootprint = other.userData.footprint || { w: 0.6, d: 0.6 };
-            const dx = x - other.position.x;
-            const dz = z - other.position.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-            const minDistance = (footprint.w + footprint.d) / 4 + (otherFootprint.w + otherFootprint.d) / 4;
+                if (other === selected || isFloorDecor(other)) {
+                    return;
+                }
 
-            if (distance > 0.0001 && distance < minDistance) {
-                const push = minDistance - distance;
-                x += (dx / distance) * push;
-                z += (dz / distance) * push;
-            }
+                const otherFootprint = other.userData.footprint || { w: 0.6, d: 0.6 };
+                const dx = x - other.position.x;
+                const dz = z - other.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                const minDistance = (footprint.w + footprint.d) / 4 + (otherFootprint.w + otherFootprint.d) / 4;
 
-        });
+                if (distance > 0.0001 && distance < minDistance) {
+                    const push = minDistance - distance;
+                    x += (dx / distance) * push;
+                    z += (dz / distance) * push;
+                }
 
-        x = Math.max(-halfW, Math.min(halfW, x));
-        z = Math.max(-halfD, Math.min(halfD, z));
+            });
+
+            x = Math.max(-halfW, Math.min(halfW, x));
+            z = Math.max(-halfD, Math.min(halfD, z));
+
+        }
 
         selected.position.set(x, 0, z);
         selectionRing.position.x = x;
@@ -705,17 +768,25 @@ function initSchloss3D(canvas) {
 
         dustMotes.geometry.attributes.position.needsUpdate = true;
 
-        // Kaminfeuer: leicht flackerndes Punktlicht + sanft zuckende
-        // Flammen. Rein zeitgesteuert (zwei überlagerte Sinus), kein
-        // Partikelsystem - das Feuer gehört bewusst nicht ins GLB.
-        const flick = 0.82 + Math.sin(t * 9) * 0.09 + Math.sin(t * 17.3) * 0.05;
+        // Kaminfeuer: leicht flackerndes Punktlicht + ruhig wehende
+        // Flammen-Ebenen + pulsende Glut. Rein zeitgesteuert (überlagerte
+        // Sinus), kein Partikelsystem - das Feuer gehört nicht ins GLB.
+        const flick = 0.84 + Math.sin(t * 8.5) * 0.08 + Math.sin(t * 16.7) * 0.045;
         fireLight.intensity = shell.fireLight.intensity * flick;
 
-        for (let i = 0; i < fireMesh.children.length; i++) {
-            const flame = fireMesh.children[i];
-            const s = 0.78 + Math.sin(t * (7 + i * 2) + i) * 0.18 + (flick - 0.82);
-            flame.scale.set(0.9 + (s - 0.9) * 0.45, s, 0.9 + (s - 0.9) * 0.45);
-            flame.rotation.y = Math.sin(t * 3 + i) * 0.25;
+        const flames = fireMesh.userData.flames || [];
+        for (let i = 0; i < flames.length; i++) {
+            const fl = flames[i];
+            const ph = fl.userData.phase;
+            const wob = Math.sin(t * 3.2 + ph) * 0.6 + Math.sin(t * 6.8 + ph) * 0.3;
+            fl.position.x = fl.userData.baseX + wob * 0.05;
+            fl.rotation.z = wob * 0.13;
+            fl.scale.y = fl.userData.s0 * (0.86 + Math.sin(t * 5.5 + ph) * 0.16 + (flick - 0.84));
+            fl.scale.x = fl.userData.s0 * (0.98 + Math.sin(t * 4.1 + ph) * 0.06);
+            fl.material.opacity = 0.7 + Math.sin(t * 8.3 + ph) * 0.22;
+        }
+        if (fireMesh.userData.embers) {
+            fireMesh.userData.embers.material.opacity = 0.55 + Math.sin(t * 2.1) * 0.16 + Math.sin(t * 5.3) * 0.06;
         }
 
         renderer.render(scene, camera);
@@ -841,8 +912,13 @@ function initSchloss3D(canvas) {
             // aufrecht zu stehen wie normale Möbel-Cutouts - sonst würde
             // ein Teppich wie ein aufgestelltes Bild aussehen.
             plane.rotation.x = -Math.PI / 2;
-            plane.position.y = 0.01; // knapp über dem Boden, kein Z-Fighting
+            plane.position.y = 0.015; // knapp über dem Boden, kein Z-Fighting
             plane.receiveShadow = true;
+            // Zuerst zeichnen (renderOrder < 0) + kein Tiefe-Schreiben,
+            // damit normale, aufrecht stehende Möbel immer sichtbar
+            // darüber liegen und keine Z-Fighting-Kante entsteht.
+            plane.renderOrder = -1;
+            material.depthWrite = false;
         } else {
             plane.position.y = footprint.w / 2;
             plane.castShadow = true;
@@ -974,6 +1050,9 @@ function initSchloss3D(canvas) {
 
     }
 
+    // Warme Natursteinwand (gemalt, nicht fotorealistisch): heller
+    // Grundton, unregelmässige Quader mit dezenter Farbvariation, ein
+    // paar deutlich dunklere Steine, angedeutete Mörtelfugen.
     function makeStoneTexture(baseColor) {
 
         const size = 512;
@@ -981,25 +1060,45 @@ function initSchloss3D(canvas) {
         el.width = el.height = size;
         const ctx = el.getContext("2d");
 
-        ctx.fillStyle = baseColor || "#a9855f";
+        ctx.fillStyle = baseColor || "#c3a982";
         ctx.fillRect(0, 0, size, size);
 
         const rng = mulberry32(7);
-        for (let i = 0; i < 90; i++) {
-            const w = 40 + rng() * 60;
-            const h = 26 + rng() * 30;
-            const x = rng() * size;
-            const y = rng() * size;
-            const tone = 150 + Math.floor(rng() * 60);
-            ctx.fillStyle = "rgba(" + tone + "," + (tone - 30) + "," + (tone - 65) + ",0.5)";
-            ctx.fillRect(x, y, w, h);
-            ctx.strokeStyle = "rgba(60,38,20,0.4)";
-            ctx.strokeRect(x, y, w, h);
+        const rows = 7;
+        const rowH = size / rows;
+
+        for (let r = 0; r < rows; r++) {
+            const y = r * rowH;
+            const offset = (r % 2) * (rowH * 0.9);
+            let x = -offset;
+            while (x < size) {
+                const w = rowH * (0.8 + rng() * 1.1);
+                const pad = 3;
+                const dark = rng() < 0.13;
+                const warm = 210 + Math.floor(rng() * 30);
+                let cr, cg, cb;
+                if (dark) { cr = warm - 95; cg = warm - 110; cb = warm - 120; }
+                else { cr = warm; cg = warm - 22; cb = warm - 52; }
+                const a = dark ? 0.6 : 0.22 + rng() * 0.22;
+                ctx.fillStyle = "rgba(" + cr + "," + cg + "," + cb + "," + a.toFixed(2) + ")";
+                ctx.fillRect(x + pad, y + pad, w - pad * 2, rowH - pad * 2);
+                ctx.strokeStyle = "rgba(120,92,60,0.35)";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x + pad, y + pad, w - pad * 2, rowH - pad * 2);
+                x += w;
+            }
         }
+
+        // sanfte, ungleichmässige Aufhellung (Licht von oben)
+        const grad = ctx.createLinearGradient(0, 0, 0, size);
+        grad.addColorStop(0, "rgba(255,246,225,0.18)");
+        grad.addColorStop(1, "rgba(60,42,26,0.12)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
 
         const texture = new THREE.CanvasTexture(el);
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(2.4, 2.0);
+        texture.repeat.set(2.6, 2.2);
         texture.colorSpace = THREE.SRGBColorSpace;
         return texture;
 
@@ -1117,10 +1216,10 @@ function initSchloss3D(canvas) {
     function buildProceduralShell(group, dustAnchor) {
 
         const wallMat = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
-        const beamMat = new THREE.MeshStandardMaterial({ color: 0x3f2c1a, roughness: 0.95 });
-        const trimMat = new THREE.MeshStandardMaterial({ color: 0x6d5133, roughness: 1 });
-        const frameMat = new THREE.MeshStandardMaterial({ color: 0x8a6b45, roughness: 1 });
-        const nicheMat = new THREE.MeshStandardMaterial({ color: 0x5f4830, roughness: 1 });
+        const beamMat = new THREE.MeshStandardMaterial({ color: 0x6f4c2c, roughness: 0.9 });
+        const trimMat = new THREE.MeshStandardMaterial({ color: 0x7d4f2c, roughness: 0.85 });
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x9a7850, roughness: 0.9 });
+        const nicheMat = new THREE.MeshStandardMaterial({ color: 0x6a533a, roughness: 1 });
 
         // --- Wände (Innenseiten zugewandt) ---
         const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_HEIGHT), wallMat);
@@ -1151,19 +1250,21 @@ function initSchloss3D(canvas) {
         const CEILING_Y = 4.4;
         const ceiling = new THREE.Mesh(
             new THREE.PlaneGeometry(ROOM_WIDTH + 8, ROOM_DEPTH + 10),
-            new THREE.MeshStandardMaterial({ color: 0x5a4430, roughness: 1 })
+            new THREE.MeshStandardMaterial({ color: 0x9a7c56, roughness: 1 })
         );
         ceiling.rotation.x = Math.PI / 2;
         ceiling.position.set(0, CEILING_Y, 1.5);
         group.add(ceiling);
 
-        for (let i = 0; i < 4; i++) {
-            const beam = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH + 0.4, 0.2, 0.26), beamMat);
-            beam.position.set(0, CEILING_Y - 0.12, -ROOM_DEPTH / 2 + 0.9 + i * ((ROOM_DEPTH - 1.8) / 3));
+        // Nur drei schlanke Balken - genug für "gestaltete Decke", ohne
+        // dass der Dachbereich schwer und dunkel wirkt.
+        for (let i = 0; i < 3; i++) {
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH + 0.4, 0.16, 0.2), beamMat);
+            beam.position.set(0, CEILING_Y - 0.1, -ROOM_DEPTH / 2 + 1.2 + i * ((ROOM_DEPTH - 2.4) / 2));
             group.add(beam);
         }
-        const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, ROOM_DEPTH), beamMat);
-        ridge.position.set(0, CEILING_Y - 0.11, 0);
+        const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, ROOM_DEPTH), beamMat);
+        ridge.position.set(0, CEILING_Y - 0.09, 0);
         group.add(ridge);
 
         // --- Sockel- + Kranzleiste (macht aus "Ebenen" einen Raum) ---
@@ -1178,45 +1279,116 @@ function initSchloss3D(canvas) {
             });
         });
 
-        // --- Zwei hohe Fensterbögen mit Waldsicht (Rückwand) ---
+        // --- Zwei hohe Fensterbögen mit Waldsicht, Steinrahmen, Bank
+        // und Tiefe (Rückwand). Die Rückwand ist eine geschlossene
+        // Fläche - die "Öffnung" entsteht optisch durch die Waldsicht
+        // direkt davor + einen proud stehenden Rahmen + Fensterbank. ---
         const winTex = makeForestWindowTexture(shell.windowSky);
+        const WALL_Z = -ROOM_DEPTH / 2;
+
         [-2.8, -1.1].forEach(function (x, idx) {
+
+            // Waldsicht knapp vor der Wand
             const w = new THREE.Mesh(
-                new THREE.PlaneGeometry(1.4, 2.1),
+                new THREE.PlaneGeometry(1.45, 2.15),
                 new THREE.MeshBasicMaterial({ map: winTex })
             );
-            w.position.set(x, 1.95, -ROOM_DEPTH / 2 + 0.04);
+            w.position.set(x, 1.98, WALL_Z + 0.03);
             group.add(w);
 
-            const archTop = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.12, 8, 16, Math.PI), frameMat);
-            archTop.position.set(x, 3.0, -ROOM_DEPTH / 2 + 0.06);
-            group.add(archTop);
-            [-0.73, 0.73].forEach(function (dx) {
-                const post = new THREE.Mesh(new THREE.BoxGeometry(0.15, 2.2, 0.16), frameMat);
-                post.position.set(x + dx, 1.9, -ROOM_DEPTH / 2 + 0.06);
-                group.add(post);
+            // Umlaufender Steinrahmen, steht ~0.16 vor der Wand (Tiefe)
+            const frameDepth = 0.18;
+            [
+                [0, 1.11, 1.7, 0.14],   // unten
+                [0, 2.85, 1.7, 0.14],   // oben (unter dem Bogen)
+                [-0.78, 1.98, 0.16, 1.9], // links
+                [0.78, 1.98, 0.16, 1.9]   // rechts
+            ].forEach(function (b) {
+                const bar = new THREE.Mesh(new THREE.BoxGeometry(b[2], b[3], frameDepth), frameMat);
+                bar.position.set(x + b[0], b[1], WALL_Z + frameDepth / 2 + 0.02);
+                group.add(bar);
             });
 
-            if (idx === 0) { dustAnchor.set(x, 2.1, -ROOM_DEPTH / 2 + 0.35); }
+            // Steinbogen oben
+            const archTop = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.14, 8, 18, Math.PI), frameMat);
+            archTop.position.set(x, 2.9, WALL_Z + frameDepth / 2 + 0.02);
+            group.add(archTop);
+
+            // Sprossenkreuz vor der Waldsicht
+            const barV = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.0, 0.06), frameMat);
+            barV.position.set(x, 1.98, WALL_Z + 0.09);
+            group.add(barV);
+            const barH = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 0.06), frameMat);
+            barH.position.set(x, 1.98, WALL_Z + 0.09);
+            group.add(barH);
+
+            // Fensterbank, ragt in den Raum
+            const sill = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.15, 0.4), frameMat);
+            sill.position.set(x, 0.94, WALL_Z + 0.2);
+            sill.castShadow = !isMobile;
+            group.add(sill);
+
+            if (idx === 0) { dustAnchor.set(x, 2.1, WALL_Z + 0.4); }
         });
 
-        // --- Hoher Türbogen (linke Wand) ---
-        const door = new THREE.Mesh(
-            new THREE.PlaneGeometry(1.6, 2.7),
-            new THREE.MeshStandardMaterial({ color: 0x241810, roughness: 1 })
-        );
-        door.rotation.y = Math.PI / 2;
-        door.position.set(-ROOM_WIDTH / 2 + 0.05, 1.35, -0.4);
-        group.add(door);
+        // --- Schwere Holztür mit Eisenbeschlägen in Steinlaibung
+        // (linke Wand). Lokale Achsen der Tür-Gruppe: X = Türbreite
+        // (nach Drehung entlang der Wand, Welt-Z), Z = Dicke (Welt-X). ---
+        const doorGroup = new THREE.Group();
+        const doorWoodMat = new THREE.MeshStandardMaterial({ color: 0x6b3f22, roughness: 0.8 });
+        const doorGrooveMat = new THREE.MeshStandardMaterial({ color: 0x3d2211, roughness: 1 });
+        const ironMat = new THREE.MeshStandardMaterial({ color: 0x2b2521, roughness: 0.5, metalness: 0.35 });
 
-        const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.16, 8, 18, Math.PI), frameMat);
+        // dunkler Durchgang dahinter
+        const doorway = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.5, 2.55),
+            new THREE.MeshStandardMaterial({ color: 0x140d08, roughness: 1 })
+        );
+        doorway.position.z = -0.12;
+        doorGroup.add(doorway);
+
+        // Türblatt
+        const leaf = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.5, 0.13), doorWoodMat);
+        leaf.castShadow = !isMobile;
+        doorGroup.add(leaf);
+
+        // senkrechte Planken-Fugen
+        for (let i = -1; i <= 1; i++) {
+            const groove = new THREE.Mesh(new THREE.BoxGeometry(0.035, 2.34, 0.14), doorGrooveMat);
+            groove.position.set(i * 0.42, 0, 0.002);
+            doorGroup.add(groove);
+        }
+
+        // zwei Eisenbänder quer + Nietenreihen
+        [0.72, -0.72].forEach(function (y) {
+            const band = new THREE.Mesh(new THREE.BoxGeometry(1.44, 0.13, 0.15), ironMat);
+            band.position.set(0, y, 0);
+            doorGroup.add(band);
+            for (let n = -2; n <= 2; n++) {
+                const rivet = new THREE.Mesh(new THREE.SphereGeometry(0.028, 6, 6), ironMat);
+                rivet.position.set(n * 0.32, y, 0.09);
+                doorGroup.add(rivet);
+            }
+        });
+
+        // Ringgriff
+        const handle = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.022, 6, 16), ironMat);
+        handle.position.set(0.48, 0, 0.11);
+        doorGroup.add(handle);
+
+        doorGroup.rotation.y = Math.PI / 2;
+        doorGroup.position.set(-ROOM_WIDTH / 2 + 0.12, 1.3, -0.4);
+        group.add(doorGroup);
+
+        // Steinlaibung / Bogen davor
+        const doorArch = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.17, 8, 18, Math.PI), frameMat);
         doorArch.rotation.y = Math.PI / 2;
-        doorArch.position.set(-ROOM_WIDTH / 2 + 0.07, 2.7, -0.4);
+        doorArch.position.set(-ROOM_WIDTH / 2 + 0.08, 2.6, -0.4);
         group.add(doorArch);
-        [-0.82, 0.82].forEach(function (dz) {
-            const post = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.7, 0.2), frameMat);
+        [-0.86, 0.86].forEach(function (dz) {
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.22, 2.6, 0.22), frameMat);
             post.rotation.y = Math.PI / 2;
-            post.position.set(-ROOM_WIDTH / 2 + 0.07, 1.35, -0.4 + dz);
+            post.position.set(-ROOM_WIDTH / 2 + 0.08, 1.3, -0.4 + dz);
             group.add(post);
         });
 
@@ -1270,50 +1442,163 @@ function initSchloss3D(canvas) {
 
     }
 
-    // Kleines, animiertes Kaminfeuer (drei ineinander liegende Kegel).
-    // Skalierung/Drehung passiert im Render-Loop (animate()).
+    // Kaminfeuer (kein GLB): glimmende Glutfläche + gekreuzte Holzscheite
+    // + mehrere weich transparente, additiv gemischte Flammen-Ebenen.
+    // Die Bewegung passiert im Render-Loop (animate()).
     function buildFireMesh() {
 
         const group = new THREE.Group();
-        const colors = [0xff7b2c, 0xffb14a, 0xffe08a];
 
-        for (let i = 0; i < 3; i++) {
-            const flame = new THREE.Mesh(
-                new THREE.ConeGeometry(0.24 - i * 0.05, 0.55 - i * 0.11, 8),
+        // Glut-/Kohlenfläche flach auf dem Feuerraumboden
+        const embers = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.95, 0.5),
+            new THREE.MeshBasicMaterial({
+                map: makeEmberTexture(),
+                transparent: true,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending
+            })
+        );
+        embers.rotation.x = -Math.PI / 2;
+        embers.position.y = 0.015;
+        group.add(embers);
+        group.userData.embers = embers;
+
+        // Zwei gekreuzte Holzscheite
+        const logMat = new THREE.MeshStandardMaterial({ color: 0x4a2f1c, roughness: 1 });
+        const logGeo = new THREE.CylinderGeometry(0.07, 0.08, 0.82, 7);
+        const log1 = new THREE.Mesh(logGeo, logMat);
+        log1.rotation.z = Math.PI / 2;
+        log1.rotation.y = 0.35;
+        log1.position.set(0, 0.08, 0.03);
+        const log2 = new THREE.Mesh(logGeo, logMat);
+        log2.rotation.z = Math.PI / 2;
+        log2.rotation.y = -0.5;
+        log2.position.set(0.01, 0.15, -0.04);
+        group.add(log1, log2);
+
+        // Flammen-Ebenen (zur Kamera, +Z, gerichtet)
+        const flameTex = makeFlameTexture();
+        const specs = [
+            { x: 0.0, s: 1.0, c: 0xff7a26 },
+            { x: -0.17, s: 0.72, c: 0xffab48 },
+            { x: 0.18, s: 0.68, c: 0xffab48 },
+            { x: 0.02, s: 0.46, c: 0xffe39a }
+        ];
+        const flames = [];
+        specs.forEach(function (spec, i) {
+            const fl = new THREE.Mesh(
+                new THREE.PlaneGeometry(0.52, 0.78),
                 new THREE.MeshBasicMaterial({
-                    color: colors[i],
+                    map: flameTex,
+                    color: spec.c,
                     transparent: true,
-                    opacity: 0.85 - i * 0.16,
-                    depthWrite: false
+                    opacity: 0.85,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending,
+                    side: THREE.DoubleSide
                 })
             );
-            flame.position.y = 0.26 - i * 0.04;
-            group.add(flame);
-        }
+            fl.position.set(spec.x, 0.16 + spec.s * 0.22, 0.02 + i * 0.012);
+            fl.scale.setScalar(spec.s);
+            fl.userData.baseX = spec.x;
+            fl.userData.s0 = spec.s;
+            fl.userData.phase = i * 1.9;
+            flames.push(fl);
+            group.add(fl);
+        });
+        group.userData.flames = flames;
 
         return group;
 
     }
 
+    // Weiche, tropfenförmige Flammen-Textur (hell im Kern, transparent
+    // zum Rand) - für die additiv gemischten Flammen-Ebenen.
+    function makeFlameTexture() {
+
+        const w = 64, h = 96;
+        const el = document.createElement("canvas");
+        el.width = w;
+        el.height = h;
+        const ctx = el.getContext("2d");
+
+        const g = ctx.createRadialGradient(w / 2, h * 0.64, 2, w / 2, h * 0.6, h * 0.5);
+        g.addColorStop(0, "rgba(255,255,255,1)");
+        g.addColorStop(0.32, "rgba(255,224,150,0.92)");
+        g.addColorStop(0.66, "rgba(255,140,60,0.4)");
+        g.addColorStop(1, "rgba(255,110,40,0)");
+        ctx.fillStyle = g;
+
+        ctx.beginPath();
+        ctx.moveTo(w / 2, 3);
+        ctx.quadraticCurveTo(w * 0.98, h * 0.55, w / 2, h - 3);
+        ctx.quadraticCurveTo(w * 0.02, h * 0.55, w / 2, 3);
+        ctx.fill();
+
+        const tex = new THREE.CanvasTexture(el);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+
+    }
+
+    // Glimmende Kohlen: verstreute warme Punkte + weicher Zentralglanz.
+    function makeEmberTexture() {
+
+        const size = 64;
+        const el = document.createElement("canvas");
+        el.width = el.height = size;
+        const ctx = el.getContext("2d");
+
+        const rng = mulberry32(42);
+        for (let i = 0; i < 44; i++) {
+            const x = rng() * size;
+            const y = rng() * size;
+            const r = 1 + rng() * 3;
+            ctx.fillStyle = "rgba(255," + Math.floor(80 + rng() * 110) + ",40," + (0.3 + rng() * 0.6).toFixed(2) + ")";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        const g = ctx.createRadialGradient(size / 2, size / 2, 2, size / 2, size / 2, size / 2);
+        g.addColorStop(0, "rgba(255,150,60,0.55)");
+        g.addColorStop(1, "rgba(255,150,60,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, size, size);
+
+        const tex = new THREE.CanvasTexture(el);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+
+    }
+
     // Echte kleine Punktlichtquelle für leuchtende Möbel (Waldlampe).
-    // Kein Schatten (Performance). Sichtbarer Glühkern, damit das Licht
-    // klar "aus der Lampe" kommt.
+    // Kein Schatten (Performance). EIN klarer, warmer Leuchtkern - keine
+    // zweite Kugel, die "doppelt" wirkt.
     function addLampLight(group, lightSpec) {
 
-        const color = new THREE.Color(lightSpec.color || "#ffd9a8");
-        const lamp = new THREE.PointLight(color, lightSpec.intensity || 6, lightSpec.distance || 3.4, 2);
-        lamp.position.set(0, lightSpec.height || 1.5, 0);
+        const color = new THREE.Color(lightSpec.color || "#ffdca6");
+        const lamp = new THREE.PointLight(color, lightSpec.intensity || 6.5, lightSpec.distance || 3.8, 2);
+        lamp.position.set(0, lightSpec.height || 1.35, 0);
         group.add(lamp);
         group.userData.light = lamp;
 
-        const bulb = new THREE.Mesh(
-            new THREE.SphereGeometry(0.07, 8, 8),
-            new THREE.MeshBasicMaterial({ color: color })
+        const core = new THREE.Mesh(
+            new THREE.SphereGeometry(0.05, 10, 10),
+            new THREE.MeshBasicMaterial({ color: new THREE.Color("#fff2d4") })
         );
-        bulb.position.copy(lamp.position);
-        group.add(bulb);
-        group.userData.bulb = bulb;
+        core.position.copy(lamp.position);
+        group.add(core);
+        group.userData.core = core;
 
+    }
+
+    // An/Aus für eine platzierte Lampe. Aus = keine Licht-Emission und
+    // kein Kern, das Möbelstück selbst bleibt sichtbar.
+    function setLampState(group, on) {
+        if (group.userData.light) { group.userData.light.visible = on; }
+        if (group.userData.core) { group.userData.core.visible = on; }
     }
 
     // Kleiner, deterministischer Pseudo-Zufallsgenerator für die
