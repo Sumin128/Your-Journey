@@ -130,16 +130,26 @@ baut `buildProceduralShell()` die Geometrie:
 - U-Form (offene Vorderseite zur Kamera): Boden, hohe Natursteinwände (prozedurale
   Canvas-Textur mit warmer Farbvariation, einzelnen dunkleren Steinen, Mörtelfugen), Decke
   mit drei schlanken Holzbalken + Firstbalken.
-- Zwei hohe Fensterbögen: weiche gemalte Waldsicht, umlaufender proud stehender Steinrahmen
-  (Tiefe), Sprossenkreuz, Fensterbank die in den Raum ragt.
-- Schwere Holztür in der linken Wand: Türblatt mit Planken-Fugen, zwei Eisenbändern +
-  Nietenreihen, Ringgriff, dunkler Durchgang dahinter, Steinlaibung mit Bogen.
-- Eine Wandnische mit Steinrahmen, warme Holz-Sockel-/Kranzleiste.
-- Integrierter Kamin (Schornsteinbrust bis zur Decke, Sturz, Herdplatte, dunkle
-  Feuerraum-Nische) – **ohne Feuer**. Das Feuer (`buildFireMesh()`: glimmende Glutfläche +
-  gekreuzte Holzscheite + mehrere weich transparente, additiv gemischte Flammen-Ebenen mit
-  ruhiger Wehbewegung) und das leicht flackernde `fireLight` (Punktlicht) leben separat auf
-  `FIRE_ANCHOR` und bleiben auch bei GLB-Hülle erhalten.
+- **Gemeinsame Material-Sprache** (2026-09-06): ein `frameMat` (heller getönter "Werkstein",
+  Textur) für ALLE Rahmen – Fenster, Tür, Nische, Kaminfassung –, dazu `wallMat` (rauer
+  Bruchstein), `stoneDarkMat` (Vertiefungen) und `woodMat` (Balken/Leisten/Sprossen/Türblatt).
+  So wirkt der Raum zusammenhängend statt wie einzeln gesetzte Bauteile.
+- Zwei Fensterbögen: **mehrschichtig gemalte Waldsicht** (Himmel-/Nebelverlauf, drei
+  Baumkronen-Ebenen hell→dunkel mit Dunst dazwischen, `seed` pro Fenster), **echte
+  Laibungstiefe** (vier Flächen von der Fensterebene zur Wandkante), gefülltes Tympanon +
+  Bogenwulst (kein Spalt), Sprossenkreuz, in den Raum ragende Fensterbank.
+- **Geschlossene** schwere Holztür in der linken Wand: Türblatt (Planken-Fugen, zwei
+  Eisenbänder + Nietenreihen, Ringgriff) VOR einer Wandfläche (die Tür ist ZU – KEIN dunkler
+  Durchgang, keine schwarze Lücke), rundum Werkstein-Laibung (Pfeiler + gefülltes
+  Halbkreis-Tympanon + Wulst).
+- Wandnische mit Werkstein-Rahmen + gefülltem Bogen (dieselbe Sprache), warme
+  Holz-Sockel-/Kranzleiste.
+- Integrierter Kamin: Werkstein-Fassung (Pfeiler/Kopf/Sockel/Sturz/Sims/Herdplatte) rund um
+  eine **echte Feuerraum-Nische** – zurückgesetzte Rückwand, dunklere Seiten-/Decken-/
+  Bodensteine, sichtbarer Sturz; die Öffnung ist tief und dunkel, aber kein flaches schwarzes
+  Rechteck. **Ohne Feuer**: das Feuer (`buildFireMesh()`: Glutfläche + gekreuzte Holzscheite +
+  additiv gemischte Flammen-Ebenen) sitzt IN der Nische, das flackernde `fireLight` davor –
+  beide leben separat auf `FIRE_ANCHOR` und bleiben auch bei GLB-Hülle erhalten.
 - Beleuchtung bewusst hell und luftig: helles Cremeweiss als Hintergrund/Nebel,
   `HemisphereLight` + `AmbientLight` + gerichtetes Fensterlicht. Kamera je für Desktop
   (leicht erhöht, nach unten geneigt) und Hochformat (näher, steiler, `fov`-Deckel 52),
@@ -154,7 +164,8 @@ EIN warmer Leuchtkern (`addLampLight()`). Klick auf die Lampe zeigt einen 💡/�
 `setLampState()` schaltet Punktlicht + Kern, der Zustand wird in `instance.lightOn`
 gespeichert und nach Reload wiederhergestellt (aus = keine Emission, Möbel bleibt sichtbar).
 Die `lampe_wald_a.glb` läuft vorerst als 2D-Cutout, weil ihr GLB ein einziges Mesh mit einem
-nicht isolierbaren Tripo-Artefakt-Zipfel ist.
+nicht isolierbaren Tripo-Artefakt-Zipfel ist. Der Katalog-Eintrag trägt `needs3DAsset`
+(sichtbarer `console.info`-Hinweis beim Laden), TODO: sauberes 3D-Modell nachliefern.
 
 **Boden-Dekoration** (`placementType: "floorDecor"`, Waldteppich): nimmt NICHT an der
 Möbel-zu-Möbel-Kollision teil (Tisch/Stuhl dürfen darauf stehen), bleibt an die Raumgrenzen
@@ -164,7 +175,10 @@ unverändert.
 
 Der Canvas ist rahmenlos und seitenfüllend (`.schloss-scene-wrap` ohne Border/Karten-Ring,
 `height: 86vh`); die Einrichtungs-Schublade darunter ist kompakt (`max-height`, kleinere
-Tabs/Kacheln) und ändert die feste Bühnengrösse beim Öffnen NICHT.
+Tabs/Kacheln) und ändert die feste Bühnengrösse beim Öffnen NICHT. Der Ein-/Ausklapp-Knopf
+sitzt LINKS vor den Tabs (nie unter dem Bug-Melder unten rechts); `.schloss-drawer` hat
+`z-index: 1900` (über dem Bug-Melder, 1800) und der Bug-Melder wird auf der Schloss-Seite
+über die eingeklappte Schublade angehoben (`.schloss-page ~ #bug-reporter { bottom: 104px }`).
 - Klick wählt ein Möbelstück aus (goldener Ring am Boden), zwei Buttons drehen in 22,5°-
   Schritten, ein dritter entfernt es aus dem Raum (Besitz in `ownedFurniture` bleibt davon
   unberührt). Ziehen ist auf den Raum begrenzt, eine einfache Abstandsprüfung schiebt

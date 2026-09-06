@@ -124,15 +124,17 @@ const SCHLOSS_FURNITURE = [
 
     { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    // light: echte kleine Punktlichtquelle beim Platzieren (JS/schloss-3d.js
-    // addLampLight). Per Klick auf die Lampe an/aus schaltbar, Zustand
-    // in instance.lightOn gespeichert.
-    // model bewusst null: lampe_wald_a.glb (im Repo) ist EIN einziges
-    // Mesh/Primitiv mit einem abstehenden Tripo-Artefakt-Zipfel, der
-    // sich nicht isoliert entfernen laesst. Bis eine saubere Fassung
-    // vorliegt, laeuft die Lampe als 2D-Cutout - Punktlicht + Leuchtkern
-    // greifen dort genauso.
-    { id: "lampe_wald_a", name: "Waldlampe", category: "licht", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/lampe_wald_a.png", model: null }], light: { color: "#ffdca6", intensity: 6.5, distance: 3.8, height: 1.05 }, colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: { type: "level", level: 5 } },
+    // ============================================================
+    //  TODO / OFFEN: Waldlampe braucht ein sauberes 3D-Modell.
+    //  Die vorhandene lampe_wald_a.glb (im Repo) ist EIN einziges
+    //  Mesh/Primitiv mit einem abstehenden Tripo-Artefakt-Zipfel, der
+    //  sich nicht isoliert entfernen laesst. Deshalb laeuft die Lampe
+    //  bis auf Weiteres als 2D-Cutout (model:null). Punktlicht +
+    //  Leuchtkern + An/Aus-Schalter (instance.lightOn) funktionieren
+    //  auf dem Cutout unveraendert. Sobald ein sauberes GLB vorliegt:
+    //  needs3DAsset entfernen und designs[0].model auf den Pfad setzen.
+    // ============================================================
+    { id: "lampe_wald_a", name: "Waldlampe", category: "licht", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, needs3DAsset: "lampe_wald_a.glb defekt (Tripo-Artefakt) - 2D-Cutout als Zwischenloesung, spaeter durch echtes 3D-Modell ersetzen", designs: [{ sprite: "images/schloss/moebel/lampe_wald_a.png", model: null }], light: { color: "#ffdca6", intensity: 6.5, distance: 3.8, height: 1.05 }, colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: { type: "level", level: 5 } },
     { id: "pflanze_wald_a", name: "Waldpflanze", category: "pflanzen", styles: ["wald"], price: 10, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/pflanze_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "rahmen_wald_a", name: "Bilderrahmen", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.3 }, designs: [{ sprite: "images/schloss/moebel/rahmen_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: true, unlockedBy: null },
 
@@ -153,3 +155,11 @@ const SCHLOSS_FURNITURE = [
 function getSchlossFurniture(id) {
     return SCHLOSS_FURNITURE.find(function (item) { return item.id === id; }) || null;
 }
+
+// Sichtbarer Hinweis in der Konsole auf Möbel, die noch ein echtes
+// 3D-Modell brauchen (aktuell nur die Waldlampe, siehe needs3DAsset).
+SCHLOSS_FURNITURE.forEach(function (f) {
+    if (f.needs3DAsset) {
+        console.info("[Mein Schloss] TODO 3D-Asset – " + f.id + ": " + f.needs3DAsset);
+    }
+});

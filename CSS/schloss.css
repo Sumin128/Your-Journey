@@ -250,12 +250,24 @@
 
 .schloss-drawer {
 
+    /* Über dem Bug-Melder (#bug-reporter, z-index 1800), damit der
+       Ein-/Ausklapp-Knopf und die Tabs immer anklickbar bleiben. */
+    position: relative;
+    z-index: 1900;
+
     border: 1px solid var(--yj-color-border);
     border-radius: var(--yj-radius-md, 12px);
     background: var(--yj-color-paper);
 
     padding: 5px 9px 6px;
 
+}
+
+/* Der Bug-Melder sitzt sonst unten rechts über der Schublade. Auf der
+   Schloss-Seite über die eingeklappte Schublade anheben, damit er den
+   Öffnen-Knopf weder verdeckt noch dessen Klicks abfängt. */
+.schloss-page ~ #bug-reporter {
+    bottom: 104px;
 }
 
 .schloss-drawer-body {
@@ -275,7 +287,9 @@
 
 .schloss-drawer-toggle {
 
-    margin-left: auto;
+    /* Links vor den Tabs - so nie unter dem Bug-Melder unten rechts. */
+    margin-right: 6px;
+    flex: none;
 
     width: 30px;
     height: 30px;
