@@ -121,6 +121,20 @@ const SCHLOSS_FURNITURE = [
         paintable: false, hasContent: false,
         unlockedBy: { type: "level", level: 3 }
     },
+    {
+        id: "teppich_rund_wald_a", name: "Runder Waldteppich", category: "textilien",
+        styles: ["wald"], price: 16, size: "large", rooms: ["wohnzimmer"],
+        footprint: { w: 2.1, d: 2.1 },
+        // Gleiche Boden-Deko-Mechanik wie der eckige Teppich: liegt flach,
+        // nimmt NICHT an der Möbel-Kollision teil (Tisch/Stühle dürfen
+        // darauf stehen), bleibt an die Raumgrenzen gebunden.
+        flatOnFloor: true,
+        placementType: "floorDecor",
+        designs: [{ sprite: "images/schloss/moebel/teppich_rund_wald_a.png", model: null }],
+        colorable: true, colors: ["#d8b271", "#9bb06a", "#e0a53c", "#cf6b52"],
+        paintable: false, hasContent: false,
+        unlockedBy: null
+    },
 
     { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },

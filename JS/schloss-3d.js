@@ -63,6 +63,29 @@ function initSchloss3D(canvas) {
     const ROOM_HEIGHT = 4.5;
     const WALL_MARGIN = 0.15; // Sicherheitsabstand zur Wand, damit Möbel nicht "einwächst"
 
+    // Bewegungsgrenze getrennt von der Raumtiefe: hinten + seitlich sind
+    // es echte Wände (ROOM_DEPTH/ROOM_WIDTH), VORNE gibt es keine Wand -
+    // die offene Front reicht bis fast an die sichtbare Bodenkante der
+    // Kamera. FLOOR_FRONT_LIMIT ist die z-Koordinate, bis zu der ein Möbel
+    // (Kante) nach vorne gezogen werden darf; auf der schmalsten Desktop-
+    // Ansicht liegt die sichtbare Bodenkante bei ~z 5.1, mobil weiter.
+    const FLOOR_FRONT_LIMIT = 4.7;
+    const FRONT_MARGIN = 0.2;
+
+    // Möbelposition auf den begehbaren Boden begrenzen. Rückwand +
+    // Seitenwände = echte Wände (WALL_MARGIN), vorne = FLOOR_FRONT_LIMIT.
+    // footprint kann fehlen -> kleiner Default.
+    function clampToFloor(x, z, footprint) {
+        const fp = footprint || { w: 0.6, d: 0.6 };
+        const halfW = ROOM_WIDTH / 2 - fp.w / 2 - WALL_MARGIN;
+        const backZ = -ROOM_DEPTH / 2 + fp.d / 2 + WALL_MARGIN;
+        const frontZ = FLOOR_FRONT_LIMIT - fp.d / 2 - FRONT_MARGIN;
+        return {
+            x: Math.max(-halfW, Math.min(halfW, x)),
+            z: Math.max(backZ, Math.min(frontZ, z))
+        };
+    }
+
     // Echte Raumhülle (GLTFLoader). Ist der Pfad gesetzt und lädt das
     // Modell, ersetzt es die prozedurale Hülle; sonst baut
     // buildProceduralShell() die einfache Geometrie als technischen
@@ -80,7 +103,7 @@ function initSchloss3D(canvas) {
     // Fester Ankerpunkt für Kamin-Nische, Feuer und Kaminlicht - Feuer
     // und Punktlicht leben unabhängig von der Hülle (procedural ODER
     // GLB), damit der Kamin immer brennt (Vorgabe: Feuer NICHT ins GLB).
-    const FIRE_ANCHOR = new THREE.Vector3(2.75, 0, -ROOM_DEPTH / 2 + 0.45);
+    const FIRE_ANCHOR = new THREE.Vector3(2.9, 0, -ROOM_DEPTH / 2 + 0.45);
 
     const isMobile = window.matchMedia("(max-width: 700px)").matches;
 
@@ -102,6 +125,24 @@ function initSchloss3D(canvas) {
     const textureCache = {};
     const gltfLoader = new GLTFLoader(); // ebenfalls vor dem ersten addFurnitureGroup() (TDZ, siehe oben)
 
+    // Gemalte Mirelon-Texturserie (images/schloss/textures/). Kachelt mit
+    // ruhiger, handgemalter Wirkung; das Licht bleibt dynamisch in
+    // Three.js (die Texturen tragen keine eingebrannten Schatten).
+    // repeatX/Y = wie oft die Kachel über die gesamte 0..1-UV läuft;
+    // clamp = einmalige Bild-Ansicht (Waldpanorama).
+    function roomTex(file, repeatX, repeatY, clamp) {
+        const t = textureLoader.load("images/schloss/textures/" + file);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 4;
+        if (clamp) {
+            t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+        } else {
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(repeatX, repeatY);
+        }
+        return t;
+    }
+
     // Innenausstattungs-Stil ("Theme"). Aktuell hat nur "wald" eine
     // shell; für alles andere (bewusst noch nicht fertige Themes)
     // fällt es sauber auf die Wald-Hülle zurück, damit die Szene nie
@@ -113,7 +154,10 @@ function initSchloss3D(canvas) {
     /* --- Grundgerüst --- */
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(shell.background);
+    // Warmer, mittiger Grundton statt Creme: falls an einer Bildkante
+    // doch einmal an der Raumhuelle vorbeigeschaut wird, liest sich das
+    // als weicher Schatten, nicht als weisse Flaeche.
+    scene.background = new THREE.Color(0x4b3a2a);
     scene.fog = new THREE.Fog(shell.fogColor, 20, 42);
 
     // PerspectiveCamera.fov ist der VERTIKALE Blickwinkel. Bei einem
@@ -121,19 +165,26 @@ function initSchloss3D(canvas) {
     // horizontale Ausschnitt schrumpfen und die Seitenwände/der Kamin
     // aus dem Bild fallen. resize() rechnet deshalb den vertikalen fov
     // aus einem konstant gehaltenen HORIZONTALEN Zielwinkel zurück.
-    const TARGET_HORIZONTAL_FOV = isMobile ? 68 : 56;
+    // Schmales/Hochformat hält einen konstanten HORIZONTALEN Zielwinkel
+    // (Tür/Fenster/Kamin bleiben nebeneinander); breites Querformat hält
+    // stattdessen einen konstanten VERTIKALEN Winkel und lässt den
+    // horizontalen Ausschnitt mit der Breite wachsen - so kommen auf
+    // breiten Mirelon-Layouts Seitenwände und Raumtiefe ins Bild, statt
+    // dass die Ansicht flach reinzoomt. Siehe resize().
+    const TARGET_HORIZONTAL_FOV = isMobile ? 68 : 60;
+    const TARGET_VERTICAL_FOV = isMobile ? 46 : 39;
 
-    // Offene Frontansicht wie im Konzeptbild: leicht erhöht, nur sanft
-    // nach unten geneigt. Tür links, Fenster mittig, Kamin rechts sind
-    // gleichzeitig im Bild; die Rückwand ist die Hauptbühne, die
-    // Seitenwände nur ein schmaler räumlicher Rahmen.
+    // Offene Frontansicht: leicht erhöht, sanft nach unten geneigt, die
+    // Rückwand deutlich auf Distanz. Tür links, Fenster mittig, Kamin
+    // rechts sind gleichzeitig im Bild; viel Boden als räumlicher
+    // Vordergrund, die Seitenwände tragen die Tiefe.
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
     if (isMobile) {
-        camera.position.set(0, 3.5, 9.6);
-        camera.lookAt(0, 1.7, -3.0);
+        camera.position.set(0, 3.2, 10.2);
+        camera.lookAt(0, 1.05, -3.0);
     } else {
-        camera.position.set(0, 3.6, 9.5);
-        camera.lookAt(0, 1.7, -3.2);
+        camera.position.set(0, 3.7, 11.0);
+        camera.lookAt(0, 0.6, -3.0);
     }
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -157,16 +208,25 @@ function initSchloss3D(canvas) {
         const aspect = width / height;
         camera.aspect = aspect;
 
-        // vFov aus dem Ziel-hFov: vFov = 2·atan( tan(hFov/2) / aspect ).
-        // Nach oben gedeckelt, damit auf extremem Hochformat der
-        // vertikale Blickwinkel nicht so weit aufreißt, dass über/vor
-        // dem Raum leerer Hintergrund sichtbar wird (Boden/Decke sind
-        // zusätzlich über die Raumgrenzen hinaus vergrößert).
-        const hFovRad = TARGET_HORIZONTAL_FOV * Math.PI / 180;
-        const vFovRad = 2 * Math.atan(Math.tan(hFovRad / 2) / Math.max(aspect, 0.55));
-        // Vertikalen Blickwinkel deckeln - im Hochformat enger, sonst
-        // sieht man über/unter dem Raum zu viel leeren Hintergrund.
-        camera.fov = Math.min(isMobile ? 52 : 62, vFovRad * 180 / Math.PI);
+        // Zwei Regime, damit dieselbe Kamera auf schmalem UND breitem
+        // Layout dieselbe Raumtiefe zeigt:
+        //  - breit (aspect >= 1.2): vertikalen Winkel konstant halten,
+        //    der horizontale Ausschnitt waechst mit der Breite (mehr
+        //    Seitenwand + Tiefe, kein flaches Reinzoomen). Nur gegen
+        //    Fisheye auf Ultrawide gedeckelt.
+        //  - schmal/Hochformat: horizontalen Zielwinkel halten, damit
+        //    Tuer/Fenster/Kamin nebeneinander bleiben; vertikal gedeckelt.
+        let vFovDeg;
+        if (aspect >= 1.2) {
+            const maxHFovRad = 86 * Math.PI / 180;
+            const vFromHCap = 2 * Math.atan(Math.tan(maxHFovRad / 2) / aspect) * 180 / Math.PI;
+            vFovDeg = Math.min(TARGET_VERTICAL_FOV, vFromHCap);
+        } else {
+            const hFovRad = TARGET_HORIZONTAL_FOV * Math.PI / 180;
+            const vFovRad = 2 * Math.atan(Math.tan(hFovRad / 2) / Math.max(aspect, 0.5));
+            vFovDeg = Math.min(isMobile ? 58 : 52, vFovRad * 180 / Math.PI);
+        }
+        camera.fov = vFovDeg;
 
         camera.updateProjectionMatrix();
 
@@ -206,7 +266,7 @@ function initSchloss3D(canvas) {
     scene.add(windowLight);
     scene.add(windowLight.target);
 
-    const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 7.5, 2);
+    const fireLight = new THREE.PointLight(shell.fireLight.color, shell.fireLight.intensity, 8.5, 2);
     fireLight.position.set(FIRE_ANCHOR.x, 0.6, -ROOM_DEPTH / 2 + 0.05);
     scene.add(fireLight);
 
@@ -224,12 +284,16 @@ function initSchloss3D(canvas) {
     // bei weitem Blickwinkel kein leerer Hintergrund unter dem Raum
     // durchscheint. Bleibt die verlässliche Standfläche; wird nur
     // ausgeblendet, wenn die GLB-Hülle ihren eigenen Boden mitbringt.
+    const floorW = ROOM_WIDTH + 14, floorD = ROOM_DEPTH + 24;
     const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(ROOM_WIDTH + 8, ROOM_DEPTH + 10),
-        new THREE.MeshStandardMaterial({ map: makeFloorTexture(shell.floorBaseColor), roughness: 0.9 })
+        new THREE.PlaneGeometry(floorW, floorD),
+        new THREE.MeshStandardMaterial({
+            map: roomTex("wald-holzboden-storybook.png", floorW / 4.2, floorD / 3.0),
+            roughness: 0.85
+        })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.z = 1.5;
+    floor.position.z = 4;
     floor.receiveShadow = true;
     scene.add(floor);
 
@@ -294,8 +358,9 @@ function initSchloss3D(canvas) {
     // Kaminfeuer + flackerndes Punktlicht leben AUSSERHALB der Hülle
     // (Vorgabe: Feuer gehört nicht ins GLB) - Anker: FIRE_ANCHOR.
     const fireMesh = buildFireMesh();
-    // Sitzt IN der Feuerraum-Nische, knapp hinter der Öffnungsebene.
-    fireMesh.position.set(FIRE_ANCHOR.x, 0.1, -ROOM_DEPTH / 2 - 0.16);
+    // Sitzt IN der tiefen Feuerraum-Nische, ein Stueck hinter der
+    // Öffnungsebene auf dem Kammerboden.
+    fireMesh.position.set(FIRE_ANCHOR.x, 0.075, -ROOM_DEPTH / 2 - 0.4);
     scene.add(fireMesh);
 
     // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
@@ -383,11 +448,14 @@ function initSchloss3D(canvas) {
             return;
         }
 
-        // Frisch platzierte Möbel gestaffelt statt exakt übereinander
-        // (rein kosmetisch - Kind zieht sie danach frei an ihren Platz).
+        // Frisch platzierte Möbel gestaffelt nahe der gut sichtbaren
+        // Raummitte (rein kosmetisch - Kind zieht sie danach frei an
+        // ihren Platz, jetzt bis fast an die vordere Bodenkante).
         const index = room.placedItems.length;
         const col = index % 5;
         const row = Math.floor(index / 5) % 3;
+        const spawn = clampToFloor(-2.6 + col * 1.3, 0.6 + row * 1.0,
+            (getSchlossFurniture(furnitureId).footprint) || { w: 0.6, d: 0.6 });
 
         const instance = {
             instanceId: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
@@ -395,8 +463,8 @@ function initSchloss3D(canvas) {
             design: 0,
             color: null,
             customVariantId: null,
-            x: -2.6 + col * 1.3,
-            z: 1.2 + row * 1.1,
+            x: spawn.x,
+            z: spawn.z,
             rotationY: 0,
             scale: 1,
             content: null,
@@ -668,11 +736,9 @@ function initSchloss3D(canvas) {
         dragMoved = true;
 
         const footprint = selected.userData.footprint || { w: 0.6, d: 0.6 };
-        const halfW = ROOM_WIDTH / 2 - footprint.w / 2 - WALL_MARGIN;
-        const halfD = ROOM_DEPTH / 2 - footprint.d / 2 - WALL_MARGIN;
 
-        let x = Math.max(-halfW, Math.min(halfW, point.x));
-        let z = Math.max(-halfD, Math.min(halfD, point.z));
+        let c = clampToFloor(point.x, point.z, footprint);
+        let x = c.x, z = c.z;
 
         // Boden-Dekoration (Teppich) nimmt NICHT an der Möbel-Kollision
         // teil - weder als geschobenes noch als schiebendes Objekt.
@@ -702,8 +768,9 @@ function initSchloss3D(canvas) {
 
             });
 
-            x = Math.max(-halfW, Math.min(halfW, x));
-            z = Math.max(-halfD, Math.min(halfD, z));
+            c = clampToFloor(x, z, footprint);
+            x = c.x;
+            z = c.z;
 
         }
 
@@ -1243,24 +1310,37 @@ function initSchloss3D(canvas) {
     // Balken. Nichts ragt in die 8x6-Moebelzone.
     function buildProceduralShell(group, dustAnchor) {
 
-        const wallMat = new THREE.MeshStandardMaterial({ map: makeStoneTexture(shell.wallBaseColor), roughness: 1 });
-        wallMat.map.repeat.set(2.4, 1.7);
-        const frameMat = new THREE.MeshStandardMaterial({ color: 0xd7c4a0, roughness: 0.9 });
-        const woodMat = new THREE.MeshStandardMaterial({ color: 0x6f4a29, roughness: 0.85 });
-        const beamMat = new THREE.MeshStandardMaterial({ color: 0x5e3e25, roughness: 0.9 });
-        const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x40311f, roughness: 1 });
+        // Gemalte Mirelon-Texturserie - alle Bauteile ziehen aus
+        // denselben Bildern, damit Architektur und Möbel wie aus einer
+        // Welt wirken. Block-/Dielenmass ist so gewählt, dass es ruhig
+        // und handgemalt liest, nicht als gekacheltes Muster.
+        const wallBackMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", ROOM_WIDTH / 3.4, ROOM_HEIGHT / 3.4), roughness: 0.95 });
+        const wallSideMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", ROOM_DEPTH / 3.4, ROOM_HEIGHT / 3.4), roughness: 0.95 });
+        const frameMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", 0.5, 0.6), roughness: 0.95 });
+        // Deckenbalken + Fussleisten + Kaminsturz: dieselbe neue gemalte
+        // Balkenholz-Textur, damit die Holz-Architektur eine Sprache spricht.
+        const beamMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.png", 0.5, 3.0), roughness: 0.8 });
+        const baseboardMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.png", 3.0, 0.4), roughness: 0.8 });
+        const mantelMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.png", 1.6, 0.5), roughness: 0.8 });
+        // Tuerblatt: gemalte Rundbogen-Tuer (Eisenbaender + Ring schon im
+        // Bild), transparenter Rand -> alphaTest, damit nur die Tuerform
+        // steht und dahinter die Steinlaibung sichtbar bleibt.
+        const doorLeafMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-tuer-storybook.png", 1, 1, true), transparent: true, alphaTest: 0.5, roughness: 0.75 });
+        const firestoneMat = new THREE.MeshStandardMaterial({ map: roomTex("kamin-innenstein-storybook.png", 0.9, 0.9), roughness: 1 });
 
         const WALL_Z = -ROOM_DEPTH / 2;
         const HW = ROOM_WIDTH / 2;
-        const CEILING_Y = 4.4;
+        const CEILING_Y = 4.05;
 
         // --- Oeffnungen in der Rueckwand ---
-        const WIN = { x1: -2.85, x2: 0.55, y1: 0.95, yTop: 3.5 };
+        // Dreifachfenster mittig auf der Rueckwand (Zentrum x=0);
+        // der Kamin sitzt rechts daneben mit ruhigem Steinpfeiler dazwischen.
+        const WIN = { x1: -1.6, x2: 1.6, y1: 0.95, yTop: 3.5 };
         const winW = WIN.x2 - WIN.x1;
         const COLW = 0.16;
         const BAYW = (winW - 2 * COLW) / 3;
         const BAY_SPRING = WIN.yTop - BAYW / 2;
-        const FP = { x1: 2.05, w: 1.4, y1: 0.05, yTop: 1.65 };
+        const FP = { x1: 2.2, w: 1.4, y1: 0.05, yTop: 1.65 };
         const FP_R = FP.w / 2;
         const FP_SPRING = FP.yTop - FP_R;
         const fpCx = FP.x1 + FP_R;
@@ -1301,81 +1381,126 @@ function initSchloss3D(canvas) {
                 (ps.getX(i) - bb.min.x) / (bb.max.x - bb.min.x),
                 (ps.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
         }
-        const backWall = new THREE.Mesh(bwGeo, wallMat);
+        const backWall = new THREE.Mesh(bwGeo, wallBackMat);
         backWall.position.z = WALL_Z;
         backWall.receiveShadow = true;
         group.add(backWall);
 
-        // === Seitenwaende (schmaler raeumlicher Rahmen) ===
+        // === Seitenwaende: tragen die Raumtiefe. Bewusst weit ueber die
+        // 6-m-Raumtiefe hinaus nach vorne (an der Kamera vorbei) und nach
+        // oben verlaengert, damit auf breiten Layouts kein leerer
+        // Hintergrund links/rechts neben dem Raum sichtbar wird. Die
+        // Moebelzone bleibt die inneren 8x6 m. ===
+        const SIDE_D = 20, SIDE_H = 8;
         [-1, 1].forEach(function (s) {
-            const w = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_DEPTH, ROOM_HEIGHT), wallMat);
+            const sideMat = new THREE.MeshStandardMaterial({
+                map: roomTex("wald-steinwand-storybook.png", SIDE_D / 3.4, SIDE_H / 3.4),
+                roughness: 0.95
+            });
+            const w = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_D, SIDE_H), sideMat);
             w.rotation.y = -s * Math.PI / 2;
-            w.position.set(s * HW, ROOM_HEIGHT / 2, 0);
+            w.position.set(s * HW, SIDE_H / 2, WALL_Z + SIDE_D / 2 - 0.4);
             w.receiveShadow = true;
             group.add(w);
         });
 
         // === Decke: heller Putz (unbeleuchtet, damit sie nie dunkel
-        // absäuft) + drei schlanke dunkle Balken als Akzent ===
+        // absäuft) + drei schlanke dunkle Balken als Akzent. Ebenfalls
+        // grosszuegig ueber den Raum hinaus, damit die oberen Bildecken
+        // auf breiten Layouts gedeckt sind. ===
         const ceiling = new THREE.Mesh(
-            new THREE.PlaneGeometry(ROOM_WIDTH + 8, ROOM_DEPTH + 10),
-            new THREE.MeshBasicMaterial({ color: 0xf0e7d2 })
+            new THREE.PlaneGeometry(ROOM_WIDTH + 22, ROOM_DEPTH + 34),
+            new THREE.MeshBasicMaterial({ map: roomTex("wald-decke-kalkputz-storybook.png", 4.2, 5.4), color: 0xe3d4b4 })
         );
         ceiling.rotation.x = Math.PI / 2;
-        ceiling.position.set(0, CEILING_Y, 1.5);
+        ceiling.position.set(0, CEILING_Y, 6);
         group.add(ceiling);
 
-        // Balken nur über der hinteren Raumhälfte - so liegen ihre
-        // vorderen Enden weit von der Kamera weg und wirken nicht wie
-        // vorspringende Klötze.
-        [-2.7, -0.2, 2.3].forEach(function (x) {
-            const bl = ROOM_DEPTH * 0.62;
-            const beam = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.17, bl), beamMat);
-            beam.position.set(x, CEILING_Y - 0.11, WALL_Z + bl / 2 - 0.05);
+        // Deckenbalken wie im Konzeptbild: ein kraeftiger Querbalken als
+        // "Sturz" ueber der offenen Vorderseite (BEAM_FRONT) + ein
+        // Querbalken an der Rueckwand; dazwischen drei Laengsbalken, die
+        // beidseitig sauber in einen Querbalken stossen - keine
+        // schwebenden Enden. Kein Schatten (dekorativ). Neue Balkentextur.
+        const BEAM_W = 0.16, BEAM_FRONT = 2.6;
+        const beamTopY = CEILING_Y + 0.005;
+        const beamRunLen = BEAM_FRONT - WALL_Z + BEAM_W;
+        // Schmale Querbalken (flach an der Decke) vorne + an der Rueckwand
+        // als sauberer Anschluss fuer die Laengsbalken.
+        [WALL_Z + BEAM_W / 2, BEAM_FRONT].forEach(function (z) {
+            const cross = new THREE.Mesh(new THREE.BoxGeometry(ROOM_WIDTH, 0.14, BEAM_W), beamMat);
+            cross.position.set(0, beamTopY - 0.07, z);
+            group.add(cross);
+        });
+        // Drei kraeftige Laengsbalken: Oberkante an der Decke, haengen als
+        // sichtbare Balken ~0.32 herunter und stossen beidseitig in einen
+        // Querbalken (vorne der Sturz, hinten die Rueckwand) - keine freien
+        // Enden, in der Perspektive klar als Deckenbalken lesbar.
+        [-2.5, 0, 2.5].forEach(function (x) {
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(BEAM_W, 0.32, beamRunLen), beamMat);
+            beam.position.set(x, beamTopY - 0.16, WALL_Z + beamRunLen / 2);
             group.add(beam);
         });
 
-        // === schmale Holz-Sockelleiste (drei Waende, wandbuendig) ===
-        [
-            { g: [ROOM_WIDTH, 0.12, 0.05], p: [0, 0.06, WALL_Z + 0.03] },
-            { g: [0.05, 0.12, ROOM_DEPTH], p: [-HW + 0.03, 0.06, 0] },
-            { g: [0.05, 0.12, ROOM_DEPTH], p: [HW - 0.03, 0.06, 0] }
-        ].forEach(function (c) {
-            const m = new THREE.Mesh(new THREE.BoxGeometry(c.g[0], c.g[1], c.g[2]), woodMat);
-            m.position.set(c.p[0], c.p[1], c.p[2]);
+        // === Durchgehende warme Holz-Fussleiste entlang aller Waende ===
+        // Flach an der Wand (ragt nur ~0.04 in den Raum), Hoehe 0.16.
+        // Segmentiert um Tuer und Kaminmaul herum, an den Ecken sauber
+        // ueberlappt (kleiner Eckklotz deckt die Fuge).
+        const SKIRT_H = 0.16, SKIRT_T = 0.05, sy = SKIRT_H / 2;
+        function skirtRun(x1r, x2r, z, along) {
+            // along "x": laeuft in X-Richtung an einer Wand mit Normale +/-Z
+            // along "z": laeuft in Z-Richtung an einer Wand mit Normale +/-X
+            const len = Math.abs(x2r - x1r);
+            if (len < 0.02) { return; }
+            const g = along === "x"
+                ? new THREE.BoxGeometry(len, SKIRT_H, SKIRT_T)
+                : new THREE.BoxGeometry(SKIRT_T, SKIRT_H, len);
+            const m = new THREE.Mesh(g, baseboardMat);
+            if (along === "x") { m.position.set((x1r + x2r) / 2, sy, z); }
+            else { m.position.set(z, sy, (x1r + x2r) / 2); }
+            m.receiveShadow = true;
             group.add(m);
+        }
+        // Rueckwand: links vom Kaminmaul und rechts davon (Kamin-Herdplatte
+        // schliesst die Luecke sauber ab - keine rohe Kante).
+        skirtRun(-HW + 0.02, FP.x1 - 0.04, WALL_Z + SKIRT_T / 2 + 0.01, "x");
+        skirtRun(FP.x1 + FP.w + 0.04, HW - 0.02, WALL_Z + SKIRT_T / 2 + 0.01, "x");
+        // Rechte Seitenwand: durchgehend ueber die sichtbare Tiefe.
+        skirtRun(WALL_Z + 0.02, 6.0, HW - SKIRT_T / 2 - 0.01, "z");
+        // Linke Seitenwand: um die buendige Tuer herum (Tuermitte z=-0.7).
+        skirtRun(WALL_Z + 0.02, -0.7 - 0.72, -HW + SKIRT_T / 2 + 0.01, "z");
+        skirtRun(-0.7 + 0.72, 6.0, -HW + SKIRT_T / 2 + 0.01, "z");
+        // Eckkloetze decken die Stossfugen an den beiden hinteren Ecken.
+        [-1, 1].forEach(function (s) {
+            const corner = new THREE.Mesh(new THREE.BoxGeometry(SKIRT_T + 0.03, SKIRT_H, SKIRT_T + 0.03), baseboardMat);
+            corner.position.set(s * (HW - SKIRT_T / 2 - 0.01), sy, WALL_Z + SKIRT_T / 2 + 0.01);
+            group.add(corner);
         });
 
         // === GROSSES DREITEILIGES FENSTER ===
         const winCx = (WIN.x1 + WIN.x2) / 2;
         const winMidY = (WIN.y1 + WIN.yTop) / 2;
 
-        // Waldsicht: mehrere weiche, gemalte Tiefenebenen HINTER der
-        // Wand - hintere volle Ebene (Himmel + Nebel + Wald), davor zwei
-        // grösstenteils transparente Baumkronen-Ebenen für Räumlichkeit.
+        // Waldsicht: das gemalte Waldpanorama HINTER der Rückwand, tief
+        // genug zurückgesetzt, dass die drei Fensterbögen einen echten
+        // Tiefenausschnitt zeigen. Eine zweite, näher stehende Kopie mit
+        // leicht abgedunkeltem Vordergrund gibt zusätzlich Räumlichkeit.
+        const panoTex = roomTex("waldpanorama-storybook.png", 1, 1, true);
         const viewFar = new THREE.Mesh(
-            new THREE.PlaneGeometry(winW + 3.4, WIN.yTop + 3.2),
-            new THREE.MeshBasicMaterial({ map: makeForestWindowTexture(shell.windowSky, 1) })
+            new THREE.PlaneGeometry(winW + 5.5, (winW + 5.5) * 941 / 1672),
+            new THREE.MeshBasicMaterial({ map: panoTex })
         );
-        viewFar.position.set(winCx, winMidY + 0.4, WALL_Z - 1.9);
+        viewFar.position.set(winCx, winMidY + 0.9, WALL_Z - 2.6);
         group.add(viewFar);
 
-        const viewMid = new THREE.Mesh(
-            new THREE.PlaneGeometry(winW + 2.0, WIN.yTop + 1.4),
-            new THREE.MeshBasicMaterial({ map: makeForestCanopy(7, 0.55), transparent: true, depthWrite: false })
-        );
-        viewMid.position.set(winCx, winMidY - 0.1, WALL_Z - 1.05);
-        group.add(viewMid);
-
         const viewNear = new THREE.Mesh(
-            new THREE.PlaneGeometry(winW + 1.2, WIN.yTop + 0.6),
-            new THREE.MeshBasicMaterial({ map: makeForestCanopy(3, 0.9), transparent: true, depthWrite: false })
+            new THREE.PlaneGeometry(winW + 2.6, (winW + 2.6) * 941 / 1672),
+            new THREE.MeshBasicMaterial({ map: roomTex("waldpanorama-storybook.png", 1, 1, true), transparent: true, opacity: 0.55, color: 0xdfe8d4 })
         );
-        viewNear.position.set(winCx, winMidY - 0.35, WALL_Z - 0.5);
+        viewNear.position.set(winCx, winMidY - 0.3, WALL_Z - 1.1);
         group.add(viewNear);
 
         // aeussere Laibung: dunkle Flaechen, laufen NACH HINTEN (nicht in den Raum)
-        const outerMat = new THREE.MeshStandardMaterial({ color: 0x594732, roughness: 1 });
+        const outerMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", 0.6, 0.9), roughness: 1 });
         const oRev = 0.7;
         [
             { g: [winW + 0.06, 0.05, oRev], p: [winCx, WIN.y1, WALL_Z - oRev / 2] },
@@ -1419,55 +1544,37 @@ function initSchloss3D(canvas) {
         dustAnchor.set(winCx, winMidY, WALL_Z + 0.6);
 
         // === HOHE HOLZTUER MIT SCHLANKEM STEINBOGEN (linke Wand) ===
+        // Tuerblatt = eine gemalte Rundbogen-Tuer (wald-tuer-storybook.png,
+        // Eisenbaender/Ring schon im Bild). Dahinter eine Steinflaeche, die
+        // die Laibung fuellt -> kein weisser/schwarzer Spalt. Davor nur ein
+        // schlanker Steinbogen + zwei schmale Pfosten. Als spaeterer
+        // Uebergang in Flur/Aussenwelt vorbereitet (userData.portal).
         const doorGroup = new THREE.Group();
-        const doorWoodMat = new THREE.MeshStandardMaterial({ color: 0x5f3a20, roughness: 0.82 });
-        const grooveMat = new THREE.MeshStandardMaterial({ color: 0x3a2212, roughness: 1 });
-        const ironMat = new THREE.MeshStandardMaterial({ color: 0x2b2521, roughness: 0.5, metalness: 0.3 });
-        const DW = 1.3, DH = 2.55, DR = DW / 2, DSPRING = DH - DR;
+        const DW = 1.32, DR = DW / 2;
+        const DH = DW * 1758 / 889;      // Bild-Seitenverhaeltnis der Tuer
+        const DSPRING = DH - DR;
 
-        const dBack = new THREE.Mesh(new THREE.PlaneGeometry(DW + 0.7, DH + 0.9), wallMat);
-        dBack.position.set(0, DH / 2 - 0.15, -0.03);
+        const dBack = new THREE.Mesh(new THREE.PlaneGeometry(DW + 0.7, DH + 0.9), wallSideMat);
+        dBack.position.set(0, DH / 2 - 0.15, -0.04);
         doorGroup.add(dBack);
 
-        const leafShape = new THREE.Shape();
-        leafShape.moveTo(-DR, 0);
-        leafShape.lineTo(-DR, DSPRING);
-        leafShape.absarc(0, DSPRING, DR, Math.PI, 0, true);
-        leafShape.lineTo(DR, 0);
-        leafShape.lineTo(-DR, 0);
-        const leaf = new THREE.Mesh(
-            new THREE.ExtrudeGeometry(leafShape, { depth: 0.08, bevelEnabled: false }),
-            doorWoodMat
-        );
-        leaf.position.set(0, 0, 0.0);
+        const leaf = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), doorLeafMat);
+        leaf.position.set(0, DH / 2, 0.0);
         leaf.castShadow = !isMobile;
         doorGroup.add(leaf);
 
-        for (let i = -1; i <= 1; i++) {
-            const gr = new THREE.Mesh(new THREE.BoxGeometry(0.03, DH - 0.25, 0.11), grooveMat);
-            gr.position.set(i * 0.38, DSPRING / 2 + 0.1, 0.082);
-            doorGroup.add(gr);
-        }
-        [DH * 0.24, DH * 0.62].forEach(function (y) {
-            const band = new THREE.Mesh(new THREE.BoxGeometry(DW, 0.09, 0.12), ironMat);
-            band.position.set(0, y, 0.05);
-            doorGroup.add(band);
-        });
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.017, 6, 16), ironMat);
-        ring.position.set(0.42, DH * 0.42, 0.11);
-        doorGroup.add(ring);
-
         [-1, 1].forEach(function (s) {
-            const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, DSPRING + 0.1, 0.11), frameMat);
-            post.position.set(s * (DR + 0.05), (DSPRING + 0.1) / 2, 0.04);
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, DSPRING + 0.1, 0.12), frameMat);
+            post.position.set(s * (DR + 0.05), (DSPRING + 0.1) / 2, 0.03);
             doorGroup.add(post);
         });
-        const archBand = new THREE.Mesh(new THREE.TorusGeometry(DR + 0.05, 0.065, 6, 24, Math.PI), frameMat);
-        archBand.position.set(0, DSPRING, 0.04);
+        const archBand = new THREE.Mesh(new THREE.TorusGeometry(DR + 0.05, 0.06, 6, 26, Math.PI), frameMat);
+        archBand.position.set(0, DSPRING, 0.03);
         doorGroup.add(archBand);
 
+        doorGroup.userData.portal = "flur"; // spaeterer Raumwechsel, jetzt inaktiv
         doorGroup.rotation.y = Math.PI / 2;
-        doorGroup.position.set(-HW, 0, -0.7);
+        doorGroup.position.set(-HW + 0.02, 0, -0.7);
         group.add(doorGroup);
 
         // === TIEF EINGELASSENER KAMIN (Rueckwand rechts) ===
@@ -1475,44 +1582,52 @@ function initSchloss3D(canvas) {
         // geschnitten. Dahinter eine echte, geschlossene Feuerkammer aus
         // dunklen Steinen (Rueckwand + Seiten + Rundbogen-Decke + Boden);
         // davor nur ein dezenter Holz-Mantel und eine flache Herdplatte.
-        const CAV = 0.62;
+        // Deutlich tiefere, fest eingebaute Feuerkammer: dunkle Innensteine
+        // an Rueckwand, beiden Seiten, Rundbogen-Decke und Boden. Der Kamin
+        // ist Architektur (Teil der Huelle), nicht verschiebbar.
+        const CAV = 0.95;
         const cavH = FP.yTop - FP.y1;
-        darkStoneMat.side = THREE.DoubleSide;
+        firestoneMat.side = THREE.DoubleSide;
 
-        const cavBack = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.2, cavH + 0.6), darkStoneMat);
-        cavBack.position.set(fpCx, FP.y1 + cavH / 2 + 0.1, WALL_Z - CAV);
+        // Innenpaneele nur so hoch wie die Oeffnung (+ kleiner Ueberstand),
+        // damit oben nichts ueber den Bogen hinausragt ("schwarze Reststaebe").
+        const cavPanelH = cavH + 0.14;
+        const cavPanelCy = FP.y1 + cavH / 2 + 0.02;
+        const cavBack = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.2, cavPanelH), firestoneMat);
+        cavBack.position.set(fpCx, cavPanelCy, WALL_Z - CAV);
         group.add(cavBack);
         [-1, 1].forEach(function (s) {
-            const side = new THREE.Mesh(new THREE.PlaneGeometry(CAV + 0.1, cavH + 0.6), darkStoneMat);
+            const side = new THREE.Mesh(new THREE.PlaneGeometry(CAV + 0.1, cavPanelH), firestoneMat);
             side.rotation.y = s * Math.PI / 2;
-            side.position.set(fpCx + s * (FP.w / 2 - 0.01), FP.y1 + cavH / 2 + 0.1, WALL_Z - CAV / 2);
+            side.position.set(fpCx + s * (FP.w / 2 - 0.01), cavPanelCy, WALL_Z - CAV / 2);
+            side.receiveShadow = true;
             group.add(side);
         });
-        // dunkle Decke der Kammer (flach, doppelseitig - so gibt es aus
-        // keinem Kamerawinkel einen hellen Spalt oben in der Öffnung)
-        const cavTop = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.1, CAV + 0.1), darkStoneMat);
-        cavTop.rotation.x = Math.PI / 2;
-        cavTop.position.set(fpCx, FP.yTop - 0.03, WALL_Z - CAV / 2);
+        // Decke der Kammer (Feuerraumstein, doppelseitig - kein heller
+        // Spalt oben aus irgendeinem Kamerawinkel). Leicht schraeg nach
+        // hinten abfallend, damit die Tiefe der Nische lesbar ist.
+        const cavTop = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.12, CAV + 0.12), firestoneMat);
+        cavTop.rotation.x = Math.PI / 2 + 0.12;
+        cavTop.position.set(fpCx, FP.yTop - 0.06, WALL_Z - CAV / 2);
         group.add(cavTop);
-        const cavFloor = new THREE.Mesh(
-            new THREE.PlaneGeometry(FP.w + 0.1, CAV + 0.05),
-            new THREE.MeshStandardMaterial({ color: 0x18110a, roughness: 1 })
-        );
+        const cavFloor = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.1, CAV + 0.05), firestoneMat);
         cavFloor.rotation.x = -Math.PI / 2;
         cavFloor.position.set(fpCx, FP.y1 + 0.012, WALL_Z - CAV / 2 + 0.02);
         cavFloor.receiveShadow = true;
         group.add(cavFloor);
 
-        // dezenter Holz-Mantel (Balken) direkt auf dem Bogenscheitel
-        const fMantel = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.55, 0.17, 0.24), beamMat);
-        fMantel.position.set(fpCx, FP.yTop + 0.04, WALL_Z + 0.09);
-        fMantel.castShadow = !isMobile;
+        // Kraeftiger Holz-Sturzbalken: Unterkante greift ueber den
+        // Bogenscheitel (kein Spalt zwischen Maul und Sturz), Oberkante
+        // bildet ein flaches Sims.
+        const MANT_H = 0.32;
+        const fMantel = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.64, MANT_H, 0.3), mantelMat);
+        fMantel.position.set(fpCx, FP.yTop + MANT_H / 2 - 0.14, WALL_Z + 0.07);
         group.add(fMantel);
 
-        // flache Herdplatte direkt vor der Öffnung (nur 0.05 hoch,
-        // ~0.34 tief - liegt vor der Wand, hinter der Möbelzone)
-        const fHearth = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.24, 0.05, 0.36), frameMat);
-        fHearth.position.set(fpCx, 0.026, WALL_Z + 0.22);
+        // flache Steinstein-Herdplatte direkt vor der Öffnung (nur 0.05
+        // hoch, ~0.4 tief - liegt vor der Wand, hinter der Möbelzone)
+        const fHearth = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.3, 0.05, 0.42), frameMat);
+        fHearth.position.set(fpCx, 0.026, WALL_Z + 0.24);
         fHearth.receiveShadow = true;
         group.add(fHearth);
 
@@ -1578,7 +1693,7 @@ function initSchloss3D(canvas) {
 
         // Glut-/Kohlenfläche flach auf dem Feuerraumboden
         const embers = new THREE.Mesh(
-            new THREE.PlaneGeometry(0.95, 0.5),
+            new THREE.PlaneGeometry(1.12, 0.62),
             new THREE.MeshBasicMaterial({
                 map: makeEmberTexture(),
                 transparent: true,
@@ -1587,50 +1702,58 @@ function initSchloss3D(canvas) {
             })
         );
         embers.rotation.x = -Math.PI / 2;
-        embers.position.y = 0.015;
+        embers.position.y = 0.014;
         group.add(embers);
         group.userData.embers = embers;
 
-        // Zwei gekreuzte Holzscheite
-        const logMat = new THREE.MeshStandardMaterial({ color: 0x4a2f1c, roughness: 1 });
-        const logGeo = new THREE.CylinderGeometry(0.07, 0.08, 0.82, 7);
-        const log1 = new THREE.Mesh(logGeo, logMat);
-        log1.rotation.z = Math.PI / 2;
-        log1.rotation.y = 0.35;
-        log1.position.set(0, 0.08, 0.03);
-        const log2 = new THREE.Mesh(logGeo, logMat);
-        log2.rotation.z = Math.PI / 2;
-        log2.rotation.y = -0.5;
-        log2.position.set(0.01, 0.15, -0.04);
-        group.add(log1, log2);
+        // Drei gekreuzte, glimmende Holzscheite
+        const logMat = new THREE.MeshStandardMaterial({
+            color: 0x4a2f1c, roughness: 1,
+            emissive: new THREE.Color(0x3a1600), emissiveIntensity: 0.5
+        });
+        const logGeo = new THREE.CylinderGeometry(0.075, 0.085, 0.9, 8);
+        [
+            { ry: 0.32, p: [0, 0.075, 0.04] },
+            { ry: -0.52, p: [0.01, 0.15, -0.05] },
+            { ry: 0.9, p: [-0.05, 0.11, -0.01] }
+        ].forEach(function (l) {
+            const log = new THREE.Mesh(logGeo, logMat);
+            log.rotation.z = Math.PI / 2;
+            log.rotation.y = l.ry;
+            log.position.set(l.p[0], l.p[1], l.p[2]);
+            group.add(log);
+        });
 
-        // Flammen-Ebenen (zur Kamera, +Z, gerichtet)
+        // Flammen-Ebenen (zur Kamera, +Z, gerichtet) - lebendiger: mehr
+        // Zungen, groesser, kraeftigere Kernfarbe
         const flameTex = makeFlameTexture();
         const specs = [
-            { x: 0.0, s: 1.0, c: 0xff7a26 },
-            { x: -0.17, s: 0.72, c: 0xffab48 },
-            { x: 0.18, s: 0.68, c: 0xffab48 },
-            { x: 0.02, s: 0.46, c: 0xffe39a }
+            { x: 0.0, s: 1.18, c: 0xff6a1e },
+            { x: -0.22, s: 0.82, c: 0xff9636 },
+            { x: 0.24, s: 0.78, c: 0xff9636 },
+            { x: -0.08, s: 0.6, c: 0xffc65e },
+            { x: 0.12, s: 0.52, c: 0xffe39a },
+            { x: 0.02, s: 0.34, c: 0xfff2cf }
         ];
         const flames = [];
         specs.forEach(function (spec, i) {
             const fl = new THREE.Mesh(
-                new THREE.PlaneGeometry(0.52, 0.78),
+                new THREE.PlaneGeometry(0.56, 0.86),
                 new THREE.MeshBasicMaterial({
                     map: flameTex,
                     color: spec.c,
                     transparent: true,
-                    opacity: 0.85,
+                    opacity: 0.88,
                     depthWrite: false,
                     blending: THREE.AdditiveBlending,
                     side: THREE.DoubleSide
                 })
             );
-            fl.position.set(spec.x, 0.16 + spec.s * 0.22, 0.02 + i * 0.012);
+            fl.position.set(spec.x, 0.15 + spec.s * 0.24, 0.02 + i * 0.011);
             fl.scale.setScalar(spec.s);
             fl.userData.baseX = spec.x;
             fl.userData.s0 = spec.s;
-            fl.userData.phase = i * 1.9;
+            fl.userData.phase = i * 1.7;
             flames.push(fl);
             group.add(fl);
         });
