@@ -101,25 +101,28 @@ function buildSidebarMarkup() {
         <div class="sidebar-player">
             <div class="sidebar-avatar-wrap">
                 <img id="sidebar-player-avatar" src="" alt="Spieler">
-                <span id="sidebar-level-badge" class="sidebar-level-badge" aria-hidden="true">
-                    <span class="sidebar-level-badge-shape"></span>
-                    <span id="sidebar-level-badge-num" class="sidebar-level-badge-num">1</span>
-                </span>
                 <button id="inventory-button" type="button">
                     <img src="Icons/Sidebar/inventar.png" alt="" class="inventory-icon" decoding="async">
                 </button>
             </div>
+
             <div class="sidebar-player-info">
                 <strong id="sidebar-player-name">Abenteurer</strong>
                 <span id="sidebar-feathers"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
                 <span id="sidebar-achievements">⭐ 0 Erfolge</span>
-                <div id="sidebar-level" class="sidebar-level" hidden>
-                    <div class="sidebar-level-head">
-                        <span id="sidebar-level-text">Stufe 1 · 0 / 100 XP</span>
-                    </div>
-                    <div class="sidebar-level-track"><div id="sidebar-level-fill" class="sidebar-level-fill"></div></div>
-                    <div id="sidebar-level-goal" class="sidebar-level-goal"></div>
+            </div>
+
+            <span id="sidebar-level-badge" class="sidebar-level-badge" aria-hidden="true">
+                <span class="sidebar-level-badge-shape"></span>
+                <span id="sidebar-level-badge-num" class="sidebar-level-badge-num">1</span>
+            </span>
+
+            <div id="sidebar-level" class="sidebar-level" hidden>
+                <div class="sidebar-level-head">
+                    <span id="sidebar-level-text">Stufe 1 · 0 / 100 XP</span>
                 </div>
+                <div class="sidebar-level-track"><div id="sidebar-level-fill" class="sidebar-level-fill"></div></div>
+                <div id="sidebar-level-goal" class="sidebar-level-goal"></div>
             </div>
         </div>
 

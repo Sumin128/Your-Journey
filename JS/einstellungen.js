@@ -195,4 +195,39 @@
         }
     }
 
+
+    /* =====================================================
+       KONTO & SPIELSTAND
+       Nur die sichtbare Platzierung ist neu - Anmelden/Registrieren
+       läuft weiter über openAccountPanel() (JS/auth.js), Ausloggen
+       über signOutAccount(). Der Gast-/Angemeldet-Wechsel der beiden
+       Blöcke erledigt updateAuthUI() über [data-guest-only] /
+       [data-auth-only] wie bisher.
+       ===================================================== */
+
+    const accountLogoutButton =
+        document.getElementById("settings-account-logout");
+
+    if (accountLogoutButton) {
+
+        accountLogoutButton.addEventListener("click", async function () {
+
+            const confirmed =
+                typeof showMirelonConfirm === "function"
+                    ? await showMirelonConfirm(
+                        "Möchtest du dich wirklich ausloggen? Dein Spielstand " +
+                        "bleibt sicher in deinem Konto gespeichert und ist beim " +
+                        "nächsten Anmelden wieder da.",
+                        { okLabel: "Ausloggen", cancelLabel: "Angemeldet bleiben" }
+                    )
+                    : window.confirm("Wirklich ausloggen?");
+
+            if (confirmed && typeof signOutAccount === "function") {
+                signOutAccount();
+            }
+
+        });
+
+    }
+
 })();

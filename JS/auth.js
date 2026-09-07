@@ -989,33 +989,12 @@ function showPasswordResetForm() {
 
 
 /* =====================================================
-   6. ICON IN DER SIDEBAR EINFÜGEN
+   6. KONTO-ZUGANG
+   Kein dauerhaftes Konto-Icon mehr im festen Profilbereich der
+   Sidebar. Das Anmelde-/Konto-Fenster wird über den Abschnitt
+   "Konto & Spielstand" in den Einstellungen geöffnet
+   (openAccountPanel()); die Passwort-Reset-Seite ruft es direkt auf.
    ===================================================== */
-
-function createAccountIcon() {
-
-    if (document.getElementById("account-open-button")) {
-        return;
-    }
-
-    const avatarWrap = document.querySelector(".sidebar-avatar-wrap");
-
-    if (!avatarWrap) {
-        return;
-    }
-
-    const button = document.createElement("button");
-    button.id = "account-open-button";
-    button.type = "button";
-    button.title = "Konto";
-    button.setAttribute("aria-label", "Konto öffnen");
-    button.innerHTML = '<img src="Icons/Sidebar/anmeldung.png" alt="" class="inventory-icon" decoding="async">';
-
-    button.addEventListener("click", openAccountPanel);
-
-    avatarWrap.appendChild(button);
-
-}
 
 
 /* =====================================================
@@ -1287,8 +1266,6 @@ function wireAccountForms() {
 
 async function initAuth() {
 
-    createAccountIcon();
-
     if (!supabaseClient) {
         /* Kein Supabase -> reiner Gast-Betrieb. Ladeansicht (falls
            der Boot-Snippet fälschlich getriggert hat) auflösen. */
@@ -1328,6 +1305,12 @@ async function initAuth() {
         }
 
     }
+
+    /* Auth-abhängige Bereiche (z. B. "Konto & Spielstand" in den
+       Einstellungen) sofort auf den restaurierten Sitzungszustand
+       bringen - nicht erst auf das erste onAuthStateChange-Event
+       warten. Reine Darstellung, keine Logikänderung. */
+    updateAuthUI();
 
     supabaseClient.auth.onAuthStateChange(function (event, session) {
 

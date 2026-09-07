@@ -34,7 +34,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=46">
+        href="CSS/style.css?v=47">
 
     <link
         rel="stylesheet"
@@ -113,25 +113,45 @@
             <div class="settings-row">
 
                 <div class="settings-row-text">
-                    <h2>🔐 Konto (optional)</h2>
+                    <h2>🔐 Konto &amp; Spielstand</h2>
                     <p>
-                        Du musst dich nicht registrieren, um zu spielen.
-                        Ohne Konto wird dein Fortschritt nur auf diesem
-                        Gerät gespeichert und kann z. B. bei einem neuen
-                        Gerät oder gelöschtem Browser-Speicher verloren
-                        gehen. Mit einem kostenlosen Konto bleiben Münzen,
-                        Erfolge und Inventar dauerhaft erhalten. Das
-                        Anmelde-Fenster findest du jetzt auch über das
-                        🔐-Symbol oben in der Sidebar.
+                        Du musst dich nicht anmelden, um zu spielen. Ohne
+                        Konto wird dein Fortschritt nur auf diesem Gerät
+                        gespeichert und kann z. B. bei einem neuen Gerät
+                        oder gelöschtem Browser-Speicher verloren gehen.
                     </p>
                 </div>
 
+            </div>
+
+            <div id="settings-account-guest" class="settings-account" data-guest-only>
+
                 <button
-                    id="settings-account-open"
                     type="button"
-                    class="yj-button yj-button--compact"
+                    class="yj-button yj-button--wide"
                     onclick="openAccountPanel()">
-                    Konto öffnen
+                    Konto erstellen oder anmelden
+                </button>
+
+                <p class="settings-account-hint">
+                    Dann bleibt dein Spielstand auch auf anderen Geräten erhalten.
+                </p>
+
+            </div>
+
+            <div id="settings-account-user" class="settings-account" data-auth-only hidden>
+
+                <p class="settings-account-status" data-auth-status></p>
+
+                <p class="settings-account-hint settings-account-hint--ok">
+                    ✓ Dein Spielstand wird gesichert.
+                </p>
+
+                <button
+                    type="button"
+                    id="settings-account-logout"
+                    class="settings-account-logout">
+                    Ausloggen
                 </button>
 
             </div>
@@ -252,15 +272,15 @@
     <script src="JS/player.js?v=33"></script>
     <script src="JS/level-data.js?v=2"></script>
     <script src="JS/level-up.js?v=3"></script>
-    <script src="JS/auth.js?v=11"></script>
-    <script src="JS/sidebar.js?v=22"></script>
+    <script src="JS/auth.js?v=12"></script>
+    <script src="JS/sidebar.js?v=23"></script>
     <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=9"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/confetti.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/data.js?v=3"></script>
-    <script src="JS/einstellungen.js?v=2"></script>
+    <script src="JS/einstellungen.js?v=3"></script>
 
 
 </body>
