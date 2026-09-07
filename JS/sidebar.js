@@ -85,14 +85,14 @@ function buildSidebarMarkup() {
         <div class="sidebar-divider"></div>
 
         <div class="sidebar-nav">
-            ${group("Welt", "Icons/Sidebar/start.png", [
-                sublink("index.html", "Startkarte", "Icons/Sidebar/start.png"),
-                sublink("schloss.html", "Mein Schloss", "Icons/Sidebar/lernorte.png", castleUnlocked ? null : "castle"),
+            ${group("Welt", "Icons/Sidebar/lernorte.png", [
+                sublink("index.html", "Startkarte", "Icons/Sidebar/startkarte.png"),
+                sublink("schloss.html", "Mein Schloss", "Icons/Sidebar/schloss.png", castleUnlocked ? null : "castle"),
                 sublink("kuros_nest.html", "Kuros Nest", "Icons/Sidebar/rabe-2.png"),
                 sublink("eulenschule.html", "Tessas Hasenschule", "Icons/Sidebar/hase.png"),
                 sublink("fuchs.html", "Faros Fuchsbau", "Icons/Sidebar/fuchs.png"),
                 sublink("baerental.html", "Bärental", "Icons/Sidebar/baer-2.png"),
-                sublink("puzzle.html", "Luis Puzzle", "Icons/Sidebar/chamaeleon.png")
+                sublink("puzzle.html", "Luis’ Puzzle", "Icons/Sidebar/chamaeleon.png")
             ], true)}
 
             ${group("Kreativ", "Icons/Sidebar/kreativ.png", [
@@ -100,13 +100,13 @@ function buildSidebarMarkup() {
                 sublink("galerie.html", "Galerie", "Icons/Sidebar/galerie.png")
             ])}
 
-            ${group("Läden", "Icons/Sidebar/shop.png", [
-                sublink("shop_seite.html", "Kuros Laden", "Icons/Sidebar/shop.png"),
+            ${group("Läden", "Icons/Sidebar/laeden.png", [
+                sublink("shop_seite.html", "Kuros Laden", "Icons/Sidebar/kuros_laden.png"),
                 sublink("bakos_basar.html", "Bakos Basar", "Icons/Sidebar/shop.png"),
-                sublink("tamo_werkstatt.html", "Tamos Werkstatt", "Icons/Sidebar/shop.png")
+                sublink("tamo_werkstatt.html", "Tamos Werkstatt", "Icons/Sidebar/tamo_werkstatt.png")
             ])}
 
-            ${group("Fortschritt", "Icons/Sidebar/erfolge.png", [
+            ${group("Fortschritt", "Icons/Sidebar/fortschritt.png", [
                 sublink("erfolge.html", "Erfolge", "Icons/Sidebar/erfolge.png"),
                 sublink("bestenliste.html", "Bestenliste", "Icons/Sidebar/highscore.png")
             ])}
