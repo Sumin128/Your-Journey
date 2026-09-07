@@ -13,9 +13,15 @@
 --     JSON (Trigger auf profiles). Der bestehende Client liest weiter
 --     player_data und funktioniert unverändert.
 --   * game_levels / game_xp_rules werden ab sofort von earn_xp()
---     GELESEN - die Levelwerte / XP-Beträge stehen damit nur noch an
---     EINER Stelle (nicht mehr doppelt in SQL-VALUES und im Browser;
---     der Browser-Katalog ist reine Vorschau).
+--     GELESEN und sind damit für ANGEMELDETE Nutzer die serverseitig
+--     MASSGEBLICHE Quelle der Level-/XP-Werte.
+--   * JS/level-data.js bleibt eine bewusst gepflegte SPIEGELUNG - bis
+--     zu einer späteren gemeinsamen Konfigurationslösung. Diese
+--     Spiegelung ist NICHT nur Anzeige: der lokale Gastmodus rechnet
+--     Level/XP weiterhin selbst aus JS/level-data.js. Die Werte stehen
+--     also noch NICHT für sämtliche Clients an nur einer Stelle -
+--     Server (Config-Tabellen) und Gast-Client (JS) müssen bis dahin
+--     bei jeder Änderung parallel gepflegt werden.
 --
 -- ------------------------------------------------------------
 -- WAS DIESE MIGRATION ÄNDERT
@@ -27,21 +33,26 @@
 --   + idempotenter, fehlertoleranter Backfill für bestehende Profile.
 --   + earn_xp() v3: liest Level-/XP-Werte aus den Config-Tabellen
 --     (externer Vertrag unverändert -> Client bleibt gleich).
---   + Härtung: anon verliert den (funktionslosen) EXECUTE-Grant auf
---     earn_coins(text).
+--   + Härtung: anon verliert den (funktionslosen, weil auth-
+--     pflichtigen) EXECUTE-Grant auf earn_coins(text) und
+--     claim_guest_progress(jsonb).
 --
 -- WAS DIESE MIGRATION NICHT ANTASTET
 --   - profiles.player_data (Struktur, Inhalt, Namen) - bleibt Quelle.
---   - claim_guest_progress(): der Funktionskörper und seine Rechte
---     bleiben EXAKT wie in supabase_migration_guest_progress_claim.sql.
---     Eine sichere Gast-Übernahme (Feld-Validierung / Reset) ist eine
---     EIGENE spätere Produktentscheidung, nicht Teil des DB-Aufräumens.
---     Es wird KEIN erspielter Gastfortschritt (XP, Level, Schloss-
---     Freischaltung, Möbel, Schlossdaten) verändert oder gelöscht.
+--   - claim_guest_progress(): der FUNKTIONSKÖRPER bleibt EXAKT wie in
+--     supabase_migration_guest_progress_claim.sql. Es wird KEIN
+--     erspielter Gastfortschritt (XP, Level, Schloss-Freischaltung,
+--     Möbel, Schlossdaten) verändert oder gelöscht; die Übernahme-
+--     logik bleibt unverändert. Eine sichere Gast-Übernahme (Feld-
+--     Validierung / Reset) ist eine EIGENE spätere Produktentscheidung.
+--     GEÄNDERT wird nur der EXECUTE-Grant: anon verliert den (erst
+--     nach Anmeldung relevanten, also funktionslosen) Zugriff.
 --   - reward_cooldowns und andere interne Hilfstabellen - werden NICHT
 --     öffentlich geöffnet (kein neuer Grant, keine neue Policy).
 --   - earn_xp()-Aufrufvertrag (Parameter, JSON-Antwort, JSON-
---     Schreibpfad) - identisch, nur die Datenquelle wandert.
+--     Schreibpfad) - identisch; serverseitig wandert nur die
+--     Datenquelle von Inline-VALUES in die Config-Tabellen. Der
+--     Gast-Client (JS/level-data.js) bleibt davon unberührt.
 --
 -- Reversibel: siehe ROLLBACK-Block am Dateiende.
 --
@@ -55,9 +66,11 @@ begin;
 
 -- ============================================================
 -- 1) KONFIG: game_levels  (eine Zeile je Level)
---    Nicht sensibel (XP-Grenzen + Belohnungsliste). Nur-Lese-
---    Katalog für den Browser; Schreibzugriff ausschließlich über
---    Migrationen / Dashboard (Tabelleneigentümer).
+--    Nicht sensibel (XP-Grenzen + Belohnungsliste). Für angemeldete
+--    Nutzer serverseitig massgeblich (earn_xp liest hier). Der lokale
+--    Gastmodus rechnet weiter mit JS/level-data.js - die Werte müssen
+--    also vorerst an BEIDEN Stellen gepflegt werden. Nur-Lese-Katalog;
+--    Schreibzugriff nur über Migrationen / Dashboard.
 -- ============================================================
 create table if not exists public.game_levels (
     level        smallint    primary key check (level between 1 and 999),
@@ -69,7 +82,7 @@ create table if not exists public.game_levels (
 );
 
 comment on table public.game_levels is
-    'Zentrale Quelle für XP-Grenzen + Level-Belohnungen (gelesen von earn_xp). Spiegelt JS/level-data.js MIRELON_LEVELS - der Client-Katalog ist nur Vorschau. Nur-Lese-Katalog.';
+    'Serverseitig massgebliche Quelle für XP-Grenzen + Level-Belohnungen (gelesen von earn_xp) für ANGEMELDETE Nutzer. JS/level-data.js MIRELON_LEVELS ist eine bewusst gepflegte Spiegelung, die der lokale Gastmodus weiterhin zum Rechnen braucht - beide bis zu einer gemeinsamen Konfig-Lösung parallel pflegen. Nur-Lese-Katalog (kein Client-Schreibzugriff).';
 
 alter table public.game_levels enable row level security;
 
@@ -111,7 +124,9 @@ on conflict (level) do nothing;
 
 -- ============================================================
 -- 2) KONFIG: game_xp_rules  (erlaubte XP-Aktivitäten)
---    Ebenfalls Nur-Lese-Katalog (keine Nutzerdaten).
+--    Ebenfalls Nur-Lese-Katalog (keine Nutzerdaten). Für angemeldete
+--    Nutzer serverseitig massgeblich (earn_xp liest hier); der lokale
+--    Gastmodus nutzt weiter die Spiegelung in JS/level-data.js.
 -- ============================================================
 create table if not exists public.game_xp_rules (
     activity                 text        primary key,
@@ -130,7 +145,7 @@ create table if not exists public.game_xp_rules (
 );
 
 comment on table public.game_xp_rules is
-    'Katalog erlaubter XP-Aktivitäten + XP je Schwierigkeit + Wiederholungsregel. Der Browser schickt NUR die Aktivitätskennung + Schwierigkeit, nie einen Betrag. Nur-Lese-Katalog.';
+    'Katalog erlaubter XP-Aktivitäten + XP je Schwierigkeit + Wiederholungsregel. Für angemeldete Nutzer serverseitig massgeblich (earn_xp). Der Browser schickt NUR die Aktivitätskennung + Schwierigkeit, nie einen Betrag. Der lokale Gastmodus rechnet weiter mit der Spiegelung in JS/level-data.js - bis zu einer gemeinsamen Konfig-Lösung beide parallel pflegen. Nur-Lese-Katalog.';
 
 alter table public.game_xp_rules enable row level security;
 
@@ -422,21 +437,32 @@ end $$;
 
 
 -- ============================================================
--- 6) HÄRTUNG: anon von earn_coins(text) abziehen
---    (hat 'if auth.uid() is null then raise', der anon-EXECUTE-Grant
---    ist also funktionslos, wird aber von den Supabase-Security-
---    Advisors zu Recht angemeckert.)
---    claim_guest_progress() wird BEWUSST NICHT angefasst (Körper und
---    Rechte bleiben wie in supabase_migration_guest_progress_claim.sql).
+-- 6) HÄRTUNG: anon von den auth-pflichtigen RPCs abziehen
+--    Beide Funktionen beginnen mit 'if auth.uid() is null then raise' -
+--    der anon-EXECUTE-Grant ist also funktionslos, wird aber von den
+--    Supabase-Security-Advisors zu Recht als unnötige öffentliche RPC
+--    angemeckert. NUR der Grant ändert sich:
+--
+--    * earn_coins(text): Münzen gibt es nur mit Konto.
+--    * claim_guest_progress(jsonb): die Übernahme eines Gastspielstands
+--      passiert erst NACH der Anmeldung. Der FUNKTIONSKÖRPER und die
+--      Übernahmelogik bleiben exakt wie in
+--      supabase_migration_guest_progress_claim.sql - kein Gastfortschritt
+--      wird verändert oder gelöscht.
 -- ============================================================
 revoke all on function public.earn_coins(text) from public, anon;
 grant execute on function public.earn_coins(text) to authenticated;
+
+revoke all on function public.claim_guest_progress(jsonb) from public, anon;
+grant execute on function public.claim_guest_progress(jsonb) to authenticated;
 
 
 -- ============================================================
 -- 7) earn_xp() v3: Levelwerte + XP-Beträge aus den Config-Tabellen
 --    lesen (statt inline). Externer Vertrag (Parameter, JSON-Antwort,
 --    JSON-Schreibpfad) BLEIBT identisch -> Client unverändert.
+--    Gilt nur für angemeldete Nutzer; der lokale Gastmodus rechnet
+--    weiterhin selbst aus JS/level-data.js (unverändert).
 --    Zusätzlich: game_variant/daily-Claim in player_reward_claims
 --    protokollieren (Durchsetzung bleibt vorerst reward_cooldowns).
 -- ============================================================
@@ -762,9 +788,10 @@ commit;
 --      drop table if exists public.game_xp_rules;
 --      drop table if exists public.game_levels;
 --
---   4) (optional) anon-EXECUTE auf earn_coins wieder erlauben:
+--   4) (optional) anon-EXECUTE wieder erlauben:
 --      grant execute on function public.earn_coins(text) to anon;
+--      grant execute on function public.claim_guest_progress(jsonb) to anon;
 --
---   claim_guest_progress() wurde von dieser Migration NICHT verändert
---   und braucht daher KEINEN Rollback.
+--   Der Funktionskörper von claim_guest_progress() wurde NICHT
+--   verändert - nur der (funktionslose) anon-Grant, siehe 4).
 -- ============================================================
