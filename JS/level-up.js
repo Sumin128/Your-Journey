@@ -179,7 +179,28 @@ function showStoryEvent(storyEventKey, level) {
 
 }
 
+/* Level-Abzeichen in der Sidebar kurz aufleuchten lassen. */
+function flashSidebarLevelBadge() {
+
+    const badge = document.getElementById("sidebar-level-badge");
+
+    if (!badge) {
+        return;
+    }
+
+    badge.classList.remove("is-levelup");
+    // reflow erzwingen, damit die Animation neu startet
+    void badge.offsetWidth;
+    badge.classList.add("is-levelup");
+
+    setTimeout(function () {
+        badge.classList.remove("is-levelup");
+    }, 1300);
+}
+
 function showMirelonLevelUp(level, grantedRewards, storyEvent) {
+
+    flashSidebarLevelBadge();
 
     if (storyEvent && STORY_EVENTS[storyEvent]) {
         showStoryEvent(storyEvent, level);

@@ -933,6 +933,131 @@ main {
 }
 
 /* =====================================================
+   LEVEL-ABZEICHEN + XP-BALKEN (fester Profilbereich)
+   Immer sichtbar - NICHT im aufklappbaren "Fortschritt"-Menü.
+   ===================================================== */
+
+/* kleines Abzeichen an der Avatar-Ecke - bleibt auch bei
+   eingeklappter Sidebar sichtbar. */
+.sidebar-level-badge{
+
+    position:absolute;
+    left:calc(50% + 8px);
+    top:32px;
+
+    width:26px;
+    height:26px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:2;
+
+}
+
+.sidebar-level-badge-shape{
+
+    position:absolute;
+    inset:0;
+
+    background-position:center;
+    background-size:contain;
+    background-repeat:no-repeat;
+
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));
+
+}
+
+.sidebar-level-badge-num{
+
+    position:relative;
+    z-index:1;
+
+    color:#fff;
+    font-family:var(--yj-font-display, system-ui, sans-serif);
+    font-weight:800;
+    font-size:.72rem;
+    line-height:1;
+
+    text-shadow:0 1px 2px rgba(0,0,0,.6), 0 0 3px rgba(0,0,0,.5);
+
+}
+
+.sidebar-level-badge.is-levelup .sidebar-level-badge-shape{
+    animation:sb-badge-pop 1.1s var(--yj-ease-out);
+}
+
+@keyframes sb-badge-pop{
+    0%   { transform:scale(1);    filter:drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+    35%  { transform:scale(1.4);  filter:drop-shadow(0 0 12px rgba(255,231,150,.95)); }
+    100% { transform:scale(1);    filter:drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+}
+
+/* XP-Box im Info-Block - nur sichtbar, wenn die Sidebar offen ist */
+.sidebar-level{
+
+    margin-top:4px;
+
+    opacity:0;
+    visibility:hidden;
+    max-height:0;
+    overflow:hidden;
+
+    transition:.25s;
+
+}
+
+#sidebar.open .sidebar-level{
+    opacity:1;
+    visibility:visible;
+    max-height:80px;
+}
+
+.sidebar-level-head{
+    display:flex;
+    justify-content:space-between;
+    color:var(--sb-text);
+    font-size:.82rem;
+    font-weight:700;
+}
+
+.sidebar-level-track{
+
+    margin-top:5px;
+    height:8px;
+
+    border-radius:99px;
+    background:rgba(0,0,0,.28);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.35);
+
+    overflow:hidden;
+
+}
+
+.sidebar-level-fill{
+
+    height:100%;
+    width:0%;
+
+    border-radius:99px;
+    background:linear-gradient(90deg, var(--sb-accent), color-mix(in srgb, var(--sb-accent) 55%, #fff));
+
+    transition:width .6s var(--yj-ease-out);
+
+}
+
+.sidebar-level-goal{
+
+    margin-top:5px;
+
+    color:var(--sb-accent);
+    font-size:.74rem;
+    font-weight:600;
+
+}
+
+/* =====================================================
    TRENNLINIE
    ===================================================== */
 
@@ -4048,6 +4173,92 @@ justify-content:center;
 
     padding: 0 0 20px;
 
+}
+
+/* Level-Abzeichen-Wähler (4 Formen x 4 Farben) */
+.settings-badge-grid {
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+
+    max-width: 420px;
+    padding: 4px 0 8px;
+
+}
+
+.settings-badge-card {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 8px;
+
+    border: 2px solid transparent;
+    border-radius: var(--yj-radius-md);
+
+    background: var(--yj-color-paper);
+    box-shadow: var(--yj-shadow-card);
+
+    cursor: pointer;
+    transition: var(--yj-transition);
+
+}
+
+.settings-badge-card:hover {
+    transform: translateY(-2px);
+}
+
+.settings-badge-card.is-selected {
+    border-color: var(--yj-color-accent);
+    box-shadow: 0 0 0 3px rgba(217, 154, 61, .32), var(--yj-shadow-card);
+}
+
+.settings-badge-preview {
+
+    position: relative;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.settings-badge-preview img {
+
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .28));
+
+}
+
+.settings-badge-num {
+
+    position: relative;
+    z-index: 1;
+
+    color: #fff;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: .95rem;
+
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .6), 0 0 3px rgba(0, 0, 0, .5);
+
+}
+
+@media (max-width: 470px) {
+    .settings-badge-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .settings-badge-preview { width: 40px; height: 40px; }
 }
 
 .settings-theme-card {

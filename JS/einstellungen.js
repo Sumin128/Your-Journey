@@ -150,4 +150,49 @@
 
     });
 
+
+    /* =====================================================
+       LEVEL-ABZEICHEN
+       16 Vorschau-Kacheln (4 Formen x 4 Farben) - die
+       Speichern-/Anwenden-Logik steckt in sidebar.js
+       (window.setLevelBadge), damit sie überall verfügbar ist.
+       ===================================================== */
+
+    const badgeGrid = document.getElementById("settings-badge-grid");
+
+    if (badgeGrid && Array.isArray(window.MIRELON_BADGE_SHAPES)) {
+
+        const shapeName = { schild: "Schild", herz: "Herz", blatt: "Blatt-Medaillon", stern: "Stern-Medaille" };
+        const colorName = { waldgruen: "Waldgrün", himmelblau: "Himmelblau", beerenrosa: "Beerenrosa", sonnengold: "Sonnengold" };
+
+        window.MIRELON_BADGE_SHAPES.forEach(function (shape) {
+            window.MIRELON_BADGE_COLORS.forEach(function (color) {
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "settings-badge-card";
+                btn.dataset.badgeShape = shape;
+                btn.dataset.badgeColor = color;
+                btn.setAttribute("aria-label", shapeName[shape] + ", " + colorName[color]);
+                btn.innerHTML =
+                    '<span class="settings-badge-preview">' +
+                    '<img src="images/badges/' + shape + "_" + color + '.png" alt="" decoding="async">' +
+                    '<span class="settings-badge-num">7</span>' +
+                    "</span>";
+
+                btn.addEventListener("click", function () {
+                    if (typeof window.setLevelBadge === "function") {
+                        window.setLevelBadge(shape, color);
+                    }
+                });
+
+                badgeGrid.appendChild(btn);
+            });
+        });
+
+        if (typeof window.markSelectedBadge === "function") {
+            window.markSelectedBadge();
+        }
+    }
+
 })();

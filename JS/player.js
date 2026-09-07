@@ -158,6 +158,11 @@ function createDefaultPlayer() {
 
         sidebarTheme: "orange",
 
+        // Wählbares Level-Abzeichen (Form + Farbe). Standard:
+        // Blatt-Medaillon in Waldgrün. Die Levelzahl selbst kommt als
+        // HTML-Text darüber, nie aus der Grafik.
+        levelBadge: { shape: "blatt", color: "waldgruen" },
+
         settings: {
 
             soundOn: true

@@ -101,6 +101,10 @@ function buildSidebarMarkup() {
         <div class="sidebar-player">
             <div class="sidebar-avatar-wrap">
                 <img id="sidebar-player-avatar" src="" alt="Spieler">
+                <span id="sidebar-level-badge" class="sidebar-level-badge" aria-hidden="true">
+                    <span class="sidebar-level-badge-shape"></span>
+                    <span id="sidebar-level-badge-num" class="sidebar-level-badge-num">1</span>
+                </span>
                 <button id="inventory-button" type="button">
                     <img src="Icons/Sidebar/inventar.png" alt="" class="inventory-icon" decoding="async">
                 </button>
@@ -109,6 +113,13 @@ function buildSidebarMarkup() {
                 <strong id="sidebar-player-name">Abenteurer</strong>
                 <span id="sidebar-feathers"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
                 <span id="sidebar-achievements">⭐ 0 Erfolge</span>
+                <div id="sidebar-level" class="sidebar-level" hidden>
+                    <div class="sidebar-level-head">
+                        <span id="sidebar-level-text">Stufe 1 · 0 / 100 XP</span>
+                    </div>
+                    <div class="sidebar-level-track"><div id="sidebar-level-fill" class="sidebar-level-fill"></div></div>
+                    <div id="sidebar-level-goal" class="sidebar-level-goal"></div>
+                </div>
             </div>
         </div>
 
@@ -499,6 +510,117 @@ function updateSidebarPlayer() {
 
     }
 
+    updateSidebarLevel();
+
+}
+
+/* Level-Abzeichen + XP-Balken im festen Profilbereich. Immer sichtbar
+   (nicht im aufklappbaren "Fortschritt"-Menü). Nutzt die zentrale
+   Datenquelle mirelonLevelProgress() aus JS/level-data.js. */
+const SIDEBAR_BADGE_SHAPES = ["schild", "herz", "blatt", "stern"];
+const SIDEBAR_BADGE_COLORS = ["waldgruen", "himmelblau", "beerenrosa", "sonnengold"];
+
+function sidebarBadgeChoice() {
+    const b = (typeof player !== "undefined" && player.levelBadge) || {};
+    const shape = SIDEBAR_BADGE_SHAPES.indexOf(b.shape) !== -1 ? b.shape : "blatt";
+    const color = SIDEBAR_BADGE_COLORS.indexOf(b.color) !== -1 ? b.color : "waldgruen";
+    return { shape: shape, color: color };
+}
+
+/* Auswahl "Mein Level-Abzeichen" (Einstellungen). Lebt als
+   player.levelBadge und wird wie sidebarTheme ganz normal
+   mitsynchronisiert - kein eigener Sync-Weg nötig. */
+function markSelectedBadge() {
+    const c = sidebarBadgeChoice();
+    document.querySelectorAll("[data-badge-shape][data-badge-color]").forEach(function (btn) {
+        btn.classList.toggle(
+            "is-selected",
+            btn.dataset.badgeShape === c.shape && btn.dataset.badgeColor === c.color
+        );
+        btn.setAttribute("aria-pressed",
+            String(btn.dataset.badgeShape === c.shape && btn.dataset.badgeColor === c.color));
+    });
+}
+
+function setLevelBadge(shape, color) {
+
+    if (SIDEBAR_BADGE_SHAPES.indexOf(shape) === -1 ||
+        SIDEBAR_BADGE_COLORS.indexOf(color) === -1) {
+        return;
+    }
+
+    player.levelBadge = { shape: shape, color: color };
+
+    savePlayer();
+    updateSidebarLevel();
+    markSelectedBadge();
+
+    window.dispatchEvent(new CustomEvent("player-updated"));
+}
+
+window.setLevelBadge = setLevelBadge;
+window.markSelectedBadge = markSelectedBadge;
+window.MIRELON_BADGE_SHAPES = SIDEBAR_BADGE_SHAPES;
+window.MIRELON_BADGE_COLORS = SIDEBAR_BADGE_COLORS;
+
+function updateSidebarLevel() {
+
+    if (typeof player === "undefined" || typeof mirelonLevelProgress !== "function") {
+        return;
+    }
+
+    const prog = (player.progression && typeof player.progression.xp === "number")
+        ? player.progression
+        : { xp: 0, level: 1 };
+
+    const p = mirelonLevelProgress(prog.xp);
+    const choice = sidebarBadgeChoice();
+
+    const badge = document.getElementById("sidebar-level-badge");
+    const badgeNum = document.getElementById("sidebar-level-badge-num");
+    const box = document.getElementById("sidebar-level");
+    const text = document.getElementById("sidebar-level-text");
+    const fill = document.getElementById("sidebar-level-fill");
+    const goal = document.getElementById("sidebar-level-goal");
+
+    if (badge) {
+        badge.dataset.shape = choice.shape;
+        badge.dataset.color = choice.color;
+        const shapeEl = badge.querySelector(".sidebar-level-badge-shape");
+        if (shapeEl) {
+            shapeEl.style.backgroundImage =
+                'url("images/badges/' + choice.shape + "_" + choice.color + '.png")';
+        }
+    }
+    if (badgeNum) {
+        badgeNum.textContent = p.level;
+    }
+
+    if (box) { box.hidden = false; }
+
+    if (text) {
+        text.textContent = p.maxed
+            ? ("Stufe " + p.level + " · Höchststufe erreicht!")
+            : ("Stufe " + p.level + " · " + p.xp + " / " + p.nextXp + " XP");
+    }
+
+    if (fill) {
+        const pct = (p.span > 0) ? Math.max(0, Math.min(100, (p.into / p.span) * 100)) : 100;
+        fill.style.width = pct + "%";
+    }
+
+    if (goal) {
+        if (p.maxed) {
+            goal.textContent = "";
+            goal.hidden = true;
+        } else if (p.level < 3) {
+            goal.textContent = "Noch " + Math.max(0, MIRELON_CASTLE_XP - p.xp) + " XP bis zu deinem Schloss!";
+            goal.hidden = false;
+        } else {
+            goal.textContent = "Noch " + p.toNext + " XP bis Stufe " + p.nextLevel;
+            goal.hidden = false;
+        }
+    }
 }
 
 
