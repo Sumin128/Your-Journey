@@ -89,14 +89,17 @@ const SCHLOSS_FURNITURE = [
         colorable: false, colors: [], paintable: false, hasContent: false,
         unlockedBy: { type: "level", level: 3 }
     },
-    // surface: Oberflächen-Zone für surfaceDecor (Kerzen usw.) - Form +
-    // Halbmaße/Radius + Höhe über dem Boden (siehe JS/schloss-3d.js
-    // getSupportSurfaces). Bewusst grob, keine Physik.
+    // surface: Trägerfläche für surfaceDecor (Kerzen usw.). Nur FORM +
+    // Feinwerte - die Maße/Höhe kommen aus der SICHTBAREN Modell-Oberseite
+    // (JS/schloss-3d.js computeSurfaceZone), damit die Zone deckungsgleich
+    // mit Tischplatte/Deckel ist und mit dem Möbel mitdreht.
+    //   shape: "circle" (runde Platte) | "rect" (Deckel/Regal)
+    //   inset: XZ-Rand einwärts (m)   drop: Höhe unter die Modell-Oberkante (m)
     {
         id: "tisch_wald_a", name: "Waldtisch", category: "tische",
         styles: ["wald"], price: 20, size: "medium", rooms: ["wohnzimmer"],
         footprint: { w: 1.1, d: 1.1 },
-        surface: { shape: "circle", r: 0.44, top: 0.7 },
+        surface: { shape: "circle", inset: 0.02 },
         designs: [{ sprite: "images/schloss/moebel/tisch_wald_a.png", model: "images/schloss/models/tisch_wald_a.glb" }],
         colorable: false, colors: [], paintable: false, hasContent: false,
         unlockedBy: { type: "level", level: 3 }
@@ -140,7 +143,7 @@ const SCHLOSS_FURNITURE = [
         unlockedBy: null
     },
 
-    { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, modelScale: 1.15, surface: { shape: "rect", w: 0.74, d: 0.38, top: 1.8 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, modelScale: 1.15, surface: { shape: "rect", inset: 0.08 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, modelRotationY: -1.5708, designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png", model: "images/schloss/models/sofa_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Waldlampe: echtes GLB (Tripo image_to_3d aus bereinigtem Sprite -
     // der gemalte Glueh-Kranz wurde vor der Generation entfernt, sonst
@@ -156,7 +159,7 @@ const SCHLOSS_FURNITURE = [
     // --- Phase 2: Schlossladen-Erweiterung (alle frei per Coins kaufbar) ---
     { id: "hocker_wald_a", name: "Waldhocker", category: "sitzmoebel", styles: ["wald"], price: 10, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/hocker_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "baenkchen_wald_a", name: "Waldsessel", category: "sitzmoebel", styles: ["wald"], price: 22, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.9 }, designs: [{ sprite: "images/schloss/moebel/baenkchen_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "beistelltisch_wald_a", name: "Beistelltisch", category: "tische", styles: ["wald"], price: 16, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.65, d: 0.65 }, surface: { shape: "circle", r: 0.3, top: 0.6 }, designs: [{ sprite: "images/schloss/moebel/beistelltisch_wald_a.png", model: "images/schloss/models/beistelltisch_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "beistelltisch_wald_a", name: "Beistelltisch", category: "tische", styles: ["wald"], price: 16, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.65, d: 0.65 }, surface: { shape: "circle", inset: 0.06 }, designs: [{ sprite: "images/schloss/moebel/beistelltisch_wald_a.png", model: "images/schloss/models/beistelltisch_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "kissen_wald_a", name: "Kuschelkissen", category: "textilien", styles: ["wald"], price: 8, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, flatOnFloor: true, designs: [{ sprite: "images/schloss/moebel/kissen_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "vorhang_wald_a", name: "Waldvorhang", category: "textilien", styles: ["wald"], price: 14, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/vorhang_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "spiegel_wald_a", name: "Waldspiegel", category: "deko", styles: ["wald"], price: 20, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.6, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/spiegel_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
@@ -165,7 +168,7 @@ const SCHLOSS_FURNITURE = [
     // (deren surface-Zone), sonst Boden. flame + light -> An/Aus-Schalter,
     // flackerndes Punktlicht im gemeinsamen Licht-Budget.
     { id: "kerze_wald_a", name: "Kerzenständer", category: "licht", styles: ["wald"], price: 6, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.16, d: 0.16 }, placementType: "surfaceDecor", flame: true, light: { color: "#ffcf8a", intensity: 2.0, distance: 2.4, height: 0.34 }, designs: [{ sprite: "images/schloss/moebel/kerze_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "truhe_wald_a", name: "Holztruhe", category: "aufbewahrung", styles: ["wald"], price: 28, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.6 }, surface: { shape: "rect", w: 0.82, d: 0.54, top: 0.52 }, designs: [{ sprite: "images/schloss/moebel/truhe_wald_a.png", model: "images/schloss/models/truhe_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "truhe_wald_a", name: "Holztruhe", category: "aufbewahrung", styles: ["wald"], price: 28, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.6 }, surface: { shape: "rect", inset: 0.1, drop: 0.04 }, designs: [{ sprite: "images/schloss/moebel/truhe_wald_a.png", model: "images/schloss/models/truhe_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "blumenkasten_wald_a", name: "Blumenkasten", category: "pflanzen", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.4 }, designs: [{ sprite: "images/schloss/moebel/blumenkasten_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null }
 
 ];

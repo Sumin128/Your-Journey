@@ -535,8 +535,10 @@ function initSchloss3D(canvas) {
             populateWithCutout(group, furniture, design, instance.color);
         }
 
-        // Möbel-Oberfläche (Tisch/Regal/Truhe...): Zone registrieren, auf
-        // der surfaceDecor-Objekte (Kerzen usw.) stehen dürfen.
+        // Möbel-Oberfläche (Tisch/Regal/Truhe...): auf der surfaceDecor-
+        // Objekte (Kerzen usw.) stehen dürfen. Die tatsächliche Zone wird
+        // aus der sichtbaren Modell-Oberseite berechnet (computeSurfaceZone),
+        // sobald das Modell/der Cutout geladen ist.
         if (furniture.surface) {
             group.userData.surface = furniture.surface;
         }
@@ -559,43 +561,163 @@ function initSchloss3D(canvas) {
 
     }
 
-    // Aktive Oberflächen-Zonen aller platzierten Trägermöbel (Weltkoords).
-    // shape "rect": halbe Maße hw/hd, rotiert um rotY; "circle": Radius r.
+    // Oberflächen-Zone aus der SICHTBAREN Modell-Oberseite berechnen, im
+    // GRUPPEN-LOKALEN Frame (dreht später automatisch mit dem Möbel mit).
+    // furniture.surface liefert nur die Form + optionale Feinwerte:
+    //   shape: "circle" | "rect"   (Tischplatte rund, Deckel/Regal eckig)
+    //   inset: XZ-Rand einwärts (m)     drop: Höhe unter die Modell-Oberkante (m)
+    // Ergebnis: group.userData.surfaceZone = { shape, cx, cz, topY, hw, hd, r }
+    // (alles lokal zur Gruppe). box.isEmpty() -> Modell noch nicht da,
+    // spätere Neuberechnung.
+    const _tmpBox = new THREE.Box3();
+
+    function computeSurfaceZone(group) {
+        const s = group.userData.furniture && group.userData.furniture.surface;
+        if (!s) { return; }
+
+        // Gruppen-Transform (Position + Y-Drehung) NEUTRALISIEREN, damit
+        // setFromObject die eng anliegende Modell-AABB in den Gruppen-
+        // Achsen liefert (ein Welt-AABB eines gedrehten Möbels wäre viel
+        // zu gross). Modell-eigene Drehung/modelRotationY bleiben drin.
+        const savedRot = group.rotation.y;
+        group.rotation.y = 0;
+        const savedPos = group.position.clone();
+        group.position.set(0, 0, 0);
+        group.updateWorldMatrix(true, true);
+
+        const target = group.userData.model || group;
+        _tmpBox.setFromObject(target);
+
+        group.rotation.y = savedRot;
+        group.position.copy(savedPos);
+        group.updateWorldMatrix(true, true);
+
+        if (_tmpBox.isEmpty() || !isFinite(_tmpBox.max.y)) { return; }
+
+        const local = _tmpBox;
+        const size = local.getSize(new THREE.Vector3());
+        const ctr = local.getCenter(new THREE.Vector3());
+
+        const inset = (typeof s.inset === "number") ? s.inset : 0.06;
+        const drop = (typeof s.drop === "number") ? s.drop : 0.015;
+        const hw = Math.max(0.03, size.x / 2 - inset);
+        const hd = Math.max(0.03, size.z / 2 - inset);
+
+        group.userData.surfaceZone = {
+            shape: s.shape || "rect",
+            cx: ctr.x,
+            cz: ctr.z,
+            topY: local.max.y - drop,
+            hw: hw,
+            hd: hd,
+            r: Math.max(0.03, Math.min(hw, hd))
+        };
+    }
+
+    // Oberflächen-Zone EINES Trägermöbels in WELTKOORDINATEN, aus der
+    // aktuellen Gruppen-Transform (Position + Y-Drehung). Die Zone ist
+    // NUR die Begrenzung der sichtbaren Oberseite - der eigentliche
+    // Treffer-Test läuft beim Ziehen gegen das echte Mesh (siehe
+    // dragSurfaceDecor), nicht gegen eine unsichtbare Ebene.
+    function surfaceWorld(g) {
+        if (!g.userData.surfaceZone) { computeSurfaceZone(g); }
+        const z = g.userData.surfaceZone;
+        if (!z) { return null; }
+        const c = Math.cos(g.rotation.y), sn = Math.sin(g.rotation.y);
+        return {
+            group: g,
+            wx: g.position.x + z.cx * c - z.cz * sn,
+            wz: g.position.z + z.cx * sn + z.cz * c,
+            rotY: g.rotation.y,
+            top: g.position.y + z.topY,
+            shape: z.shape, r: z.r, hw: z.hw, hd: z.hd
+        };
+    }
+
+    // Aktive Oberflächen-Zonen aller Trägermöbel (für Debug-Overlay +
+    // Spawn-Erkennung). Höchste zuerst.
     function getSupportSurfaces(exceptGroup) {
         const out = [];
         placedGroups.forEach(function (g) {
-            if (g === exceptGroup) { return; }
-            const s = g.userData.surface;
-            if (!s) { return; }
-            out.push({
-                group: g,
-                cx: g.position.x,
-                cz: g.position.z,
-                rotY: g.rotation.y,
-                top: s.top,
-                shape: s.shape || "rect",
-                r: s.r || 0.4,
-                hw: (s.w || 0.8) / 2,
-                hd: (s.d || 0.8) / 2
-            });
+            if (g === exceptGroup || !g.userData.surface) { return; }
+            const s = surfaceWorld(g);
+            if (s) { out.push(s); }
         });
-        // höchste zuerst - beim Ziehen gewinnt die oberste Fläche
         out.sort(function (a, b) { return b.top - a.top; });
         return out;
     }
 
-    // Liegt der Weltpunkt (x,z) auf der Oberflächenzone s (mit Rand margin)?
+    // Liegt der Weltpunkt (x,z) auf der Oberflächenzone s (Rand margin;
+    // negativ = grosszuegiger)?
     function pointOnSurface(s, x, z, margin) {
         const m = margin || 0;
+        const cs = Math.cos(-s.rotY), sn = Math.sin(-s.rotY);
+        const lx = (x - s.wx) * cs - (z - s.wz) * sn;
+        const lz = (x - s.wx) * sn + (z - s.wz) * cs;
         if (s.shape === "circle") {
-            const dx = x - s.cx, dz = z - s.cz;
-            return dx * dx + dz * dz <= (s.r - m) * (s.r - m);
+            const rr = s.r - m;
+            return lx * lx + lz * lz <= rr * rr;
         }
-        // rect: in Möbel-lokale Achsen zurückdrehen
-        const c = Math.cos(-s.rotY), sn = Math.sin(-s.rotY);
-        const lx = (x - s.cx) * c - (z - s.cz) * sn;
-        const lz = (x - s.cx) * sn + (z - s.cz) * c;
         return Math.abs(lx) <= s.hw - m && Math.abs(lz) <= s.hd - m;
+    }
+
+    /* --- Entwickler-Debugansicht der Oberflächenzonen ---
+       Standardmässig AUS. Aktivieren nur lokal/temporär:
+         ?surfacedebug in der URL   ODER
+         window.__schlossSurfaceDebug = true   ODER
+         window.__schlossToggleSurfaceDebug()
+       Zeigt eine halbtransparente Fläche exakt dort, wo die berechnete
+       Zone liegt (folgt Position + Drehung des Möbels). */
+    let surfaceDebugOn = /[?&]surfacedebug\b/.test(location.search);
+    const surfaceDebugGroup = new THREE.Group();
+    surfaceDebugGroup.visible = surfaceDebugOn;
+    scene.add(surfaceDebugGroup);
+    const _surfaceDebugMeshes = new Map();
+
+    window.__schlossToggleSurfaceDebug = function () {
+        surfaceDebugOn = !surfaceDebugOn;
+        surfaceDebugGroup.visible = surfaceDebugOn;
+        return surfaceDebugOn;
+    };
+
+    function updateSurfaceDebug() {
+        if (typeof window.__schlossSurfaceDebug === "boolean" &&
+            window.__schlossSurfaceDebug !== surfaceDebugOn) {
+            surfaceDebugOn = window.__schlossSurfaceDebug;
+            surfaceDebugGroup.visible = surfaceDebugOn;
+        }
+        if (!surfaceDebugOn) { return; }
+
+        const live = new Set();
+        getSupportSurfaces(null).forEach(function (s) {
+            live.add(s.group);
+            let m = _surfaceDebugMeshes.get(s.group);
+            if (!m) {
+                m = new THREE.Mesh(
+                    new THREE.PlaneGeometry(1, 1),
+                    new THREE.MeshBasicMaterial({
+                        color: 0x33ddff, transparent: true, opacity: 0.4,
+                        side: THREE.DoubleSide, depthWrite: false
+                    })
+                );
+                m.rotation.x = -Math.PI / 2;
+                _surfaceDebugMeshes.set(s.group, m);
+                surfaceDebugGroup.add(m);
+            }
+            m.geometry.dispose();
+            m.geometry = s.shape === "circle"
+                ? new THREE.CircleGeometry(s.r, 32)
+                : new THREE.PlaneGeometry(s.hw * 2, s.hd * 2);
+            m.position.set(s.wx, s.top + 0.004, s.wz);
+            m.rotation.set(-Math.PI / 2, 0, -s.rotY);
+        });
+        _surfaceDebugMeshes.forEach(function (m, g) {
+            if (!live.has(g)) {
+                surfaceDebugGroup.remove(m);
+                m.geometry.dispose();
+                _surfaceDebugMeshes.delete(g);
+            }
+        });
     }
 
     room.placedItems.forEach(addFurnitureGroup);
@@ -701,6 +823,18 @@ function initSchloss3D(canvas) {
     selectionRing.visible = false;
     scene.add(selectionRing);
 
+    // Goldene Kontur der gültigen Tischplatte/Deckelfläche - nur sichtbar,
+    // solange eine surfaceDecor-Sache über eine gültige Oberseite gezogen
+    // wird (Sims-artiges "hier kannst du absetzen"-Feedback).
+    const surfaceHighlight = new THREE.Mesh(
+        new THREE.RingGeometry(0.86, 1.0, 48),
+        new THREE.MeshBasicMaterial({ color: 0xffca5c, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false })
+    );
+    surfaceHighlight.rotation.x = -Math.PI / 2;
+    surfaceHighlight.visible = false;
+    surfaceHighlight.renderOrder = 3;
+    scene.add(surfaceHighlight);
+
 
     /* --- Auswahl + Ziehen + Drehen + Entfernen --- */
 
@@ -754,6 +888,7 @@ function initSchloss3D(canvas) {
             updateLightToggle(group);
         } else {
             selectionRing.visible = false;
+            surfaceHighlight.visible = false;
             if (rotateControls) { rotateControls.hidden = true; }
             if (lightToggleBtn) { lightToggleBtn.hidden = true; }
         }
@@ -998,69 +1133,161 @@ function initSchloss3D(canvas) {
         selectionRing.position.set(x, 0.02, z);
     }
 
-    // --- surfaceDecor (Kerze usw.): auf die getroffene Möbel-Oberfläche
-    // snappen, sonst Boden. Mehrere auf derselben Fläche nur ohne
-    // Überschneidung. ---
+    // --- surfaceDecor (Kerze usw.): der Mausstrahl wird gegen die ECHTEN
+    // sichtbaren Meshes der Trägermöbel geschossen.
+    //   - Treffer auf der sichtbaren Oberseite (Normale nach oben,
+    //     Plattenhöhe) -> gültig, Kerze folgt dem Cursor direkt auf der
+    //     Platte, nur um den Kerzenradius nach innen begrenzt.
+    //   - Treffer auf Säule / Tischbein / Regalwand / Truhenseite ->
+    //     ungültig, die Kerze springt NICHT auf den Tisch (Boden-Fallback).
+    //   - Kein Möbel-Treffer (Cursor über/neben die Platte) -> Ebene der
+    //     Oberseite testen; fängt den exakten sichtbaren Plattenrand.
+    // Die Kreis-/Rechteckzone ist nur Begrenzung der echten Oberseite,
+    // keine eigene unsichtbare Trefferfläche. ---
+    const _nrm = new THREE.Vector3();
+    const _nrmMat = new THREE.Matrix3();
+    const _planeN = new THREE.Vector3(0, 1, 0);
+
     function dragSurfaceDecor() {
+
+        selected.userData.settleAnim = null;
 
         const fp = selected.userData.footprint || { w: 0.25, d: 0.25 };
         const rad = Math.max(fp.w, fp.d) / 2;
-        const surfaces = getSupportSurfaces(selected);
-        let target = null;
 
-        for (let i = 0; i < surfaces.length; i++) {
-            const s = surfaces[i];
-            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -s.top);
-            if (!raycaster.ray.intersectPlane(plane, _p)) { continue; }
-            // grosszuegig: der Cursor muss nur GROB die Fläche treffen
-            // (halber Objekt-Radius Toleranz), danach wird sauber
-            // hineingeschoben.
-            if (!pointOnSurface(s, _p.x, _p.z, -rad * 0.6)) { continue; }
-            let x = _p.x, z = _p.z;
-            // in die Zone schieben (Rand = rad)
+        // Kerze in die Zone der Oberseite s hineinschieben und Weltpunkt bauen
+        function buildTarget(s, g, px, pz) {
+            const csI = Math.cos(-s.rotY), snI = Math.sin(-s.rotY);
+            let lx = (px - s.wx) * csI - (pz - s.wz) * snI;
+            let lz = (px - s.wx) * snI + (pz - s.wz) * csI;
             if (s.shape === "circle") {
-                const dx = x - s.cx, dz = z - s.cz;
-                const d = Math.sqrt(dx * dx + dz * dz);
+                const dd = Math.sqrt(lx * lx + lz * lz);
                 const maxD = Math.max(0.02, s.r - rad);
-                if (d > maxD && d > 0) { x = s.cx + dx / d * maxD; z = s.cz + dz / d * maxD; }
+                if (dd > maxD && dd > 0) { lx = lx / dd * maxD; lz = lz / dd * maxD; }
             } else {
-                const cs = Math.cos(-s.rotY), sn = Math.sin(-s.rotY);
-                let lx = (x - s.cx) * cs - (z - s.cz) * sn;
-                let lz = (x - s.cx) * sn + (z - s.cz) * cs;
                 const mx = Math.max(0.02, s.hw - rad), mz = Math.max(0.02, s.hd - rad);
                 lx = Math.max(-mx, Math.min(mx, lx));
                 lz = Math.max(-mz, Math.min(mz, lz));
-                x = s.cx + lx * Math.cos(s.rotY) - lz * Math.sin(s.rotY);
-                z = s.cz + lx * Math.sin(s.rotY) + lz * Math.cos(s.rotY);
             }
-            // andere surfaceDecor auf DERSELBEN Fläche nicht überlappen
+            const csF = Math.cos(s.rotY), snF = Math.sin(s.rotY);
+            let x = s.wx + lx * csF - lz * snF;
+            let z = s.wz + lx * snF + lz * csF;
             placedGroups.forEach(function (other) {
-                if (other === selected) { return; }
-                if ((other.userData.placementType) !== "surfaceDecor") { return; }
-                if (other.userData.onSurface !== s.group) { return; }
+                if (other === selected || other.userData.placementType !== "surfaceDecor") { return; }
+                if (other.userData.onSurface !== g) { return; }
                 const of = other.userData.footprint || { w: 0.25, d: 0.25 };
                 const orad = Math.max(of.w, of.d) / 2;
                 const dx = x - other.position.x, dz = z - other.position.z;
                 const dd = Math.sqrt(dx * dx + dz * dz);
                 const minD = rad + orad + 0.03;
-                if (dd > 0.0001 && dd < minD) {
-                    x += dx / dd * (minD - dd);
-                    z += dz / dd * (minD - dd);
-                }
+                if (dd > 0.0001 && dd < minD) { x += dx / dd * (minD - dd); z += dz / dd * (minD - dd); }
             });
-            target = { x: x, y: s.top, z: z, surface: s.group };
-            break;
+            return { x: x, z: z, top: s.top, surface: g, s: s };
         }
 
-        if (!target) {
+        // sichtbare Meshes aller Trägermöbel (ohne die Kerze selbst)
+        const models = [];
+        placedGroups.forEach(function (g) {
+            if (g === selected || !g.userData.surface || !g.userData.model) { return; }
+            models.push(g.userData.model);
+        });
+
+        let target = null;
+        let blockedByBody = false;   // Cursor auf Säule/Bein -> nicht auf den Tisch
+        let dbgRayHit = null;
+
+        if (models.length) {
+            const hits = raycaster.intersectObjects(models, true);
+            if (hits.length) {
+                const hit = hits[0];
+                dbgRayHit = [+hit.point.x.toFixed(3), +hit.point.y.toFixed(3), +hit.point.z.toFixed(3)];
+
+                let node = hit.object, g = null;
+                while (node) {
+                    if (node.userData && node.userData.surface) { g = node; break; }
+                    node = node.parent;
+                }
+                const s = g ? surfaceWorld(g) : null;
+                if (s) {
+                    let up = 1;
+                    if (hit.face) {
+                        _nrmMat.getNormalMatrix(hit.object.matrixWorld);
+                        _nrm.copy(hit.face.normal).applyMatrix3(_nrmMat).normalize();
+                        up = _nrm.y;
+                    }
+                    const upFacing = up > 0.55;
+                    const atTop = hit.point.y > s.top - 0.05;
+                    // grobe Plausibilität: Treffer nicht meterweit neben der Platte
+                    const nearZone = pointOnSurface(s, hit.point.x, hit.point.z, -rad * 2);
+
+                    if (upFacing && atTop && nearZone) {
+                        target = buildTarget(s, g, hit.point.x, hit.point.z);
+                    } else {
+                        // Treffer auf Säule/Bein/Seite -> KEIN Snap auf den Tisch
+                        blockedByBody = true;
+                    }
+                }
+            }
+        }
+
+        // Kein gültiger Möbel-Treffer und der Cursor liegt NICHT auf dem
+        // Möbelkörper: horizontale Ebene der Oberseite testen. Fängt den
+        // exakten sichtbaren Plattenrand (Mesh-Silhouette schon knapp
+        // verfehlt) und "von schräg oben über die Platte".
+        if (!target && !blockedByBody) {
+            const surfaces = getSupportSurfaces(selected);
+            for (let i = 0; i < surfaces.length; i++) {
+                const s = surfaces[i];
+                const plane = new THREE.Plane(_planeN, -s.top);
+                if (!raycaster.ray.intersectPlane(plane, _p)) { continue; }
+                if (!pointOnSurface(s, _p.x, _p.z, -0.03)) { continue; }
+                target = buildTarget(s, s.group, _p.x, _p.z);
+                if (!dbgRayHit) { dbgRayHit = [+_p.x.toFixed(3), +_p.y.toFixed(3), +_p.z.toFixed(3)]; }
+                break;
+            }
+        }
+
+        if (target) {
+            // Vorschau schwebt leicht über der Platte (setzt beim Loslassen
+            // weich auf, siehe endDrag + animate).
+            selected.position.set(target.x, target.top + 0.05, target.z);
+            selected.userData.onSurface = target.surface;
+            selected.userData.settleTop = target.top;
+            const s = target.s;
+            surfaceHighlight.visible = true;
+            surfaceHighlight.position.set(s.wx, s.top + 0.006, s.wz);
+            surfaceHighlight.rotation.set(-Math.PI / 2, 0, -s.rotY);
+            const outer = s.shape === "circle" ? s.r : Math.max(s.hw, s.hd);
+            surfaceHighlight.scale.set(outer, outer, 1);
+        } else if (blockedByBody) {
+            // Cursor liegt auf Säule / Tischbein / Möbelseite: nichts
+            // platzieren, die Kerze bleibt wo sie ist (Sims-artig: der
+            // Geist rastet hier nicht ein). Ein evtl. Schwebe-Offset wird
+            // aufgesetzt, damit sie nicht in der Luft hängt.
+            surfaceHighlight.visible = false;
+            if (typeof selected.userData.settleTop === "number") {
+                selected.position.y = selected.userData.settleTop + 0.005;
+            }
+        } else {
             if (!raycaster.ray.intersectPlane(floorPlane, _p)) { return; }
             const c = clampToFloor(_p.x, _p.z, fp);
-            target = { x: c.x, y: 0, z: c.z, surface: null };
+            selected.position.set(c.x, 0, c.z);
+            selected.userData.onSurface = null;
+            selected.userData.settleTop = null;
+            surfaceHighlight.visible = false;
         }
 
-        selected.position.set(target.x, target.y, target.z);
-        selected.userData.onSurface = target.surface;
-        selectionRing.position.set(target.x, 0.02, target.z);
+        selectionRing.position.set(selected.position.x, 0.02, selected.position.z);
+
+        if (surfaceDebugOn) {
+            window.__surfDebug = {
+                pointerRayHit: dbgRayHit,
+                surface: target ? target.surface.userData.instanceId : null,
+                surfaceTopY: target ? +target.top.toFixed(4) : null,
+                candlePreviewPos: [+selected.position.x.toFixed(3), +selected.position.y.toFixed(3), +selected.position.z.toFixed(3)],
+                valid: Boolean(target)
+            };
+        }
     }
 
     // --- wallDecor: an die nächstliegende Innenwand snappen, automatisch
@@ -1107,6 +1334,7 @@ function initSchloss3D(canvas) {
 
         dragging = false;
         dragPointerId = null;
+        surfaceHighlight.visible = false;
 
         // Nur EINMAL beim Loslassen speichern.
         if (dragMoved && selected) {
@@ -1121,9 +1349,25 @@ function initSchloss3D(canvas) {
                     instance.z = selected.position.z;
                     instance.rotationY = selected.rotation.y;
                 } else {
+                    // surfaceDecor: die Vorschau schwebt - beim Loslassen
+                    // sanft auf die exakte Oberflächenhöhe absetzen (animate()
+                    // lerpt g.position.y). Der gespeicherte Wert ist sofort
+                    // die Endhöhe.
+                    let finalY = selected.position.y;
+                    if (ud.placementType === "surfaceDecor" && typeof ud.settleTop === "number") {
+                        finalY = ud.settleTop + 0.005;
+                        ud.settleAnim = { from: selected.position.y, to: finalY,
+                            start: (typeof performance !== "undefined" ? performance.now() : Date.now()) };
+                    }
                     instance.x = selected.position.x;
                     instance.z = selected.position.z;
-                    instance.y = Math.round(selected.position.y * 1000) / 1000;
+                    instance.y = Math.round(finalY * 1000) / 1000;
+                }
+                if (surfaceDebugOn && ud.placementType === "surfaceDecor") {
+                    console.log("[schloss surfaceDecor] finale Kerzenposition",
+                        [+instance.x.toFixed(3), instance.y, +instance.z.toFixed(3)],
+                        "| onSurface", ud.onSurface ? (ud.onSurface.userData.instanceId || "?") : "(Boden)",
+                        "| settleTop", ud.settleTop != null ? +ud.settleTop.toFixed(4) : "(Boden)");
                 }
                 saveSchloss();
             }
@@ -1179,6 +1423,16 @@ function initSchloss3D(canvas) {
             fireMesh.userData.embers.material.opacity = 0.55 + Math.sin(t * 2.1) * 0.16 + Math.sin(t * 5.3) * 0.06;
         }
 
+        // surfaceDecor sanft auf die Oberfläche absetzen (nach dem Loslassen).
+        for (let i = 0; i < placedGroups.length; i++) {
+            const a = placedGroups[i].userData.settleAnim;
+            if (!a) { continue; }
+            const k = Math.min(1, ((time || 0) - a.start) / 130);
+            const e = k * k * (3 - 2 * k);
+            placedGroups[i].position.y = a.from + (a.to - a.from) * e;
+            if (k >= 1) { placedGroups[i].position.y = a.to; placedGroups[i].userData.settleAnim = null; }
+        }
+
         // Kerzen: kleine Flamme flackern lassen + Punktlicht-Budget
         // (nur die kameranächsten brennenden Lichter tragen wirklich bei).
         for (let i = 0; i < placedGroups.length; i++) {
@@ -1197,6 +1451,7 @@ function initSchloss3D(canvas) {
             }
         }
         updateLightBudget(camera.position);
+        updateSurfaceDebug();
 
         renderer.render(scene, camera);
 
@@ -1298,6 +1553,10 @@ function initSchloss3D(canvas) {
                 group.add(model);
                 group.userData.model = model;
 
+                // Oberflächen-Zone aus der jetzt sichtbaren Modell-
+                // Oberseite berechnen (Trägermöbel für Kerzen usw.).
+                if (furniture.surface) { computeSurfaceZone(group); }
+
             },
             undefined,
             function (error) {
@@ -1387,6 +1646,10 @@ function initSchloss3D(canvas) {
             if (initialColor) {
                 applyColorToGroup(group, initialColor);
             }
+
+            // Cutout-Trägermöbel (GLB fehlt/fehlgeschlagen): Oberfläche aus
+            // der jetzt bekannten Cutout-Höhe berechnen.
+            if (furniture.surface) { computeSurfaceZone(group); }
 
         });
 

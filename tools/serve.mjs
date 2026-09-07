@@ -35,7 +35,13 @@ export function startServer(port = 0) {
                 if (!info || !info.isFile()) { res.writeHead(404).end("404: " + path); return; }
 
                 const body = await readFile(filePath);
-                res.writeHead(200, { "Content-Type": MIME[extname(filePath).toLowerCase()] || "application/octet-stream" });
+                res.writeHead(200, {
+                    "Content-Type": MIME[extname(filePath).toLowerCase()] || "application/octet-stream",
+                    // Lokaler Test-Server: nie cachen, sonst testet man
+                    // versehentlich alten JS-/HTML-Stand (ES-Module bleiben
+                    // sonst im Module-Cache des Tabs hängen).
+                    "Cache-Control": "no-store, must-revalidate"
+                });
                 res.end(body);
             } catch (e) {
                 res.writeHead(500).end(String(e));
