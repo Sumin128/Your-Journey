@@ -192,7 +192,7 @@
 
     function showResult() {
 
-        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen" } }));
+        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen", difficulty: "normal", roundId: "schatten" } }));
 
         stageEl.innerHTML = "";
 

@@ -9,6 +9,7 @@ if (typeof markAnimalVisited === "function") {
 let currentQuestion = 0;
 let score = 0;
 let activeQuiz = [];
+let activeQuizId = null;
 let currentCategoryId = null;
 let currentGroup = "wissen";
 // true, wenn wir die Quizliste uebersprungen haben (Kategorie mit nur
@@ -240,6 +241,7 @@ function startQuiz(quizId) {
     }
 
     activeQuiz = shuffleQuiz(quizEntry.quiz);
+    activeQuizId = quizId;
 
     // Neues Spiel beginnen
     currentQuestion = 0;
@@ -507,7 +509,7 @@ function showResults() {
 
     if (typeof registerQuizCompletion === "function") {
 
-        registerQuizCompletion();
+        registerQuizCompletion(activeQuizId);
 
     }
 

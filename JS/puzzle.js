@@ -965,7 +965,7 @@
       // Storage may be unavailable in private or restricted browser contexts.
     }
     if (typeof registerPuzzleCompletion === 'function') {
-      registerPuzzleCompletion(sourceGalleryLabel);
+      registerPuzzleCompletion(sourceGalleryLabel, pieces.length, difficultySelect.value === 'schwierig');
     }
     if (typeof registerPuzzleLuisVariant === 'function') {
       registerPuzzleLuisVariant(puzzleApp.getAttribute('data-theme'));

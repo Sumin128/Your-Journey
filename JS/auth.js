@@ -149,22 +149,29 @@ window.addEventListener("mirelon:earn-coins", async function (event) {
    in JS/level-data.js).
    ===================================================== */
 
+let mirelonServerCapNoticeShown = false;
+
 window.addEventListener("mirelon:earn-xp", async function (event) {
 
     if (!supabaseClient || !currentSession) {
         return;
     }
 
-    const reason =
-        event && event.detail && typeof event.detail.reason === "string"
-            ? event.detail.reason
-            : null;
+    const detail = (event && event.detail) || {};
+    const reason = typeof detail.reason === "string" ? detail.reason : null;
+    const difficulty = typeof detail.difficulty === "string" ? detail.difficulty : "normal";
+    const roundId = (detail.roundId != null) ? String(detail.roundId) : null;
 
     if (!reason) {
         return;
     }
 
-    const rpcResult = await supabaseClient.rpc("earn_xp", { p_reason: reason });
+    const rpcArgs = { p_reason: reason, p_difficulty: difficulty };
+    if (roundId) {
+        rpcArgs.p_round_id = roundId;
+    }
+
+    const rpcResult = await supabaseClient.rpc("earn_xp", rpcArgs);
 
     if (rpcResult.error) {
 
@@ -190,6 +197,13 @@ window.addEventListener("mirelon:earn-xp", async function (event) {
         player.progression.level = authoritative.level;
         player.progression.unlockedFeatures = authoritative.unlockedFeatures || [];
         player.progression.claimedLevelRewards = authoritative.claimedLevelRewards || [];
+
+        if (typeof authoritative.dayXp === "number") {
+            player.progression.dayXp = authoritative.dayXp;
+        }
+        if (typeof authoritative.dayDate === "string") {
+            player.progression.dayDate = authoritative.dayDate;
+        }
 
         if (typeof authoritative.coins === "number") {
             player.coins = authoritative.coins;
@@ -229,6 +243,20 @@ window.addEventListener("mirelon:earn-xp", async function (event) {
             typeof window.showMirelonLevelUp === "function"
         ) {
             window.showMirelonLevelUp(authoritative.level, authoritative.grantedRewards, authoritative.storyEvent);
+        }
+
+        // Tageslimit erreicht (voll gedeckelt oder Rest gekappt) -> einmal
+        // pro Seite freundlich Bescheid geben.
+        if (authoritative.capped && !authoritative.alreadyRewarded &&
+            !mirelonServerCapNoticeShown && typeof showMirelonToast === "function") {
+            showMirelonToast("Du hast heute schon viel entdeckt! Morgen warten neue Sterne auf dich.", "info");
+            mirelonServerCapNoticeShown = true;
+        }
+
+        // Zweites Bild am selben Tag: freundlich, kein Fehlerton.
+        if (authoritative.alreadyRewarded && reason === "malstube_bild_gespeichert" &&
+            typeof showMirelonToast === "function") {
+            showMirelonToast("Deine Kreativ-XP für heute hast du schon bekommen – mal gern weiter!", "info");
         }
 
     }

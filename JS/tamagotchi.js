@@ -873,7 +873,7 @@
         // tränken/putzen) zählt als XP-Quelle - getrennt vom
         // Baumkind-eigenen addXP() oben (dessen XP/Level gehören nur
         // zum Zauber-Gefährten, nicht zum allgemeinen Mirelon-Level).
-        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "baumkind_gepflegt" } }));
+        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "baumkind_gepflegt", difficulty: "leicht" } }));
     }
 
     function cuddle(runAcross) {

@@ -105,7 +105,13 @@ function defaultProgression() {
         xp: 0,
         level: 1,
         unlockedFeatures: [],
-        claimedLevelRewards: []
+        claimedLevelRewards: [],
+        // Tageslimit (max. 100 reguläre XP / Kalendertag) + Wiederholungs-
+        // sperre. Bei angemeldeten Nutzern schreibt das ausschliesslich
+        // earn_xp() serverseitig; für Gäste pflegt es applyEarnedXp().
+        dayDate: null,
+        dayXp: 0,
+        xpRounds: {}
     };
 
 }
@@ -519,6 +525,10 @@ if (!player.consumables || typeof player.consumables !== "object") {
             player.progression.claimedLevelRewards = [];
         }
 
+        if (!player.progression.xpRounds || typeof player.progression.xpRounds !== "object") {
+            player.progression.xpRounds = {};
+        }
+
     }
 
     if (!Array.isArray(player.pendingStoryEvents)) {
@@ -836,29 +846,46 @@ function updatePlayerUI() {
        das passiert dort.
        ===================================================== */
 
+    let mirelonDailyCapNoticeShown = false;
+
     window.addEventListener("mirelon:earn-xp", function (event) {
 
-        const reason =
-            event && event.detail && typeof event.detail.reason === "string"
-                ? event.detail.reason
-                : null;
+        const detail = (event && event.detail) || {};
+        const reason = typeof detail.reason === "string" ? detail.reason : null;
+        const difficulty = typeof detail.difficulty === "string" ? detail.difficulty : "normal";
+        const roundId = (detail.roundId != null) ? String(detail.roundId) : null;
 
-        if (!reason || typeof MIRELON_XP_REWARDS === "undefined") {
+        if (!reason || typeof applyEarnedXp !== "function") {
             return;
         }
 
-        const xpAmount = MIRELON_XP_REWARDS[reason];
-
-        if (typeof xpAmount !== "number") {
+        if (mirelonXpFor(reason, difficulty) == null) {
             return;
         }
 
-        const result = applyEarnedXp(xpAmount);
+        const result = applyEarnedXp(reason, difficulty, roundId);
+
+        // Wiederholte Runde / Seitenbesuch: nichts passiert, still -
+        // ausser in der Malstube: dort freundlich Bescheid geben, dass
+        // die Kreativ-XP für heute schon vergeben ist.
+        if (result.alreadyRewarded) {
+            if (reason === "malstube_bild_gespeichert" && typeof showMirelonToast === "function") {
+                showMirelonToast("Deine Kreativ-XP für heute hast du schon bekommen – mal gern weiter!", "info");
+            }
+            return;
+        }
+
+        // Tageslimit erreicht: einmal pro Seite freundlich Bescheid geben.
+        if (result.xpGained === 0 && result.capped) {
+            if (!mirelonDailyCapNoticeShown && typeof showMirelonToast === "function") {
+                showMirelonToast("Du hast heute schon viel entdeckt! Morgen warten neue Sterne auf dich.", "info");
+                mirelonDailyCapNoticeShown = true;
+            }
+            return;
+        }
 
         savePlayer();
-
         updatePlayerUI();
-
         window.dispatchEvent(new CustomEvent("player-updated"));
 
         // Bei angemeldeten Nutzern zeigt der separate, maßgebliche
@@ -871,6 +898,13 @@ function updatePlayerUI() {
 
         if (!loggedIn && result.grantedRewards.length && typeof window.showMirelonLevelUp === "function") {
             window.showMirelonLevelUp(player.progression.level, result.grantedRewards, result.storyEvent);
+        }
+
+        // Rest-XP wurde vom Tageslimit gekappt (Teilgutschrift) -> auch
+        // hier die freundliche Meldung, aber nur einmal.
+        if (result.capped && !mirelonDailyCapNoticeShown && typeof showMirelonToast === "function") {
+            showMirelonToast("Du hast heute schon viel entdeckt! Morgen warten neue Sterne auf dich.", "info");
+            mirelonDailyCapNoticeShown = true;
         }
 
     });
@@ -1636,7 +1670,7 @@ const quizCompletionAchievements = [
     { id: "quiz_10", count: 10, name: "10 Quizze gemeistert", description: "Schließe 10 Quizze bei Kuro ab.", icon: "🏆" }
 ];
 
-function registerQuizCompletion() {
+function registerQuizCompletion(quizId) {
 
     if (typeof player.quizzesCompleted !== "number") {
 
@@ -1650,7 +1684,11 @@ function registerQuizCompletion() {
 
     awardHighscorePoints();
 
-    window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "quiz_richtig" } }));
+    // roundId = Quiz-ID: dasselbe Quiz gibt nicht direkt wieder XP,
+    // ein anderes Quiz (oder derselbe am nächsten Tag) schon.
+    window.dispatchEvent(new CustomEvent("mirelon:earn-xp", {
+        detail: { reason: "quiz_richtig", difficulty: "normal", roundId: quizId || null }
+    }));
 
     const unlockedAchievement = quizCompletionAchievements.find(
         function (achievement) {
@@ -1913,7 +1951,21 @@ const puzzleGalleryAchievement = {
     icon: "🗺️"
 };
 
-function registerPuzzleCompletion(galleryImageLabel) {
+/* Teilezahl -> Schwierigkeitsstufe (nutzt die vorhandenen Puzzle-
+   Stufen [12,20,35,48,63,88,108]). Rotations-Modus ("schwierig")
+   hebt zusätzlich eine Stufe an. */
+function puzzleDifficulty(pieceCount, rotationMode) {
+
+    let tier = (pieceCount <= 20) ? 0 : (pieceCount <= 48 ? 1 : 2);
+
+    if (rotationMode) {
+        tier = Math.min(2, tier + 1);
+    }
+
+    return ["leicht", "normal", "schwer"][tier];
+}
+
+function registerPuzzleCompletion(galleryImageLabel, pieceCount, rotationMode) {
 
     if (typeof player.puzzlesCompleted !== "number") {
 
@@ -1943,7 +1995,16 @@ function registerPuzzleCompletion(galleryImageLabel) {
 
     awardHighscorePoints();
 
-    window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "puzzle_geloest" } }));
+    // roundId = Bild + Teilezahl: dasselbe Puzzle in gleicher Grösse
+    // gibt nicht direkt wieder XP; anderes Bild, andere Teilezahl oder
+    // höhere Schwierigkeit schon.
+    window.dispatchEvent(new CustomEvent("mirelon:earn-xp", {
+        detail: {
+            reason: "puzzle_geloest",
+            difficulty: puzzleDifficulty(Number(pieceCount) || 0, Boolean(rotationMode)),
+            roundId: (galleryImageLabel || "puzzle") + "_" + (Number(pieceCount) || 0)
+        }
+    }));
 
     const unlockedCountAchievement = puzzleCompletionAchievements.find(
         function (achievement) {

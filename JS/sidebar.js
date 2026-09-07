@@ -790,6 +790,16 @@ const inventoryButton =
                     <span class="inventory-item-status"></span>
                 </button>
 
+                <button
+                    id="inventory-konfetti"
+                    class="inventory-item"
+                    type="button"
+                    data-category="items">
+                    <span class="inventory-item-icon" aria-hidden="true">🎊</span>
+                    <span class="inventory-item-name">Konfetti</span>
+                    <span class="inventory-item-status"></span>
+                </button>
+
             </div>
 
             <p class="inventory-empty-state" hidden>
@@ -973,6 +983,41 @@ function updateInventoryUI() {
 
     }
 
+    /* Verbrauchs-Konfetti (Kategorie "Items") - gleiche Mechanik wie
+       Feuerwerk, eigener seltener Vorrat. */
+    const konfettiButton = document.getElementById("inventory-konfetti");
+
+    if (konfettiButton) {
+
+        const qty = (player.consumables && Number(player.consumables.konfetti)) || 0;
+        const matchesCategory =
+            activeInventoryCategory === "all" ||
+            activeInventoryCategory === "items";
+
+        konfettiButton.hidden = !matchesCategory;
+
+        if (matchesCategory) {
+            visibleCount++;
+        }
+
+        konfettiButton.disabled = qty < 1;
+        konfettiButton.classList.toggle("is-locked", qty < 1);
+
+        const statusEl = konfettiButton.querySelector(".inventory-item-status");
+
+        if (statusEl) {
+            statusEl.textContent = qty > 0 ? "×" + qty + " · Werfen" : "🔒 Leer";
+        }
+
+        konfettiButton.setAttribute(
+            "aria-label",
+            qty > 0
+                ? "Konfetti werfen, noch " + qty + " übrig"
+                : "Konfetti, leer – als Level-Belohnung erhältlich"
+        );
+
+    }
+
     const emptyState =
         inventoryPanel.querySelector(".inventory-empty-state");
 
@@ -984,28 +1029,28 @@ function updateInventoryUI() {
 
 
 /* =====================================================
-   INVENTAR: FEUERWERK ZÜNDEN
+   INVENTAR: VERBRAUCHS-EFFEKTE (Feuerwerk, Konfetti)
    Verbrauch bei angemeldeten Konten serverseitig über
    use_consumable_item() (siehe supabase_migration_
    security_player_data.sql); der Effekt startet erst
-   nach erfolgreichem Abzug.
+   NACH erfolgreichem Abzug.
    ===================================================== */
 
-let fireworkBusy = false;
+let consumableBusy = false;
 
-async function igniteFirework() {
+async function useConsumable(key, effect) {
 
-    if (fireworkBusy) {
+    if (consumableBusy) {
         return;
     }
 
-    const qty = (player.consumables && Number(player.consumables.feuerwerk)) || 0;
+    const qty = (player.consumables && Number(player.consumables[key])) || 0;
 
     if (qty < 1) {
         return;
     }
 
-    fireworkBusy = true;
+    consumableBusy = true;
 
     try {
 
@@ -1015,7 +1060,7 @@ async function igniteFirework() {
 
         if (loggedIn) {
 
-            const res = await supabaseClient.rpc("use_consumable_item", { item_key: "feuerwerk" });
+            const res = await supabaseClient.rpc("use_consumable_item", { item_key: key });
 
             if (res.error) {
                 throw res.error;
@@ -1026,9 +1071,9 @@ async function igniteFirework() {
             }
 
             if (res.data && typeof res.data.remaining === "number") {
-                player.consumables.feuerwerk = res.data.remaining;
+                player.consumables[key] = res.data.remaining;
             } else {
-                player.consumables.feuerwerk = qty - 1;
+                player.consumables[key] = qty - 1;
             }
 
         } else {
@@ -1037,7 +1082,7 @@ async function igniteFirework() {
                 player.consumables = {};
             }
 
-            player.consumables.feuerwerk = qty - 1;
+            player.consumables[key] = qty - 1;
 
         }
 
@@ -1048,22 +1093,38 @@ async function igniteFirework() {
             inventoryPanel.hidden = true;
         }
 
-        if (typeof MirelonFireworks !== "undefined" && MirelonFireworks.play) {
-            MirelonFireworks.play({ seconds: 12 });
+        if (typeof effect === "function") {
+            effect();
         }
 
     } catch (e) {
 
         if (typeof showMirelonToast === "function") {
-            showMirelonToast("Feuerwerk fehlgeschlagen: " + (e && e.message ? e.message : e), "error");
+            showMirelonToast("Hat nicht geklappt: " + (e && e.message ? e.message : e), "error");
         }
 
     } finally {
 
-        fireworkBusy = false;
+        consumableBusy = false;
 
     }
 
+}
+
+function igniteFirework() {
+    return useConsumable("feuerwerk", function () {
+        if (typeof MirelonFireworks !== "undefined" && MirelonFireworks.play) {
+            MirelonFireworks.play({ seconds: 12 });
+        }
+    });
+}
+
+function throwKonfetti() {
+    return useConsumable("konfetti", function () {
+        if (typeof MirelonConfetti !== "undefined" && MirelonConfetti.play) {
+            MirelonConfetti.play({ seconds: 8 });
+        }
+    });
 }
 
 (function () {
@@ -1072,6 +1133,12 @@ async function igniteFirework() {
 
     if (fireworkButton) {
         fireworkButton.addEventListener("click", igniteFirework);
+    }
+
+    const konfettiButton = document.getElementById("inventory-konfetti");
+
+    if (konfettiButton) {
+        konfettiButton.addEventListener("click", throwKonfetti);
     }
 
 })();

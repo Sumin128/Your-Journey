@@ -146,7 +146,7 @@
 
     function showWin() {
 
-        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen" } }));
+        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen", difficulty: "normal", roundId: "memory" } }));
 
         const message = document.getElementById("faro-memory-message");
         if (message) {

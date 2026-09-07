@@ -84,6 +84,12 @@
     let history = [];
     let redoStack = [];
 
+    // Anzahl echter Mal-Aktionen seit dem letzten Leeren - faire
+    // Mindestprüfung für die tägliche Kreativ-XP (keine strenge
+    // Qualitätsbewertung). Undo lässt den Zähler stehen; die
+    // Pixel-Prüfung fängt "alles wieder weggemacht" ab.
+    let paintActions = 0;
+
     let shapeStartPoint = null;
     let shapeSnapshot = null;
     let sprayIntervalId = null;
@@ -100,7 +106,11 @@
 
     }
 
-    function pushHistoryState() {
+    function pushHistoryState(countsAsPaint) {
+
+        if (countsAsPaint) {
+            paintActions++;
+        }
 
         history.push(canvas.toDataURL());
 
@@ -868,7 +878,7 @@
         if (currentTool === "bucket") {
 
             floodFill(point.x, point.y, hexToRgb(currentColor));
-            pushHistoryState();
+            pushHistoryState(true);
 
             return;
 
@@ -877,7 +887,7 @@
         if (currentTool === "gradient") {
 
             floodFillGradient(point.x, point.y, hexToRgb(currentColor));
-            pushHistoryState();
+            pushHistoryState(true);
 
             return;
 
@@ -886,7 +896,7 @@
         if (currentTool === "stamp") {
 
             drawStamp(point);
-            pushHistoryState();
+            pushHistoryState(true);
 
             return;
 
@@ -981,7 +991,7 @@
         shapeStartPoint = null;
         shapeSnapshot = null;
 
-        pushHistoryState();
+        pushHistoryState(true);
 
     }
 
@@ -1056,6 +1066,7 @@
         }
 
         fillWhiteBackground();
+        paintActions = 0;
         pushHistoryState();
 
     });
@@ -1077,6 +1088,35 @@
 
     }
 
+    /* Faire Mindestprüfung für die tägliche Kreativ-XP: sichtbare
+       Bemalung (nennenswert viele Nicht-Weiss-Pixel). Grobes Raster-
+       Sampling, keine Qualitätsbewertung. */
+    function hasVisiblePaint() {
+
+        try {
+            const step = 7;
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            let painted = 0;
+            let total = 0;
+
+            for (let y = 0; y < canvas.height; y += step) {
+                for (let x = 0; x < canvas.width; x += step) {
+                    const i = (y * canvas.width + x) * 4;
+                    total++;
+                    if (data[i] < 244 || data[i + 1] < 244 || data[i + 2] < 244) {
+                        painted++;
+                    }
+                }
+            }
+
+            return total > 0 && painted / total > 0.01;
+        } catch (e) {
+            // getImageData kann in seltenen Kontexten werfen -> im Zweifel
+            // grosszügig sein, die Server-Tageslogik deckelt ohnehin.
+            return true;
+        }
+    }
+
     saveButton.addEventListener("click", async function () {
 
         if (!isLoggedIn()) {
@@ -1089,6 +1129,11 @@
         }
 
         setMessage("Bild wird gespeichert …", false);
+
+        // Nur ein Bild mit sichtbarer Bemalung + ein paar echten
+        // Pinselbewegungen kann Kreativ-XP geben (max. 1x/Kalendertag,
+        // serverseitig). Speichern klappt trotzdem immer.
+        const earnsXp = paintActions >= 3 && hasVisiblePaint();
 
         canvas.toBlob(async function (blob) {
 
@@ -1120,7 +1165,11 @@
                 return;
             }
 
-            window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "malstube_bild_gespeichert" } }));
+            if (earnsXp) {
+                window.dispatchEvent(new CustomEvent("mirelon:earn-xp", {
+                    detail: { reason: "malstube_bild_gespeichert", difficulty: "normal" }
+                }));
+            }
 
             setMessage("Bild gespeichert! Du findest es in deiner Galerie. 🎉", false);
 

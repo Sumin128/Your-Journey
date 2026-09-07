@@ -471,3 +471,49 @@
 #mirelon-fireworks .mf-skip:hover {
     background: rgba(0, 0, 0, 0.55);
 }
+
+/* =====================================================
+   KONFETTI-OVERLAY  (JS/confetti.js)
+   ===================================================== */
+
+#mirelon-confetti {
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    background: rgba(6, 8, 20, 0.28);
+    opacity: 1;
+    transition: opacity 0.45s ease;
+}
+
+#mirelon-confetti.mc-out {
+    opacity: 0;
+}
+
+#mirelon-confetti canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#mirelon-confetti .mc-skip {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    padding: 8px 18px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 99px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+#mirelon-confetti .mc-skip:hover {
+    background: rgba(0, 0, 0, 0.55);
+}

@@ -114,7 +114,7 @@
         if (typeof playCorrectSound === "function") { playCorrectSound(); }
 
         if (found.length === ITEMS.length) {
-            window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen" } }));
+            window.dispatchEvent(new CustomEvent("mirelon:earn-xp", { detail: { reason: "faro_spiel_gewonnen", difficulty: "normal", roundId: "verstecke" } }));
             flashHint("Alles gefunden! Faro ist beeindruckt. 🦊");
         } else {
             flashHint(item.label + " gefunden!  (" + found.length + " / " + ITEMS.length + ")");
