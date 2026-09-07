@@ -34,7 +34,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=49">
+        href="CSS/style.css?v=50">
 
     <link
         rel="stylesheet"
@@ -251,12 +251,28 @@
 
                 <div class="settings-row-text">
                     <h2>⭐ Mein Level-Abzeichen</h2>
-                    <p>Form und Farbe deines Abzeichens in der Sidebar. Die Levelzahl steht immer automatisch darüber.</p>
+                    <p>Wähle Form und Farbe. Deine Levelzahl steht immer automatisch mittig darauf.</p>
                 </div>
 
             </div>
 
-            <div id="settings-badge-grid" class="settings-badge-grid" aria-label="Level-Abzeichen wählen"></div>
+            <div class="settings-badge">
+
+                <p class="settings-badge-steplabel" id="settings-badge-shapes-label">Form wählen</p>
+                <div class="settings-badge-row" id="settings-badge-shapes" role="group" aria-labelledby="settings-badge-shapes-label"></div>
+
+                <p class="settings-badge-steplabel" id="settings-badge-colors-label">Farbe wählen</p>
+                <div class="settings-badge-row" id="settings-badge-colors" role="group" aria-labelledby="settings-badge-colors-label"></div>
+
+                <div class="settings-badge-preview-wrap">
+                    <p class="settings-badge-steplabel">Vorschau</p>
+                    <span class="settings-badge-preview" id="settings-badge-preview" aria-hidden="true">
+                        <span class="settings-badge-preview-shape"></span>
+                        <span class="settings-badge-preview-num" id="settings-badge-preview-num">1</span>
+                    </span>
+                </div>
+
+            </div>
 
         </section>
 
@@ -289,18 +305,18 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=33"></script>
+    <script src="JS/player.js?v=34"></script>
     <script src="JS/level-data.js?v=2"></script>
     <script src="JS/level-up.js?v=3"></script>
     <script src="JS/auth.js?v=12"></script>
-    <script src="JS/sidebar.js?v=25"></script>
+    <script src="JS/sidebar.js?v=26"></script>
     <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=9"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/confetti.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/data.js?v=3"></script>
-    <script src="JS/einstellungen.js?v=5"></script>
+    <script src="JS/einstellungen.js?v=6"></script>
 
 
 </body>

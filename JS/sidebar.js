@@ -123,9 +123,7 @@ function buildSidebarMarkup() {
             </span>
 
             <div id="sidebar-level" class="sidebar-level" hidden>
-                <div class="sidebar-level-head">
-                    <span id="sidebar-level-text">Stufe 1 · 0 / 100 XP</span>
-                </div>
+                <span id="sidebar-level-text" class="sidebar-level-text">0 / 100 XP</span>
                 <div class="sidebar-level-track"><div id="sidebar-level-fill" class="sidebar-level-fill"></div></div>
                 <div id="sidebar-level-goal" class="sidebar-level-goal"></div>
             </div>
@@ -525,71 +523,25 @@ function updateSidebarPlayer() {
 /* Level-Abzeichen + XP-Balken im festen Profilbereich. Immer sichtbar
    (nicht im aufklappbaren "Fortschritt"-Menü). Nutzt die zentrale
    Datenquelle mirelonLevelProgress() aus JS/level-data.js. */
-const SIDEBAR_BADGE_SHAPES = ["schild", "herz", "blatt", "stern"];
+/* Finale Badge-Serie: 4 Formen x 4 Farben = 16 Varianten
+   (images/badges/<form>_<farbe>.png). Alle Varianten haben denselben
+   einheitlichen, exakt mittigen hellen Zahlenkern - deshalb braucht
+   die HTML-Levelzahl KEINE per-Variante-Korrektur mehr, sie wird nur
+   zentriert (siehe CSS). "blatt" aus der alten Serie fällt weg. */
+const SIDEBAR_BADGE_SHAPES = ["schild", "herz", "stern", "baum"];
 const SIDEBAR_BADGE_COLORS = ["waldgruen", "himmelblau", "beerenrosa", "sonnengold"];
-
-/* Kleine per-Variante-Korrektur der Levelzahl.
-   Die sichtbar gemalte Form sitzt in den transparenten PNGs je nach
-   Form/Farbe minimal anders (kein einheitlicher Bildmittelpunkt).
-   Grundposition der Zahl bleibt zentriert (siehe CSS); hier nur der
-   kleine Versatz zur sichtbaren Mitte der jeweiligen Illustration,
-   angegeben als Anteil der Abzeichen-Box (translate in %). Dadurch
-   skaliert die Korrektur automatisch mit - geöffnete Sidebar (62px)
-   wie eingeklappte (26px) und die Vorschau in den Einstellungen.
-   Werte visuell an allen 16 Kombinationen bei 62px abgenommen. */
-const BADGE_NUMBER_OFFSETS = {
-    schild_waldgruen:  ["5%",  "3%"],
-    schild_himmelblau: ["-2%", "2%"],
-    schild_beerenrosa: ["4%",  "2%"],
-    schild_sonnengold: ["-2%", "2%"],
-    herz_waldgruen:    ["3%",  "0%"],
-    herz_himmelblau:   ["-3%", "-1%"],
-    herz_beerenrosa:   ["3%",  "0%"],
-    herz_sonnengold:   ["-3%", "-1%"],
-    blatt_waldgruen:   ["3%",  "8%"],
-    blatt_himmelblau:  ["-3%", "9%"],
-    blatt_beerenrosa:  ["3%",  "5%"],
-    blatt_sonnengold:  ["-3%", "5%"],
-    stern_waldgruen:   ["3%",  "1%"],
-    stern_himmelblau:  ["-2%", "0%"],
-    stern_beerenrosa:  ["3%",  "3%"],
-    stern_sonnengold:  ["-2%", "1%"]
-};
-
-/* Setzt --badge-number-x / --badge-number-y auf einem Abzeichen-
-   Element (Sidebar oder Vorschau-Kachel). */
-function applyBadgeNumberOffset(el, shape, color) {
-    if (!el) { return; }
-    const off = BADGE_NUMBER_OFFSETS[shape + "_" + color] || ["0%", "0%"];
-    el.style.setProperty("--badge-number-x", off[0]);
-    el.style.setProperty("--badge-number-y", off[1]);
-}
-
-window.MIRELON_BADGE_NUMBER_OFFSETS = BADGE_NUMBER_OFFSETS;
-window.applyBadgeNumberOffset = applyBadgeNumberOffset;
+const SIDEBAR_BADGE_DEFAULT = { shape: "baum", color: "waldgruen" };
 
 function sidebarBadgeChoice() {
     const b = (typeof player !== "undefined" && player.levelBadge) || {};
-    const shape = SIDEBAR_BADGE_SHAPES.indexOf(b.shape) !== -1 ? b.shape : "blatt";
-    const color = SIDEBAR_BADGE_COLORS.indexOf(b.color) !== -1 ? b.color : "waldgruen";
+    const shape = SIDEBAR_BADGE_SHAPES.indexOf(b.shape) !== -1 ? b.shape : SIDEBAR_BADGE_DEFAULT.shape;
+    const color = SIDEBAR_BADGE_COLORS.indexOf(b.color) !== -1 ? b.color : SIDEBAR_BADGE_DEFAULT.color;
     return { shape: shape, color: color };
 }
 
-/* Auswahl "Mein Level-Abzeichen" (Einstellungen). Lebt als
-   player.levelBadge und wird wie sidebarTheme ganz normal
-   mitsynchronisiert - kein eigener Sync-Weg nötig. */
-function markSelectedBadge() {
-    const c = sidebarBadgeChoice();
-    document.querySelectorAll("[data-badge-shape][data-badge-color]").forEach(function (btn) {
-        btn.classList.toggle(
-            "is-selected",
-            btn.dataset.badgeShape === c.shape && btn.dataset.badgeColor === c.color
-        );
-        btn.setAttribute("aria-pressed",
-            String(btn.dataset.badgeShape === c.shape && btn.dataset.badgeColor === c.color));
-    });
-}
-
+/* Auswahl "Mein Level-Abzeichen" (Einstellungen). Speichert AUSSCHLIESSLICH
+   player.levelBadge = { shape, color } und wird wie sidebarTheme ganz
+   normal mitsynchronisiert - kein eigener Sync-Weg, keine XP-/DB-Logik. */
 function setLevelBadge(shape, color) {
 
     if (SIDEBAR_BADGE_SHAPES.indexOf(shape) === -1 ||
@@ -601,13 +553,12 @@ function setLevelBadge(shape, color) {
 
     savePlayer();
     updateSidebarLevel();
-    markSelectedBadge();
 
     window.dispatchEvent(new CustomEvent("player-updated"));
 }
 
 window.setLevelBadge = setLevelBadge;
-window.markSelectedBadge = markSelectedBadge;
+window.sidebarBadgeChoice = sidebarBadgeChoice;
 window.MIRELON_BADGE_SHAPES = SIDEBAR_BADGE_SHAPES;
 window.MIRELON_BADGE_COLORS = SIDEBAR_BADGE_COLORS;
 
@@ -639,7 +590,6 @@ function updateSidebarLevel() {
             shapeEl.style.backgroundImage =
                 'url("images/badges/' + choice.shape + "_" + choice.color + '.png")';
         }
-        applyBadgeNumberOffset(badge, choice.shape, choice.color);
     }
     if (badgeNum) {
         badgeNum.textContent = p.level;
@@ -648,9 +598,10 @@ function updateSidebarLevel() {
     if (box) { box.hidden = false; }
 
     if (text) {
+        // Die Stufe steht auf dem Abzeichen; hier nur der XP-Stand.
         text.textContent = p.maxed
-            ? ("Stufe " + p.level + " · Höchststufe erreicht!")
-            : ("Stufe " + p.level + " · " + p.xp + " / " + p.nextXp + " XP");
+            ? "Höchststufe erreicht!"
+            : (p.xp + " / " + p.nextXp + " XP");
     }
 
     if (fill) {

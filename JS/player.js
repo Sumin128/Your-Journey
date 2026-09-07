@@ -159,9 +159,10 @@ function createDefaultPlayer() {
         sidebarTheme: "orange",
 
         // Wählbares Level-Abzeichen (Form + Farbe). Standard:
-        // Blatt-Medaillon in Waldgrün. Die Levelzahl selbst kommt als
-        // HTML-Text darüber, nie aus der Grafik.
-        levelBadge: { shape: "blatt", color: "waldgruen" },
+        // Baum-Wappen in Waldgrün. Die Levelzahl selbst kommt als
+        // HTML-Text mittig darauf, nie aus der Grafik. Formen:
+        // schild | herz | stern | baum.
+        levelBadge: { shape: "baum", color: "waldgruen" },
 
         settings: {
 

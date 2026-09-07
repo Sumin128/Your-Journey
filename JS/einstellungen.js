@@ -152,54 +152,101 @@
 
 
     /* =====================================================
-       LEVEL-ABZEICHEN
-       16 Vorschau-Kacheln (4 Formen x 4 Farben) - die
-       Speichern-/Anwenden-Logik steckt in sidebar.js
-       (window.setLevelBadge), damit sie überall verfügbar ist.
+       LEVEL-ABZEICHEN - zwei Schritte: Form wählen, Farbe wählen.
+       Klick übernimmt/speichert direkt über window.setLevelBadge()
+       (JS/sidebar.js) - speichert AUSSCHLIESSLICH
+       player.levelBadge = { shape, color }. Keine XP-/DB-Logik.
        ===================================================== */
 
-    const badgeGrid = document.getElementById("settings-badge-grid");
+    const SHAPE_LABEL = { schild: "Schild", herz: "Herz", stern: "Stern", baum: "Baum" };
+    const COLOR_LABEL = { waldgruen: "Waldgrün", himmelblau: "Himmelblau", beerenrosa: "Beerenrosa", sonnengold: "Sonnengold" };
 
-    if (badgeGrid && Array.isArray(window.MIRELON_BADGE_SHAPES)) {
+    const badgeShapesEl = document.getElementById("settings-badge-shapes");
+    const badgeColorsEl = document.getElementById("settings-badge-colors");
+    const badgePreview = document.getElementById("settings-badge-preview");
+    const badgePreviewNum = document.getElementById("settings-badge-preview-num");
 
-        const shapeName = { schild: "Schild", herz: "Herz", blatt: "Blatt-Medaillon", stern: "Stern-Medaille" };
-        const colorName = { waldgruen: "Waldgrün", himmelblau: "Himmelblau", beerenrosa: "Beerenrosa", sonnengold: "Sonnengold" };
+    function currentBadgeChoice() {
+        if (typeof window.sidebarBadgeChoice === "function") {
+            return window.sidebarBadgeChoice();
+        }
+        const b = (typeof player !== "undefined" && player.levelBadge) || {};
+        return { shape: b.shape || "baum", color: b.color || "waldgruen" };
+    }
 
+    function currentLevelNumber() {
+        if (typeof mirelonLevelProgress !== "function" || typeof player === "undefined") {
+            return 1;
+        }
+        const xp = (player.progression && typeof player.progression.xp === "number")
+            ? player.progression.xp : 0;
+        return mirelonLevelProgress(xp).level;
+    }
+
+    function makeChoiceButton(kind, value, isSelected, inner, onPick) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "settings-badge-choice" + (isSelected ? " is-selected" : "");
+        btn.setAttribute("aria-pressed", String(isSelected));
+        btn.innerHTML = inner;
+        btn.addEventListener("click", onPick);
+        return btn;
+    }
+
+    function renderBadgePicker() {
+
+        if (!badgeShapesEl || !badgeColorsEl ||
+            !Array.isArray(window.MIRELON_BADGE_SHAPES)) {
+            return;
+        }
+
+        const cur = currentBadgeChoice();
+
+        badgeShapesEl.innerHTML = "";
         window.MIRELON_BADGE_SHAPES.forEach(function (shape) {
-            window.MIRELON_BADGE_COLORS.forEach(function (color) {
-
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.className = "settings-badge-card";
-                btn.dataset.badgeShape = shape;
-                btn.dataset.badgeColor = color;
-                btn.setAttribute("aria-label", shapeName[shape] + ", " + colorName[color]);
-                btn.innerHTML =
-                    '<span class="settings-badge-preview">' +
-                    '<img src="images/badges/' + shape + "_" + color + '.png" alt="" decoding="async">' +
-                    '<span class="settings-badge-num">7</span>' +
-                    "</span>";
-
-                if (typeof window.applyBadgeNumberOffset === "function") {
-                    window.applyBadgeNumberOffset(
-                        btn.querySelector(".settings-badge-preview"), shape, color
-                    );
-                }
-
-                btn.addEventListener("click", function () {
+            const inner =
+                '<span class="settings-badge-choice-icon" style="background-image:url(\'images/badges/' +
+                shape + "_" + cur.color + '.png\')"></span>' +
+                "<span>" + (SHAPE_LABEL[shape] || shape) + "</span>";
+            badgeShapesEl.appendChild(makeChoiceButton(
+                "shape", shape, shape === cur.shape, inner,
+                function () {
                     if (typeof window.setLevelBadge === "function") {
-                        window.setLevelBadge(shape, color);
+                        window.setLevelBadge(shape, currentBadgeChoice().color);
                     }
-                });
-
-                badgeGrid.appendChild(btn);
-            });
+                }
+            ));
         });
 
-        if (typeof window.markSelectedBadge === "function") {
-            window.markSelectedBadge();
+        badgeColorsEl.innerHTML = "";
+        window.MIRELON_BADGE_COLORS.forEach(function (color) {
+            const inner =
+                '<span class="settings-badge-choice-dot settings-badge-dot--' + color + '"></span>' +
+                "<span>" + (COLOR_LABEL[color] || color) + "</span>";
+            badgeColorsEl.appendChild(makeChoiceButton(
+                "color", color, color === cur.color, inner,
+                function () {
+                    if (typeof window.setLevelBadge === "function") {
+                        window.setLevelBadge(currentBadgeChoice().shape, color);
+                    }
+                }
+            ));
+        });
+
+        if (badgePreview) {
+            const shp = badgePreview.querySelector(".settings-badge-preview-shape");
+            if (shp) {
+                shp.style.backgroundImage =
+                    'url("images/badges/' + cur.shape + "_" + cur.color + '.png")';
+            }
+        }
+        if (badgePreviewNum) {
+            badgePreviewNum.textContent = currentLevelNumber();
         }
     }
+
+    renderBadgePicker();
+    window.addEventListener("player-updated", renderBadgePicker);
 
 
     /* =====================================================
