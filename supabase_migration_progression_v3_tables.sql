@@ -386,6 +386,10 @@ begin
 end;
 $$;
 
+-- Ebenfalls SECURITY DEFINER: der Trigger ruft sie über den Owner
+-- auf, ein direkter Aufruf von aussen ist nicht nötig.
+revoke all on function public.trg_project_player_data() from public, anon, authenticated;
+
 drop trigger if exists project_player_data_trg on public.profiles;
 create trigger project_player_data_trg
     after insert or update of player_data on public.profiles
@@ -443,7 +447,8 @@ end $$;
 --    Supabase-Security-Advisors zu Recht als unnötige öffentliche RPC
 --    angemeckert. NUR der Grant ändert sich:
 --
---    * earn_coins(text): Münzen gibt es nur mit Konto.
+--    * earn_coins(text): serverseitige Münzgutschriften gibt es nur
+--      mit Konto (Gäste erspielen weiterhin lokale Münzen).
 --    * claim_guest_progress(jsonb): die Übernahme eines Gastspielstands
 --      passiert erst NACH der Anmeldung. Der FUNKTIONSKÖRPER und die
 --      Übernahmelogik bleiben exakt wie in
