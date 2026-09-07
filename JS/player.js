@@ -1903,6 +1903,56 @@ function registerQuizCompletion(quizId) {
 
 
 /* =====================================================
+   TEXT-QUIZ-RUNDE ABGESCHLOSSEN (Kuros neues Text-Quiz)
+   Wird von JS/quiz.js aufgerufen, wenn eine ganze Runde
+   durchgespielt wurde. XP nur bei Mindestquote (>= 60 %).
+   Die roundId kommt aus quiz-catalog.js (Quizart + Thema +
+   Länge + Hash der gezogenen Frage-IDs) - dieselbe Runde gibt
+   nach einem Reload keine XP erneut. Coins pro richtiger Antwort
+   laufen wie bisher schon während des Spiels ("quiz_correct").
+   ===================================================== */
+
+function registerTextQuizCompletion(roundId, difficulty, reachedMinScore) {
+
+    if (typeof player.quizzesCompleted !== "number") {
+        player.quizzesCompleted = 0;
+    }
+
+    player.quizzesCompleted++;
+
+    savePlayer();
+
+    awardHighscorePoints();
+
+    if (reachedMinScore) {
+        // Bestehende serverseitige XP-Logik: earn_xp() mit
+        // reason "quiz_richtig" + Schwierigkeit + roundId. Tageslimit
+        // und Wiederholungsschutz übernimmt der Server / applyEarnedXp().
+        window.dispatchEvent(new CustomEvent("mirelon:earn-xp", {
+            detail: {
+                reason: "quiz_richtig",
+                difficulty: difficulty || "normal",
+                roundId: roundId || null
+            }
+        }));
+    }
+
+    const unlockedAchievement = quizCompletionAchievements.find(
+        function (achievement) {
+            return achievement.count === player.quizzesCompleted;
+        }
+    );
+
+    if (unlockedAchievement) {
+        addAchievement(unlockedAchievement.name);
+    }
+
+}
+
+window.registerTextQuizCompletion = registerTextQuizCompletion;
+
+
+/* =====================================================
    TIER-FREUNDE BESUCHEN
    Wird auf den Orts-Seiten (Kuros Nest, Hasenschule,
    Fuchsbau, Bärental, ...) aufgerufen. Kommt ein neuer

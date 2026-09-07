@@ -1,555 +1,642 @@
 /* =====================================================
-   SPIELVARIABLEN
+   KUROS QUIZ
+   Zwei getrennte Quizarten:
+     1. TEXT-QUIZ  - grosser Fragenkatalog (JS/quiz-catalog.js),
+        frei waehlbare Rundenlaenge + Thema. Ganz neu.
+     2. GERAEUSCHE-QUIZ - unveraendert: quizTiergeraeusche
+        (JS/data.js), "Geraeusch anhoeren"-Knopf, XP wie bisher.
    ===================================================== */
 
 if (typeof markAnimalVisited === "function") {
     markAnimalVisited("kuro");
 }
 
-let currentQuestion = 0;
-let score = 0;
-let activeQuiz = [];
-let activeQuizId = null;
-let currentCategoryId = null;
-let currentGroup = "wissen";
-// true, wenn wir die Quizliste uebersprungen haben (Kategorie mit nur
-// einem Quiz) - dann fuehrt "zurueck" direkt zur Kategorieauswahl.
-let skippedQuizList = false;
-let currentSoundAudio = null;
+const TEXT_QUIZ_SESSION_KEY = "kuroTextQuizRound";
 
 
 /* =====================================================
-   ZUFÄLLIGE REIHENFOLGE
-   Mischt eine Kopie des Arrays, ohne das Original
-   zu verändern (Fisher-Yates).
+   HILFEN
    ===================================================== */
 
-function shuffleArray(array) {
-
-    const shuffled = array.slice();
-
-    for (let i = shuffled.length - 1; i > 0; i--) {
-
+function quizShuffle(array) {
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
 
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+const quizEls = {
+    select: document.getElementById("quiz-select"),
+    landing: document.getElementById("quiz-type-landing"),
+    textSetup: document.getElementById("text-quiz-setup"),
+    geraeuscheSetup: document.getElementById("geraeusche-setup"),
+    status: document.getElementById("quiz-status"),
+    gamePanel: document.getElementById("quiz-game-panel"),
+    container: document.getElementById("quiz-container"),
+    progress: document.getElementById("progress-display")
+};
 
+function showSelectScreen(which) {
+    // which: "landing" | "text" | "geraeusche"
+    if (quizEls.select) { quizEls.select.style.display = "block"; }
+    if (quizEls.status) { quizEls.status.style.display = "none"; }
+    if (quizEls.gamePanel) { quizEls.gamePanel.style.display = "none"; }
+    if (quizEls.container) { quizEls.container.innerHTML = ""; }
+
+    if (quizEls.landing) { quizEls.landing.hidden = which !== "landing"; }
+    if (quizEls.textSetup) { quizEls.textSetup.hidden = which !== "text"; }
+    if (quizEls.geraeuscheSetup) { quizEls.geraeuscheSetup.hidden = which !== "geraeusche"; }
+}
+
+function showGameScreen() {
+    if (quizEls.select) { quizEls.select.style.display = "none"; }
+    if (quizEls.status) { quizEls.status.style.display = "block"; }
+    if (quizEls.gamePanel) { quizEls.gamePanel.style.display = "block"; }
+}
+
+
+/* =====================================================
+   LANDING: QUIZART WAEHLEN
+   ===================================================== */
+
+(function () {
+    const toText = document.getElementById("quiz-type-text");
+    const toGeraeusche = document.getElementById("quiz-type-geraeusche");
+
+    if (toText) {
+        toText.addEventListener("click", function () {
+            renderTextQuizSetup();
+            showSelectScreen("text");
+        });
+    }
+    if (toGeraeusche) {
+        toGeraeusche.addEventListener("click", openGeraeuscheQuiz);
     }
 
-    return shuffled;
+    const textBack = document.getElementById("text-quiz-back");
+    if (textBack) { textBack.addEventListener("click", function () { showSelectScreen("landing"); }); }
 
-}
-
-
-/* =====================================================
-   QUIZ MISCHEN
-   Fragenreihenfolge UND Antwortreihenfolge werden bei
-   jedem Quizstart neu gemischt.
-   ===================================================== */
-
-function shuffleQuiz(quiz) {
-
-    const questionsShuffled = shuffleArray(quiz);
-
-    return questionsShuffled.map(function (question) {
-
-        return Object.assign({}, question, {
-            answers: shuffleArray(question.answers)
-        });
-
-    });
-
-}
+    const gBack = document.getElementById("geraeusche-back");
+    if (gBack) { gBack.addEventListener("click", function () { showSelectScreen("landing"); }); }
+})();
 
 
 /* =====================================================
-   KATEGORIEN ANZEIGEN
+   TEXT-QUIZ: AUSWAHL (Laenge + Thema)
    ===================================================== */
 
-function renderQuizCategories() {
+let tqSelectedLength = null;   // "kurz" | "mittel" | "gross"
+let tqSelectedCategory = "gemischt";
 
-    const container = document.getElementById("quiz-category-buttons");
+function renderTextQuizSetup() {
 
-    if (!container || typeof quizCategories === "undefined") {
+    const lengthsEl = document.getElementById("text-quiz-lengths");
+    const catsEl = document.getElementById("text-quiz-categories");
+    const startBtn = document.getElementById("text-quiz-start");
+    const hintEl = document.getElementById("text-quiz-hint");
+
+    if (!lengthsEl || !catsEl || typeof TEXT_QUIZ_LENGTHS === "undefined") {
         return;
     }
 
+    // Beim ersten Oeffnen: Gemischt vorausgewaehlt, keine Laenge.
+    if (tqSelectedCategory == null) { tqSelectedCategory = "gemischt"; }
+
+    function catAvailability(catId) {
+        return (typeof textQuizCategoryAvailability === "function")
+            ? textQuizCategoryAvailability(catId)
+            : { lengths: { kurz: true, mittel: true, gross: true } };
+    }
+
+    // --- Rundenlaengen ---
+    lengthsEl.innerHTML = "";
+    TEXT_QUIZ_LENGTHS.forEach(function (len) {
+
+        const canFill = catAvailability(tqSelectedCategory).lengths[len.id];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "quiz-choice quiz-choice--length";
+        btn.dataset.length = len.id;
+        btn.disabled = !canFill;
+        btn.setAttribute("aria-pressed", String(tqSelectedLength === len.id && canFill));
+        btn.classList.toggle("is-selected", tqSelectedLength === len.id && canFill);
+        btn.innerHTML =
+            '<span class="quiz-choice-title">' + len.label + "</span>" +
+            '<span class="quiz-choice-note">' + len.note + "</span>";
+
+        btn.addEventListener("click", function () {
+            if (btn.disabled) { return; }
+            tqSelectedLength = len.id;
+            renderTextQuizSetup();
+        });
+
+        lengthsEl.appendChild(btn);
+    });
+
+    // --- Themen ---
+    catsEl.innerHTML = "";
+    TEXT_QUIZ_CATEGORIES.forEach(function (cat) {
+
+        const avail = catAvailability(cat.id);
+        // Ein Thema ist waehlbar, wenn es mindestens die kuerzeste
+        // Runde fuellen kann.
+        const anyLength = avail.lengths.kurz || avail.lengths.mittel || avail.lengths.gross;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "quiz-choice quiz-choice--category";
+        btn.dataset.category = cat.id;
+        btn.disabled = !anyLength;
+        btn.setAttribute("aria-pressed", String(tqSelectedCategory === cat.id));
+        btn.classList.toggle("is-selected", tqSelectedCategory === cat.id);
+        btn.textContent = cat.icon + " " + cat.label;
+
+        btn.addEventListener("click", function () {
+            if (btn.disabled) { return; }
+            tqSelectedCategory = cat.id;
+            // Falls die gewaehlte Laenge dieses Thema nicht fuellen kann,
+            // Auswahl zuruecksetzen.
+            if (tqSelectedLength &&
+                !catAvailability(cat.id).lengths[tqSelectedLength]) {
+                tqSelectedLength = null;
+            }
+            renderTextQuizSetup();
+        });
+
+        catsEl.appendChild(btn);
+    });
+
+    // --- Hinweis, wenn eine Groesse fuers Thema fehlt ---
+    if (hintEl) {
+        const avail = catAvailability(tqSelectedCategory);
+        const missing = TEXT_QUIZ_LENGTHS
+            .filter(function (l) { return !avail.lengths[l.id]; })
+            .map(function (l) { return l.label; });
+        if (missing.length && tqSelectedCategory !== "gemischt") {
+            hintEl.hidden = false;
+            hintEl.textContent =
+                "„" + missing.join("“ und „") + "“ gibt es hier noch nicht - " +
+                "Kuro sammelt noch mehr Fragen zu diesem Thema.";
+        } else {
+            hintEl.hidden = true;
+        }
+    }
+
+    // --- Startknopf erst aktiv, wenn eine Laenge gewaehlt ist ---
+    if (startBtn) {
+        startBtn.disabled = !tqSelectedLength;
+    }
+}
+
+(function () {
+    const startBtn = document.getElementById("text-quiz-start");
+    if (startBtn) {
+        startBtn.addEventListener("click", function () {
+            if (!tqSelectedLength) { return; }
+            startTextQuizRound(tqSelectedLength, tqSelectedCategory);
+        });
+    }
+})();
+
+
+/* =====================================================
+   TEXT-QUIZ: RUNDE SPIELEN
+   ===================================================== */
+
+let tqRound = null;        // { questions, difficulty, lengthId, category, roundId }
+let tqIndex = 0;
+let tqScore = 0;
+let tqAnswered = false;    // aktuelle Frage schon beantwortet?
+
+function persistTextRound() {
+    try {
+        sessionStorage.setItem(TEXT_QUIZ_SESSION_KEY, JSON.stringify({
+            round: tqRound,
+            index: tqIndex,
+            score: tqScore
+        }));
+    } catch (e) {}
+}
+
+function clearTextRound() {
+    try { sessionStorage.removeItem(TEXT_QUIZ_SESSION_KEY); } catch (e) {}
+}
+
+function startTextQuizRound(lengthId, categoryId) {
+
+    if (typeof buildTextQuizRound !== "function") { return; }
+
+    const round = buildTextQuizRound(lengthId, categoryId);
+
+    if (!round) {
+        // Sollte durch die deaktivierten Knoepfe nicht passieren -
+        // trotzdem freundlich abfangen.
+        const hintEl = document.getElementById("text-quiz-hint");
+        if (hintEl) {
+            hintEl.hidden = false;
+            hintEl.textContent = "Kuro sammelt noch mehr Fragen zu diesem Thema.";
+        }
+        return;
+    }
+
+    tqRound = round;
+    tqIndex = 0;
+    tqScore = 0;
+    tqAnswered = false;
+
+    persistTextRound();
+
+    showGameScreen();
+    showTextQuestion();
+}
+
+function resumeTextQuizRound(saved) {
+    tqRound = saved.round;
+    tqIndex = Math.min(saved.index || 0, tqRound.questions.length - 1);
+    tqScore = saved.score || 0;
+    tqAnswered = false;
+    showGameScreen();
+    showTextQuestion();
+}
+
+function showTextQuestion() {
+
+    const q = tqRound.questions[tqIndex];
+    const container = quizEls.container;
     container.innerHTML = "";
+    tqAnswered = false;
 
-    quizCategories
-        .filter(function (category) {
-            return (category.group || "wissen") === currentGroup;
-        })
-        .forEach(function (category) {
-
-            const button = document.createElement("button");
-
-            button.type = "button";
-            button.className = "yj-button";
-            button.textContent = category.icon + " " + category.label;
-
-            button.addEventListener("click", function () {
-                showQuizList(category.id);
-            });
-
-            container.appendChild(button);
-
-        });
-
-}
-
-
-/* =====================================================
-   REITER "WISSEN" / "GERÄUSCHE"
-   ===================================================== */
-
-function setQuizGroup(group) {
-
-    currentGroup = group;
-
-    document.querySelectorAll("[data-quiz-group]").forEach(function (tab) {
-        tab.classList.toggle("is-active", tab.dataset.quizGroup === group);
-    });
-
-    // Immer zurueck auf die Kategorieauswahl des neuen Reiters
-    document.getElementById("quiz-list-select").hidden = true;
-    document.getElementById("quiz-category-select").hidden = false;
-
-    renderQuizCategories();
-
-}
-
-document.querySelectorAll("[data-quiz-group]").forEach(function (tab) {
-    tab.addEventListener("click", function () {
-        setQuizGroup(tab.dataset.quizGroup);
-    });
-});
-
-
-/* =====================================================
-   QUIZLISTE EINER KATEGORIE ANZEIGEN
-   ===================================================== */
-
-function showQuizList(categoryId) {
-
-    const category = quizCategories.find(function (item) {
-        return item.id === categoryId;
-    });
-
-    if (!category) {
-        return;
+    if (quizEls.progress) {
+        quizEls.progress.style.display = "block";
+        quizEls.progress.textContent =
+            "Frage " + (tqIndex + 1) + " von " + tqRound.questions.length;
     }
 
-    currentCategoryId = categoryId;
+    const title = document.createElement("h2");
+    title.textContent = "Frage " + (tqIndex + 1);
+    container.appendChild(title);
 
-    // Kategorie mit nur einem Quiz: Zwischenauswahl ueberspringen und
-    // direkt starten (z. B. "Tiergeräusche").
-    if (category.quizzes.length === 1) {
-        skippedQuizList = true;
-        startQuiz(category.quizzes[0].id);
-        return;
-    }
+    const questionText = document.createElement("p");
+    questionText.className = "quiz-question-text";
+    questionText.textContent = q.question;
+    container.appendChild(questionText);
 
-    skippedQuizList = false;
+    const answersWrap = document.createElement("div");
+    answersWrap.className = "quiz-answers";
 
-    document.getElementById("quiz-category-select").hidden = true;
-    document.getElementById("quiz-list-select").hidden = false;
+    q.answers.forEach(function (answerText, i) {
 
-    document.getElementById("quiz-category-title").textContent =
-        category.icon + " " + category.label;
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = answerText;
 
-    const listContainer = document.getElementById("quiz-select-buttons");
-    listContainer.innerHTML = "";
-
-    category.quizzes.forEach(function (quizEntry) {
-
-        const button = document.createElement("button");
-
-        button.type = "button";
-        button.className = "yj-button";
-        button.textContent = quizEntry.icon + " " + quizEntry.label;
-
-        button.addEventListener("click", function () {
-            startQuiz(quizEntry.id);
+        btn.addEventListener("click", function () {
+            handleTextAnswer(i, btn, answersWrap);
         });
 
-        listContainer.appendChild(button);
-
+        answersWrap.appendChild(btn);
     });
 
+    container.appendChild(answersWrap);
 }
 
+function handleTextAnswer(chosenIndex, button, answersWrap) {
 
-/* =====================================================
-   ZURÜCK ZU DEN KATEGORIEN
-   ===================================================== */
+    if (tqAnswered) { return; }
+    tqAnswered = true;
 
-const quizBackToCategoriesButton =
-    document.getElementById("quiz-back-to-categories");
+    const q = tqRound.questions[tqIndex];
+    const isCorrect = chosenIndex === q.correctIndex;
 
-if (quizBackToCategoriesButton) {
-
-    quizBackToCategoriesButton.addEventListener("click", function () {
-
-        currentCategoryId = null;
-
-        document.getElementById("quiz-list-select").hidden = true;
-        document.getElementById("quiz-category-select").hidden = false;
-
+    const buttons = answersWrap.querySelectorAll("button");
+    buttons.forEach(function (b, i) {
+        b.disabled = true;
+        if (i === q.correctIndex) { b.classList.add("correct"); }
+        else if (i === chosenIndex) { b.classList.add("wrong"); }
     });
 
-}
-
-
-/* =====================================================
-   QUIZ ANHAND SEINER ID FINDEN
-   ===================================================== */
-
-function findQuizById(quizId) {
-
-    if (typeof quizCategories === "undefined") {
-        return null;
+    if (isCorrect) {
+        tqScore++;
+        // Coins pro richtiger Antwort - wie im bisherigen Quiz.
+        window.dispatchEvent(new CustomEvent("mirelon:earn-coins", {
+            detail: { amount: 1, reason: "quiz_correct" }
+        }));
+        if (typeof playCorrectSound === "function") { playCorrectSound(); }
+    } else if (typeof playWrongSound === "function") {
+        playWrongSound();
     }
 
-    for (let i = 0; i < quizCategories.length; i++) {
+    persistTextRound();
 
-        const match = quizCategories[i].quizzes.find(function (quizEntry) {
-            return quizEntry.id === quizId;
-        });
+    // Erklaerung anzeigen
+    const explain = document.createElement("div");
+    explain.className = "quiz-explanation" + (isCorrect ? " is-correct" : " is-wrong");
+    const line = document.createElement("p");
+    line.textContent = (isCorrect ? "Richtig! " : "Nicht ganz. ") + q.explanation;
+    explain.appendChild(line);
 
-        if (match) {
-            return match;
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "yj-button yj-button--compact quiz-next-button";
+    const isLast = tqIndex >= tqRound.questions.length - 1;
+    nextBtn.textContent = isLast ? "Ergebnis ansehen" : "Weiter";
+    nextBtn.addEventListener("click", nextTextQuestion);
+    explain.appendChild(nextBtn);
+
+    quizEls.container.appendChild(explain);
+    nextBtn.focus();
+}
+
+function nextTextQuestion() {
+
+    const container = quizEls.container;
+    container.classList.add("fade-out");
+
+    setTimeout(function () {
+        tqIndex++;
+
+        if (tqIndex < tqRound.questions.length) {
+            persistTextRound();
+            showTextQuestion();
+        } else {
+            showTextResults();
         }
 
+        container.classList.remove("fade-out");
+    }, 250);
+}
+
+function showTextResults() {
+
+    const total = tqRound.questions.length;
+    const ratio = total > 0 ? tqScore / total : 0;
+    const reachedMin = ratio >= 0.6;
+
+    // Runde abgeschlossen: Zaehler/Highscore + XP (nur ab 60 %).
+    if (typeof registerTextQuizCompletion === "function") {
+        registerTextQuizCompletion(tqRound.roundId, tqRound.difficulty, reachedMin);
     }
 
-    return null;
+    clearTextRound();
 
+    const container = quizEls.container;
+    container.innerHTML = "";
+
+    const title = document.createElement("h2");
+    title.textContent = "Geschafft!";
+    container.appendChild(title);
+
+    const scoreLine = document.createElement("p");
+    scoreLine.className = "quiz-result-score";
+    scoreLine.textContent = tqScore + " von " + total + " richtig";
+    container.appendChild(scoreLine);
+
+    const msg = document.createElement("p");
+    msg.className = "quiz-result-message";
+    if (reachedMin) {
+        msg.textContent = "Stark! Du hast genug richtig - deine Sterne (XP) sind unterwegs.";
+    } else {
+        msg.textContent =
+            "Diesmal hat es noch nicht für Sterne gereicht - dafür braucht Kuro " +
+            "mindestens 6 von 10 richtigen Antworten. Probier es gern gleich noch einmal!";
+    }
+    container.appendChild(msg);
+
+    const againBtn = document.createElement("button");
+    againBtn.type = "button";
+    againBtn.className = "yj-button yj-button--compact";
+    againBtn.textContent = "Noch eine Runde";
+    againBtn.addEventListener("click", function () {
+        renderTextQuizSetup();
+        showSelectScreen("text");
+    });
+    container.appendChild(againBtn);
+
+    const homeBtn = document.createElement("button");
+    homeBtn.type = "button";
+    homeBtn.className = "yj-button yj-button--secondary yj-button--compact";
+    homeBtn.textContent = "Zurück zur Quiz-Auswahl";
+    homeBtn.addEventListener("click", function () { showSelectScreen("landing"); });
+    container.appendChild(homeBtn);
+
+    tqRound = null;
 }
 
 
 /* =====================================================
-   QUIZ STARTEN
+   GERAEUSCHE-QUIZ  (unveraendert im Ablauf)
    ===================================================== */
 
-function startQuiz(quizId) {
+let gqQuiz = [];
+let gqId = null;
+let gqIndex = 0;
+let gqScore = 0;
+let gqAudio = null;
 
-    const quizEntry = findQuizById(quizId);
+function openGeraeuscheQuiz() {
 
-    if (!quizEntry) {
+    const list = (typeof geraeuscheQuizzes !== "undefined") ? geraeuscheQuizzes : [];
+
+    if (list.length === 1) {
+        startGeraeuscheQuiz(list[0].id);
         return;
     }
 
-    activeQuiz = shuffleQuiz(quizEntry.quiz);
-    activeQuizId = quizId;
-
-    // Neues Spiel beginnen
-    currentQuestion = 0;
-    score = 0;
-
-    // Auswahl ausblenden
-    document.getElementById("quiz-select").style.display = "none";
-    document.getElementById("quiz-game-panel").style.display = "block";
-    document.getElementById("quiz-status").style.display = "block";
-
-
-    // Anzeigen einblenden
-    document.getElementById("score-display").style.display = "block";
-    document.getElementById("progress-display").style.display = "block";
-
-    // Erste Frage anzeigen
-    showQuestion();
-
+    // Mehrere Geraeusche-Quizze -> Liste zeigen
+    const listEl = document.getElementById("geraeusche-list");
+    if (listEl) {
+        listEl.innerHTML = "";
+        list.forEach(function (entry) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "quiz-choice";
+            btn.textContent = entry.icon + " " + entry.label;
+            btn.addEventListener("click", function () { startGeraeuscheQuiz(entry.id); });
+            listEl.appendChild(btn);
+        });
+    }
+    showSelectScreen("geraeusche");
 }
 
+function startGeraeuscheQuiz(quizId) {
 
+    const list = (typeof geraeuscheQuizzes !== "undefined") ? geraeuscheQuizzes : [];
+    const entry = list.find(function (q) { return q.id === quizId; });
+    if (!entry) { return; }
 
-/* =====================================================
-   FRAGE ANZEIGEN
-   ===================================================== */
+    gqQuiz = quizShuffle(entry.quiz).map(function (question) {
+        return Object.assign({}, question, { answers: quizShuffle(question.answers) });
+    });
+    gqId = quizId;
+    gqIndex = 0;
+    gqScore = 0;
 
-function showQuestion() {
+    showGameScreen();
+    showGeraeuscheQuestion();
+}
 
-    const q = activeQuiz[currentQuestion];
-    const container = document.getElementById("quiz-container");
+function showGeraeuscheQuestion() {
 
-    // Alten Inhalt löschen
+    const q = gqQuiz[gqIndex];
+    const container = quizEls.container;
     container.innerHTML = "";
 
-    // Punktestand aktualisieren
-    document.getElementById("score-display").textContent =
-        "Punkte: " + score;
-
-    // Fortschritt aktualisieren
-    document.getElementById("progress-display").textContent =
-        "Frage " + (currentQuestion + 1) + " von " + activeQuiz.length;
-
-    // Überschrift erstellen
-    const questionTitle = document.createElement("h2");
-    questionTitle.textContent = "Frage " + (currentQuestion + 1);
-
-    container.appendChild(questionTitle);
-
-    // Bild anzeigen (falls vorhanden)
-    if (q.image) {
-
-        const img = document.createElement("img");
-        img.src = q.image;
-        img.className = "quiz-image";
-
-        container.appendChild(img);
-
+    if (quizEls.progress) {
+        quizEls.progress.style.display = "block";
+        quizEls.progress.textContent =
+            "Frage " + (gqIndex + 1) + " von " + gqQuiz.length;
     }
 
-    // Geräuschfrage: "anhören"-Knopf statt Bild
+    const title = document.createElement("h2");
+    title.textContent = "Frage " + (gqIndex + 1);
+    container.appendChild(title);
+
     if (q.sound) {
-
-        if (currentSoundAudio) {
-            currentSoundAudio.pause();
-        }
-
-        currentSoundAudio = new Audio(q.sound);
+        if (gqAudio) { gqAudio.pause(); }
+        gqAudio = new Audio(q.sound);
 
         const playButton = document.createElement("button");
         playButton.type = "button";
         playButton.className = "yj-button quiz-sound-button";
         playButton.textContent = "🔊 Geräusch anhören";
         playButton.onclick = function () {
-            currentSoundAudio.currentTime = 0;
-            currentSoundAudio.play().catch(function () {});
+            gqAudio.currentTime = 0;
+            gqAudio.play().catch(function () {});
         };
-
         container.appendChild(playButton);
 
-        // Einmal automatisch abspielen (Autoplay kann blockiert sein -
-        // dann hilft der Knopf).
-        currentSoundAudio.play().catch(function () {});
-
+        gqAudio.play().catch(function () {});
     }
 
-    // Frage anzeigen
     const questionText = document.createElement("p");
     questionText.textContent = q.question;
-
     container.appendChild(questionText);
 
-    // Antwortbuttons erzeugen
-    const answersWrapper = document.createElement("div");
-    answersWrapper.className = "quiz-answers";
+    const answersWrap = document.createElement("div");
+    answersWrap.className = "quiz-answers";
 
     q.answers.forEach(function (answer) {
-
         const button = document.createElement("button");
-
-        // Kleines Bild im Button
-        if (answer.image) {
-
-            const answerImg = document.createElement("img");
-
-            answerImg.src = answer.image;
-            answerImg.className = "answer-image";
-
-            button.appendChild(answerImg);
-
-        }
-
-        // Antworttext
-        const answerText = document.createElement("span");
-        answerText.textContent = answer.text;
-
-        button.appendChild(answerText);
-
-        // Klick auf den Button
-        button.onclick = function () {
-
-            checkAnswer(answer.correct, button);
-
-        };
-
-        answersWrapper.appendChild(button);
-
+        const span = document.createElement("span");
+        span.textContent = answer.text;
+        button.appendChild(span);
+        button.onclick = function () { checkGeraeuscheAnswer(answer.correct, button); };
+        answersWrap.appendChild(button);
     });
 
-    container.appendChild(answersWrapper);
-
+    container.appendChild(answersWrap);
 }
 
-
-/* =====================================================
-   ANTWORT PRÜFEN
-   ===================================================== */
-
-function checkAnswer(isCorrect, button) {
+function checkGeraeuscheAnswer(isCorrect, button) {
 
     if (isCorrect) {
-
         button.classList.add("correct");
-        score++;
-        window.dispatchEvent(
-            new CustomEvent("mirelon:earn-coins", { detail: { amount: 1, reason: "quiz_correct" } })
-        );
-
-        if (typeof playCorrectSound === "function") {
-            playCorrectSound();
-        }
-
+        gqScore++;
+        window.dispatchEvent(new CustomEvent("mirelon:earn-coins", {
+            detail: { amount: 1, reason: "quiz_correct" }
+        }));
+        if (typeof playCorrectSound === "function") { playCorrectSound(); }
     } else {
-
         button.classList.add("wrong");
-
-        if (typeof playWrongSound === "function") {
-            playWrongSound();
-        }
-
+        if (typeof playWrongSound === "function") { playWrongSound(); }
     }
 
-    const allButtons =
-        document.querySelectorAll("#quiz-container button");
-
-    allButtons.forEach(function (btn) {
+    quizEls.container.querySelectorAll("button").forEach(function (btn) {
         btn.disabled = true;
     });
 
-    setTimeout(nextQuestion, 1000);
+    setTimeout(nextGeraeuscheQuestion, 1000);
 }
 
+function nextGeraeuscheQuestion() {
 
-/* =====================================================
-   NÄCHSTE FRAGE
-   ===================================================== */
-
-function nextQuestion() {
-
-    const container =
-        document.getElementById("quiz-container");
-
-    // Ausblenden (Animation)
+    const container = quizEls.container;
     container.classList.add("fade-out");
 
     setTimeout(function () {
-
-        currentQuestion++;
-
-        // Gibt es noch Fragen?
-        if (currentQuestion < activeQuiz.length) {
-
-            showQuestion();
-
+        gqIndex++;
+        if (gqIndex < gqQuiz.length) {
+            showGeraeuscheQuestion();
+        } else {
+            showGeraeuscheResults();
         }
-
-        // Quiz beendet
-        else {
-
-            showResults();
-
-        }
-
         container.classList.remove("fade-out");
-
     }, 300);
+}
 
+function showGeraeuscheResults() {
+
+    if (typeof registerQuizCompletion === "function") {
+        registerQuizCompletion(gqId);
+    }
+
+    const container = quizEls.container;
+    container.innerHTML = "";
+
+    const title = document.createElement("h2");
+    title.textContent = "Ergebnis";
+    container.appendChild(title);
+
+    const resultText = document.createElement("p");
+    resultText.textContent = gqScore + " von " + gqQuiz.length + " korrekt";
+    container.appendChild(resultText);
+
+    const backButton = document.createElement("button");
+    backButton.type = "button";
+    backButton.className = "yj-button yj-button--compact";
+    backButton.textContent = "Zurück zur Quiz-Auswahl";
+    backButton.onclick = function () { exitQuiz(); };
+    container.appendChild(backButton);
 }
 
 
-
 /* =====================================================
-   QUIZ VERLASSEN
-   Wird sowohl vom "Quiz verlassen"-Button während des
-   Spiels als auch vom Ergebnis-Bildschirm benutzt.
+   QUIZ VERLASSEN (gemeinsam)
    ===================================================== */
 
 function exitQuiz() {
 
-    if (currentSoundAudio) {
-        currentSoundAudio.pause();
-        currentSoundAudio = null;
+    if (gqAudio) {
+        gqAudio.pause();
+        gqAudio = null;
     }
 
-    document.getElementById("quiz-select").style.display = "block";
+    // Laufende Text-Runde bewusst abbrechen -> kein Wiederaufnehmen,
+    // keine XP (Runde nicht abgeschlossen).
+    clearTextRound();
+    tqRound = null;
 
-    document.getElementById("quiz-status").style.display = "none";
-    document.getElementById("quiz-game-panel").style.display = "none";
-
-    document.getElementById("score-display").style.display = "none";
-    document.getElementById("progress-display").style.display = "none";
-
-    document.getElementById("quiz-container").innerHTML = "";
-
-    /*
-       Zurück zur Quizliste der aktuellen Kategorie, damit man leicht
-       ein weiteres Quiz aus dem gleichen Thema probieren kann. Bei
-       Kategorien mit nur einem Quiz gibt es keine Liste - dann direkt
-       zur Kategorieauswahl.
-    */
-
-    if (skippedQuizList || !currentCategoryId) {
-        document.getElementById("quiz-list-select").hidden = true;
-        document.getElementById("quiz-category-select").hidden = false;
-    } else {
-        showQuizList(currentCategoryId);
-    }
-
+    showSelectScreen("landing");
 }
 
-
-const quizExitButton = document.getElementById("quiz-exit-button");
-
-if (quizExitButton) {
-
-    quizExitButton.addEventListener("click", exitQuiz);
-
-}
+(function () {
+    const exitButton = document.getElementById("quiz-exit-button");
+    if (exitButton) { exitButton.addEventListener("click", exitQuiz); }
+})();
 
 
 /* =====================================================
-   ERGEBNIS ANZEIGEN
+   START / RELOAD-BEHANDLUNG
+   Laeuft eine Text-Runde (in sessionStorage)? -> sauber
+   fortsetzen. Sonst normale Landing-Ansicht.
    ===================================================== */
 
-function showResults() {
+(function () {
+    let saved = null;
+    try {
+        const raw = sessionStorage.getItem(TEXT_QUIZ_SESSION_KEY);
+        if (raw) { saved = JSON.parse(raw); }
+    } catch (e) { saved = null; }
 
-    if (typeof registerQuizCompletion === "function") {
-
-        registerQuizCompletion(activeQuizId);
-
+    if (saved && saved.round &&
+        Array.isArray(saved.round.questions) &&
+        saved.round.questions.length > 0) {
+        resumeTextQuizRound(saved);
+    } else {
+        clearTextRound();
+        showSelectScreen("landing");
     }
-
-    const container =
-        document.getElementById("quiz-container");
-
-    container.innerHTML = "";
-
-    // Überschrift
-    const resultTitle =
-        document.createElement("h2");
-
-    resultTitle.textContent = "Ergebnis";
-
-    container.appendChild(resultTitle);
-
-    // Punktestand
-    const resultText =
-        document.createElement("p");
-
-    resultText.textContent =
-        score + " von " + activeQuiz.length + " korrekt";
-
-    container.appendChild(resultText);
-
-    // Zurück-Button
-    const backButton =
-        document.createElement("button");
-
-    backButton.type = "button";
-    backButton.className = "yj-button yj-button--compact";
-
-    backButton.textContent =
-        "Zurück zur Auswahl";
-
-    backButton.onclick = exitQuiz;
-
-    container.appendChild(backButton);
-
-}
-
-
-renderQuizCategories();
+})();

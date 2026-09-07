@@ -34,7 +34,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=50">
+        href="CSS/style.css?v=52">
 
     <link
         rel="stylesheet"
@@ -104,50 +104,67 @@
             id="quiz-select"
             class="panel quiz-panel yj-panel yj-panel--paper">
 
-            <h2>
-                Teste dein Wissen
-            </h2>
+            <!-- Landing: Quizart wählen -->
+            <div id="quiz-type-landing">
 
-            <div id="quiz-group-tabs">
+                <h2>Kuros Quiz</h2>
 
-                <button
-                    type="button"
-                    class="quiz-group-tab is-active"
-                    data-quiz-group="wissen">
-                    🧠 Wissen
-                </button>
+                <div class="quiz-type-list">
 
-                <button
-                    type="button"
-                    class="quiz-group-tab"
-                    data-quiz-group="geraeusche">
-                    🔊 Geräusche
-                </button>
+                    <button type="button" class="quiz-type-card" id="quiz-type-text">
+                        <span class="quiz-type-icon" aria-hidden="true">🪶</span>
+                        <span class="quiz-type-name">Text-Quiz</span>
+                        <span class="quiz-type-desc">Fragen lesen, nachdenken und antworten.</span>
+                    </button>
 
-            </div>
+                    <button type="button" class="quiz-type-card" id="quiz-type-geraeusche">
+                        <span class="quiz-type-icon" aria-hidden="true">🎵</span>
+                        <span class="quiz-type-name">Geräusche-Quiz</span>
+                        <span class="quiz-type-desc">Genau hinhören und Tiere oder Dinge erkennen.</span>
+                    </button>
 
-            <div id="quiz-category-select">
-
-                <div id="quiz-category-buttons">
-                    <!-- Kategorien werden per JavaScript erzeugt -->
                 </div>
 
             </div>
 
-            <div id="quiz-list-select" hidden>
+            <!-- Text-Quiz-Auswahl: Länge + Thema -->
+            <div id="text-quiz-setup" hidden>
 
-                <button
-                    id="quiz-back-to-categories"
-                    type="button"
+                <button type="button" id="text-quiz-back"
                     class="yj-button yj-button--secondary yj-button--compact">
-                    ⬅️ Zurück zu Kategorien
+                    ⬅️ Zurück
                 </button>
 
-                <h3 id="quiz-category-title"></h3>
+                <h2>🪶 Kuros Text-Quiz</h2>
 
-                <div id="quiz-select-buttons">
-                    <!-- Quizze der gewählten Kategorie werden per JavaScript erzeugt -->
-                </div>
+                <h3 id="tq-length-label">Wie lange möchtest du knobeln?</h3>
+                <div id="text-quiz-lengths" class="quiz-choice-grid"
+                    role="group" aria-labelledby="tq-length-label"></div>
+
+                <h3 id="tq-category-label">Worüber möchtest du rätseln?</h3>
+                <div id="text-quiz-categories" class="quiz-choice-grid"
+                    role="group" aria-labelledby="tq-category-label"></div>
+
+                <p id="text-quiz-hint" class="text-quiz-hint" hidden></p>
+
+                <button type="button" id="text-quiz-start"
+                    class="yj-button yj-button--wide" disabled>
+                    Quiz starten
+                </button>
+
+            </div>
+
+            <!-- Geräusche-Quiz-Auswahl (nur falls mehr als ein Geräusche-Quiz) -->
+            <div id="geraeusche-setup" hidden>
+
+                <button type="button" id="geraeusche-back"
+                    class="yj-button yj-button--secondary yj-button--compact">
+                    ⬅️ Zurück
+                </button>
+
+                <h2>🎵 Geräusche-Quiz</h2>
+
+                <div id="geraeusche-list" class="quiz-choice-grid"></div>
 
             </div>
 
@@ -167,15 +184,10 @@
             </button>
 
             <p
-                id="score-display"
-                style="display:none;">
-                Punkte: 0
-            </p>
-
-            <p
                 id="progress-display"
+                aria-live="polite"
                 style="display:none;">
-                Frage 1 von 9
+                Frage 1 von 5
             </p>
 
         </div>
@@ -201,7 +213,7 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=34"></script>
+    <script src="JS/player.js?v=35"></script>
     <script src="JS/level-data.js?v=2"></script>
     <script src="JS/level-up.js?v=3"></script>
     <script src="JS/auth.js?v=12"></script>
@@ -212,11 +224,12 @@
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/confetti.js?v=1"></script>
 
-    <script src="JS/data.js?v=3"></script>
+    <script src="JS/data.js?v=4"></script>
 
     <script src="JS/sounds.js?v=1"></script>
 
-    <script src="JS/quiz.js?v=6"></script>
+    <script src="JS/quiz-catalog.js?v=1"></script>
+    <script src="JS/quiz.js?v=7"></script>
 
     <script>
         const kuroWelcomeMessage = document.getElementById("welcome-message");

@@ -2311,7 +2311,7 @@ main {
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(220px, 1fr));
+        repeat(2, minmax(0, 1fr));
 
     gap: 14px;
 
@@ -2319,6 +2319,12 @@ main {
 
     margin: 22px auto 0;
 
+}
+
+@media (max-width: 560px) {
+    .quiz-answers {
+        grid-template-columns: 1fr;
+    }
 }
 
 #quiz-container button {
@@ -4273,6 +4279,209 @@ justify-content:center;
 }
 
 
+/* =====================================================
+   KUROS QUIZ - LANDING (Quizart wählen)
+   ===================================================== */
+
+.quiz-type-list {
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+
+    margin-top: 8px;
+
+}
+
+.quiz-type-card {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+
+    padding: 22px 18px;
+
+    border: 2px solid var(--yj-color-border, #cdb896);
+    border-radius: var(--yj-radius-md, 18px);
+
+    background: var(--yj-color-paper, #fff);
+    box-shadow: var(--yj-shadow-card);
+
+    font: inherit;
+    color: var(--yj-color-ink);
+    text-align: center;
+
+    cursor: pointer;
+    transition: transform 130ms var(--yj-ease-out), border-color 160ms ease, box-shadow 160ms ease;
+
+}
+
+.quiz-type-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--yj-color-accent, #e08a3f);
+}
+
+.quiz-type-card:focus-visible {
+    outline: 3px solid var(--yj-color-accent, #e08a3f);
+    outline-offset: 2px;
+}
+
+.quiz-type-icon { font-size: 2rem; line-height: 1; }
+.quiz-type-name { font-family: var(--yj-font-display); font-weight: 800; font-size: 1.15rem; }
+.quiz-type-desc { color: var(--yj-color-ink-soft); font-size: .92rem; }
+
+
+/* =====================================================
+   KUROS TEXT-QUIZ - AUSWAHL (Länge + Thema)
+   ===================================================== */
+
+#text-quiz-setup h3,
+#geraeusche-setup h3 {
+    margin: 18px 0 8px;
+    font-size: 1.05rem;
+}
+
+#text-quiz-back,
+#geraeusche-back {
+    margin-bottom: 12px;
+}
+
+.quiz-choice-grid {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+}
+
+.quiz-choice {
+
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    min-height: 48px;
+    padding: 10px 16px;
+
+    border: 2px solid var(--yj-color-border, #cdb896);
+    border-radius: var(--yj-radius-sm, 12px);
+
+    background: var(--yj-color-paper, #fff);
+
+    font: inherit;
+    font-weight: 700;
+    color: var(--yj-color-ink);
+    text-align: left;
+
+    cursor: pointer;
+    transition: border-color 150ms ease, background 150ms ease, transform 120ms var(--yj-ease-out);
+
+}
+
+.quiz-choice--category {
+    flex-direction: row;
+    align-items: center;
+}
+
+.quiz-choice:hover:not(:disabled) {
+    border-color: var(--yj-color-accent, #e08a3f);
+    transform: translateY(-1px);
+}
+
+.quiz-choice:focus-visible {
+    outline: 3px solid var(--yj-color-accent, #e08a3f);
+    outline-offset: 2px;
+}
+
+.quiz-choice.is-selected {
+    border-color: var(--yj-color-accent, #e08a3f);
+    background: #f4ead9;
+    box-shadow: 0 0 0 3px rgba(224, 138, 63, .25);
+}
+
+.quiz-choice:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+.quiz-choice-title { font-size: 1rem; }
+.quiz-choice-note { font-size: .82rem; font-weight: 600; color: var(--yj-color-ink-soft); }
+
+.text-quiz-hint {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    border-radius: var(--yj-radius-sm, 12px);
+    background: rgba(224, 138, 63, .12);
+    color: var(--yj-color-ink-soft);
+    font-size: .9rem;
+}
+
+#text-quiz-start {
+    margin-top: 18px;
+}
+
+
+/* =====================================================
+   KUROS QUIZ - ANTWORT-FEEDBACK & ERKLÄRUNG
+   ===================================================== */
+
+.quiz-question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#quiz-container button.correct {
+    border-color: #3f8f4f;
+    background: #e4f4e6;
+}
+
+#quiz-container button.wrong {
+    border-color: #d05c4a;
+    background: #f6e2de;
+}
+
+.quiz-explanation {
+
+    max-width: 650px;
+    margin: 18px auto 0;
+    padding: 14px 18px;
+
+    border-radius: var(--yj-radius-sm, 12px);
+    border-left: 5px solid var(--yj-color-accent, #e08a3f);
+
+    background: rgba(255, 250, 240, .9);
+
+    text-align: left;
+
+}
+
+.quiz-explanation.is-correct { border-left-color: #3f8f4f; }
+.quiz-explanation.is-wrong { border-left-color: #d0863a; }
+
+.quiz-explanation p {
+    margin: 0 0 12px;
+    color: var(--yj-color-ink);
+    font-size: .98rem;
+}
+
+.quiz-next-button {
+    margin-top: 2px;
+}
+
+.quiz-result-score {
+    font-family: var(--yj-font-display);
+    font-weight: 800;
+    font-size: 1.3rem;
+}
+
+.quiz-result-message {
+    max-width: 520px;
+    margin: 6px auto 16px;
+    color: var(--yj-color-ink-soft);
+}
+
+
 /* HANDY */
 
 @media (max-width: 760px) {
@@ -4306,6 +4515,8 @@ justify-content:center;
         grid-template-columns: 1fr;
 
     }
+
+    .quiz-choice { flex: 1 1 100%; }
 
 }
 
