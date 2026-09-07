@@ -1008,6 +1008,11 @@ main {
 
     height:56px;
 
+    /* nicht vom Flex-Algorithmus zusammenquetschen lassen, wenn im
+       scrollbaren .sidebar-nav mehrere Gruppen offen sind (sonst
+       schrumpfen die Zeilen auf Mobil unlesbar zusammen). */
+    flex-shrink:0;
+
     padding:0 12px;
 
     border-radius:var(--yj-radius-pill);
@@ -1127,7 +1132,7 @@ main {
 }
 
 /* =====================================================
-   AUSKLAPPBARE GRUPPEN (Lernorte, Kreativ)
+   AUSKLAPPBARE GRUPPEN (Welt, Kreativ, Läden, Fortschritt)
    Rein visuelle Erweiterung von .sidebar-link - der Header
    ist ein <button>, kein Link, und bekommt zusätzlich einen
    Pfeil (.sidebar-chevron), der sich beim Öffnen dreht.
@@ -1144,6 +1149,8 @@ main {
     width:100%;
 
     height:56px;
+
+    flex-shrink:0;
 
     padding:0 12px;
 
@@ -1228,7 +1235,9 @@ main {
 
 .sidebar-subnav.is-open{
 
-    max-height:320px;
+    /* grosszuegig: "Welt" hat 7 Eintraege - der eigentliche Scroll bei
+       zu wenig Platz laeuft ueber .sidebar-nav (overflow-y:auto). */
+    max-height:480px;
 
 }
 

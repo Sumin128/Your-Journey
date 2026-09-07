@@ -46,8 +46,10 @@ function buildSidebarMarkup() {
         return `<a href="${href}" class="${cls}"${current}${lockedAttr}>${icon(iconSrc)}<span class="sidebar-label">${label}</span>${badge}</a>`;
     };
 
-    const group = (label, iconSrc, subs) =>
-        `<button type="button" class="sidebar-group-header">${icon(iconSrc)}` +
+    // defaultOpen: Gruppe ist beim Laden aufgeklappt, auch ohne aktiven
+    // Link darin (Standardzustand fuer "Welt", siehe Gruppen-Logik unten).
+    const group = (label, iconSrc, subs, defaultOpen) =>
+        `<button type="button" class="sidebar-group-header"${defaultOpen ? ' data-default-open="true"' : ""}>${icon(iconSrc)}` +
         `<span class="sidebar-label">${label}</span><span class="sidebar-chevron">▸</span></button>` +
         `<div class="sidebar-subnav">${subs.join("")}</div>`;
 
@@ -83,16 +85,15 @@ function buildSidebarMarkup() {
         <div class="sidebar-divider"></div>
 
         <div class="sidebar-nav">
-            ${link("index.html", "Start", "Icons/Sidebar/start.png")}
-
-            ${group("Weitere Orte", "Icons/Sidebar/lernorte.png", [
+            ${group("Welt", "Icons/Sidebar/start.png", [
+                sublink("index.html", "Startkarte", "Icons/Sidebar/start.png"),
+                sublink("schloss.html", "Mein Schloss", "Icons/Sidebar/lernorte.png", castleUnlocked ? null : "castle"),
                 sublink("kuros_nest.html", "Kuros Nest", "Icons/Sidebar/rabe-2.png"),
                 sublink("eulenschule.html", "Tessas Hasenschule", "Icons/Sidebar/hase.png"),
                 sublink("fuchs.html", "Faros Fuchsbau", "Icons/Sidebar/fuchs.png"),
                 sublink("baerental.html", "Bärental", "Icons/Sidebar/baer-2.png"),
-                sublink("puzzle.html", "Luis Puzzle", "Icons/Sidebar/chamaeleon.png"),
-                sublink("schloss.html", "Mein Schloss", "Icons/Sidebar/lernorte.png", castleUnlocked ? null : "castle")
-            ])}
+                sublink("puzzle.html", "Luis Puzzle", "Icons/Sidebar/chamaeleon.png")
+            ], true)}
 
             ${group("Kreativ", "Icons/Sidebar/kreativ.png", [
                 sublink("malen.html", "Malstube", "Icons/Sidebar/malen.png"),
@@ -105,8 +106,10 @@ function buildSidebarMarkup() {
                 sublink("tamo_werkstatt.html", "Tamos Werkstatt", "Icons/Sidebar/shop.png")
             ])}
 
-            ${link("erfolge.html", "Erfolge", "Icons/Sidebar/erfolge.png")}
-            ${link("bestenliste.html", "Bestenliste", "Icons/Sidebar/highscore.png")}
+            ${group("Fortschritt", "Icons/Sidebar/erfolge.png", [
+                sublink("erfolge.html", "Erfolge", "Icons/Sidebar/erfolge.png"),
+                sublink("bestenliste.html", "Bestenliste", "Icons/Sidebar/highscore.png")
+            ])}
         </div>
 
         <div class="sidebar-divider"></div>
@@ -239,10 +242,16 @@ window.addEventListener("player-updated", function () {
 
 
 /* =====================================================
-   AUSKLAPPBARE GRUPPEN (Lernorte, Kreativ)
-   Beim Laden ist nur die Gruppe offen, die die gerade
-   aktive Seite enthält (erkennbar an aria-current) - sonst
-   bleibt alles zu, damit die Sidebar kompakt bleibt.
+   AUSKLAPPBARE GRUPPEN (Welt, Kreativ, Läden, Fortschritt)
+   - Ein Klick auf den Gruppentitel klappt NUR diese Gruppe
+     auf/zu (kein Akkordeon, mehrere dürfen offen sein).
+   - Beim Laden offen: die Gruppe mit dem aktiven Link
+     (aria-current). Liegt die aktive Seite in keiner Gruppe
+     (z. B. Einstellungen, Impressum), ist "Welt"
+     (data-default-open) als Standardgruppe offen.
+   - Kein persistenter Zustand: die aktive Seite ergibt sich
+     bei jedem Laden aus der URL, die Hervorhebung bleibt so
+     auch nach einem Reload erhalten.
    ===================================================== */
 
 const sidebarGroupHeaders =
@@ -262,6 +271,14 @@ function setSidebarGroupOpen(header, isOpen) {
 
 }
 
+const sidebarActiveGroupExists = Array.prototype.some.call(
+    sidebarGroupHeaders,
+    function (header) {
+        const panel = header.nextElementSibling;
+        return Boolean(panel) && panel.querySelector('[aria-current="page"]') !== null;
+    }
+);
+
 sidebarGroupHeaders.forEach(function (header) {
 
     const panel = header.nextElementSibling;
@@ -269,23 +286,17 @@ sidebarGroupHeaders.forEach(function (header) {
     const containsActiveLink =
         Boolean(panel) && panel.querySelector('[aria-current="page"]') !== null;
 
-    setSidebarGroupOpen(header, containsActiveLink);
+    // "Welt" ist die Standardgruppe: offen, solange keine andere Gruppe
+    // die aktive Seite enthält.
+    const openByDefault =
+        header.dataset.defaultOpen === "true" && !sidebarActiveGroupExists;
+
+    setSidebarGroupOpen(header, containsActiveLink || openByDefault);
 
     header.addEventListener("click", function () {
 
-        const willOpen = !header.classList.contains("is-open");
-
-        // Immer nur eine Gruppe gleichzeitig offen: alle anderen zuklappen,
-        // bevor diese hier ggf. aufklappt.
-        sidebarGroupHeaders.forEach(function (otherHeader) {
-
-            if (otherHeader !== header) {
-                setSidebarGroupOpen(otherHeader, false);
-            }
-
-        });
-
-        setSidebarGroupOpen(header, willOpen);
+        // Nur diese Gruppe umschalten - andere bleiben, wie sie sind.
+        setSidebarGroupOpen(header, !header.classList.contains("is-open"));
 
     });
 
