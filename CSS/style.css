@@ -1194,8 +1194,20 @@ main {
 
 .sidebar-level-badge-num{
 
-    position:relative;
+    position:absolute;
+    inset:0;
     z-index:1;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    /* Grundposition zentriert; die kleine per-Variante-Korrektur
+       (von JS/sidebar.js gesetzte CSS-Variablen, BADGE_NUMBER_OFFSETS)
+       trifft die sichtbare Mitte der jeweiligen Illustration.
+       Prozent = Anteil der Abzeichen-Box -> skaliert automatisch
+       zwischen 62px (offen) und 26px (eingeklappt). */
+    transform:translate(var(--badge-number-x, 0), var(--badge-number-y, 0));
 
     color:#fff;
     font-family:var(--yj-font-display, system-ui, sans-serif);
@@ -4614,8 +4626,16 @@ justify-content:center;
 
 .settings-badge-num {
 
-    position: relative;
+    position: absolute;
+    inset: 0;
     z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* gleiche per-Variante-Korrektur wie in der Sidebar */
+    transform: translate(var(--badge-number-x, 0), var(--badge-number-y, 0));
 
     color: #fff;
     font-family: var(--yj-font-display, system-ui, sans-serif);

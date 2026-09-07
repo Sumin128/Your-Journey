@@ -180,6 +180,12 @@
                     '<span class="settings-badge-num">7</span>' +
                     "</span>";
 
+                if (typeof window.applyBadgeNumberOffset === "function") {
+                    window.applyBadgeNumberOffset(
+                        btn.querySelector(".settings-badge-preview"), shape, color
+                    );
+                }
+
                 btn.addEventListener("click", function () {
                     if (typeof window.setLevelBadge === "function") {
                         window.setLevelBadge(shape, color);

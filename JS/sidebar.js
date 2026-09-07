@@ -528,6 +528,46 @@ function updateSidebarPlayer() {
 const SIDEBAR_BADGE_SHAPES = ["schild", "herz", "blatt", "stern"];
 const SIDEBAR_BADGE_COLORS = ["waldgruen", "himmelblau", "beerenrosa", "sonnengold"];
 
+/* Kleine per-Variante-Korrektur der Levelzahl.
+   Die sichtbar gemalte Form sitzt in den transparenten PNGs je nach
+   Form/Farbe minimal anders (kein einheitlicher Bildmittelpunkt).
+   Grundposition der Zahl bleibt zentriert (siehe CSS); hier nur der
+   kleine Versatz zur sichtbaren Mitte der jeweiligen Illustration,
+   angegeben als Anteil der Abzeichen-Box (translate in %). Dadurch
+   skaliert die Korrektur automatisch mit - geöffnete Sidebar (62px)
+   wie eingeklappte (26px) und die Vorschau in den Einstellungen.
+   Werte visuell an allen 16 Kombinationen bei 62px abgenommen. */
+const BADGE_NUMBER_OFFSETS = {
+    schild_waldgruen:  ["5%",  "3%"],
+    schild_himmelblau: ["-2%", "2%"],
+    schild_beerenrosa: ["4%",  "2%"],
+    schild_sonnengold: ["-2%", "2%"],
+    herz_waldgruen:    ["3%",  "0%"],
+    herz_himmelblau:   ["-3%", "-1%"],
+    herz_beerenrosa:   ["3%",  "0%"],
+    herz_sonnengold:   ["-3%", "-1%"],
+    blatt_waldgruen:   ["3%",  "8%"],
+    blatt_himmelblau:  ["-3%", "9%"],
+    blatt_beerenrosa:  ["3%",  "5%"],
+    blatt_sonnengold:  ["-3%", "5%"],
+    stern_waldgruen:   ["3%",  "1%"],
+    stern_himmelblau:  ["-2%", "0%"],
+    stern_beerenrosa:  ["3%",  "3%"],
+    stern_sonnengold:  ["-2%", "1%"]
+};
+
+/* Setzt --badge-number-x / --badge-number-y auf einem Abzeichen-
+   Element (Sidebar oder Vorschau-Kachel). */
+function applyBadgeNumberOffset(el, shape, color) {
+    if (!el) { return; }
+    const off = BADGE_NUMBER_OFFSETS[shape + "_" + color] || ["0%", "0%"];
+    el.style.setProperty("--badge-number-x", off[0]);
+    el.style.setProperty("--badge-number-y", off[1]);
+}
+
+window.MIRELON_BADGE_NUMBER_OFFSETS = BADGE_NUMBER_OFFSETS;
+window.applyBadgeNumberOffset = applyBadgeNumberOffset;
+
 function sidebarBadgeChoice() {
     const b = (typeof player !== "undefined" && player.levelBadge) || {};
     const shape = SIDEBAR_BADGE_SHAPES.indexOf(b.shape) !== -1 ? b.shape : "blatt";
@@ -599,6 +639,7 @@ function updateSidebarLevel() {
             shapeEl.style.backgroundImage =
                 'url("images/badges/' + choice.shape + "_" + choice.color + '.png")';
         }
+        applyBadgeNumberOffset(badge, choice.shape, choice.color);
     }
     if (badgeNum) {
         badgeNum.textContent = p.level;
