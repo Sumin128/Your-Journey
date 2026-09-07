@@ -188,16 +188,29 @@
         return PET_SPECIES[player.tamagotchi.species] || PET_SPECIES.igel;
     }
 
-    /* Igel gibt es immer; die weiteren Baumkinder werden bei Bako
-       gekauft und landen als player.items.baumkind<Art> (serverseitig
-       geschützt). Siehe docs/zauber-gefaehrte.md */
+    /* Verfügbare Baumkinder. Zwei Quellen, beide zählen:
+       - player.tamagotchi.unlockedSpecies (u. a. das im Onboarding
+         gewählte Starter-Baumkind - kein Bako-Kauf)
+       - alte Bako-Item-Freischaltungen player.items.baumkind<Art>
+         (serverseitig geschützt) - für bestehende Spieler.
+       Igel ist immer dabei. Siehe docs/zauber-gefaehrte.md */
     function unlockedList() {
         var out = ["igel"];
+        var add = function (id) {
+            if (PET_SPECIES[id] && out.indexOf(id) === -1) { out.push(id); }
+        };
+
+        var t = player.tamagotchi || {};
+        if (Array.isArray(t.unlockedSpecies)) {
+            t.unlockedSpecies.forEach(add);
+        }
+
         var it = player.items || {};
-        if (it.baumkindOtter) { out.push("otter"); }
-        if (it.baumkindReh) { out.push("reh"); }
-        if (it.baumkindEichhorn) { out.push("eichhorn"); }
-        if (it.baumkindBaer) { out.push("baer"); }
+        if (it.baumkindOtter) { add("otter"); }
+        if (it.baumkindReh) { add("reh"); }
+        if (it.baumkindEichhorn) { add("eichhorn"); }
+        if (it.baumkindBaer) { add("baer"); }
+
         return out;
     }
 
@@ -1075,5 +1088,25 @@
 
     window.addEventListener("player-updated", syncFromPlayer);
     setInterval(sleepTick, 4000);
+
+
+    /* =====================================================
+       ÖFFENTLICHE HAKEN (fürs Onboarding auf der Startseite)
+       ===================================================== */
+
+    // Leseansicht der Baumkinder-Metadaten (id -> {name, speciesName,
+    // icon, sprites.happy}). Nur lesen, nicht verändern.
+    window.MIRELON_PET_SPECIES = PET_SPECIES;
+
+    // Reihenfolge fürs Onboarding.
+    window.MIRELON_PET_ORDER = ["igel", "otter", "reh", "eichhorn", "baer"];
+
+    // Vom Onboarding aufgerufen: neues Baumkind kurz begrüßen lassen.
+    window.mirelonPetGreet = function () {
+        if (!root || !player.tamagotchi || player.tamagotchi.hidden) { return; }
+        syncFromPlayer();
+        var greet = species().speeches.greeting;
+        say(greet[Math.floor(Math.random() * greet.length)], 5000);
+    };
 
 })();

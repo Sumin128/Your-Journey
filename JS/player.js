@@ -124,6 +124,12 @@ function createDefaultPlayer() {
 
         avatar: "",
 
+        // Kurze "Willkommen in Mirelon"-Reise (Startseite). Erst nach
+        // "Mein Abenteuer beginnen" true. Bestehende Spieler (haben schon
+        // Name + Avatar) werden in loadPlayer() auf true migriert und
+        // sehen das Onboarding nie erneut.
+        introSeen: false,
+
         coins: 0,
 
         goldenFeathers: 0,
@@ -642,6 +648,19 @@ if (!player.consumables || typeof player.consumables !== "object") {
                 return arr.indexOf(id) === i;
             });
 
+    }
+
+
+    /* "Willkommen in Mirelon"-Onboarding: bestehende Spieler, die schon
+       Name UND Avatar haben, haben die (alte) Ersteinrichtung bereits
+       abgeschlossen - sie sehen die neue vierteilige Reise nie und
+       behalten Avatar, Theme, Abzeichen und Baumkind unverändert.
+       loadedPlayer (das ROH gespeicherte Objekt) prüfen, nicht player -
+       der frische Default hat introSeen bereits als false. */
+
+    if (typeof loadedPlayer.introSeen !== "boolean" &&
+        player.name && player.avatar) {
+        player.introSeen = true;
     }
 
 

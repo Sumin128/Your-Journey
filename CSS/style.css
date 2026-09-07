@@ -5942,8 +5942,11 @@ justify-content:center;
 
 #onboarding-panel {
 
-    width: min(100%, 480px);
-    padding: 36px;
+    width: min(100%, 520px);
+    max-height: calc(100vh - 40px);
+    padding: 30px 32px;
+
+    overflow-y: auto;
 
     text-align: center;
 
@@ -5951,16 +5954,266 @@ justify-content:center;
 
 #onboarding-panel h2 {
 
-    margin-top: 0;
+    margin-top: 4px;
+    margin-bottom: 14px;
+
+    outline: none;
 
 }
 
-#onboarding-panel > p {
+.onboarding-progress {
 
-    margin-bottom: 24px;
+    margin: 0 0 14px;
+
+    color: var(--yj-color-accent, #e08a3f);
+    font-weight: 700;
+    font-size: .9rem;
+    letter-spacing: .02em;
+
+}
+
+.onboarding-step[hidden] { display: none; }
+
+.onboarding-field-label {
+
+    margin: 16px 0 8px;
 
     color: var(--yj-color-ink-soft);
+    font-weight: 600;
 
+}
+
+.onboarding-step[data-step="1"] .onboarding-field-label:first-of-type {
+    margin-top: 4px;
+}
+
+.onboarding-note {
+
+    margin: 14px 0 0;
+
+    color: var(--yj-color-ink-soft);
+    font-size: .88rem;
+
+}
+
+.onboarding-nav {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-top: 22px;
+
+}
+
+.onboarding-nav .yj-button--wide {
+    flex: 1 1 auto;
+}
+
+.onboarding-nav .yj-button--secondary {
+    flex: 0 0 auto;
+}
+
+/* Auswahl-Knöpfe (Form / Farbe) */
+.onboarding-choice-row {
+
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+
+}
+
+.onboarding-choice {
+
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 7px 14px;
+
+    border: 2px solid var(--yj-color-border, #cdb896);
+    border-radius: var(--yj-radius-pill, 999px);
+
+    background: var(--mirelon-card-bg, #fff);
+
+    font: inherit;
+    font-weight: 600;
+    color: var(--yj-color-ink-soft);
+
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+
+}
+
+.onboarding-choice:hover {
+    border-color: var(--yj-color-accent, #e08a3f);
+    color: var(--yj-color-ink);
+}
+
+.onboarding-choice.is-selected {
+    border-color: var(--yj-color-accent, #e08a3f);
+    background: #f4ead9;
+    color: var(--yj-color-ink);
+    box-shadow: 0 0 0 3px rgba(224, 138, 63, .28);
+}
+
+.onboarding-choice:focus-visible {
+    outline: 3px solid var(--yj-color-accent, #e08a3f);
+    outline-offset: 2px;
+}
+
+.onboarding-color-dot {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .55), 0 1px 2px rgba(0, 0, 0, .25);
+}
+
+.onboarding-color-dot--waldgruen  { background: #3f8f4f; }
+.onboarding-color-dot--himmelblau { background: #4aa3d4; }
+.onboarding-color-dot--beerenrosa { background: #d94f8c; }
+.onboarding-color-dot--sonnengold { background: #e2a53a; }
+
+/* Abzeichen-Vorschau */
+.onboarding-badge-preview {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+
+    margin-top: 20px;
+
+}
+
+.onboarding-badge {
+
+    position: relative;
+
+    width: 82px;
+    height: 82px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.onboarding-badge-shape {
+    position: absolute;
+    inset: 0;
+    background: center / contain no-repeat;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .25));
+}
+
+.onboarding-badge-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #4a3a24;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: 1.6rem;
+    line-height: 1;
+    text-shadow: 0 1px 0 rgba(255, 252, 242, .75);
+}
+
+.onboarding-badge-caption {
+    color: var(--yj-color-ink-soft);
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+/* Seitenstil-Raster */
+.onboarding-theme-grid {
+
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+
+    margin-top: 6px;
+
+}
+
+.onboarding-theme-card {
+    justify-content: flex-start;
+    padding: 12px 14px;
+}
+
+/* Baumkind-Karten */
+.onboarding-pet-grid {
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+
+    margin-top: 6px;
+
+}
+
+.onboarding-pet-card {
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    padding: 12px 10px;
+
+    border: 2px solid var(--yj-color-border, #cdb896);
+    border-radius: var(--yj-radius-md, 16px);
+
+    background: var(--yj-color-paper, #fff);
+
+    font: inherit;
+    color: var(--yj-color-ink);
+
+    cursor: pointer;
+    transition: border-color .15s ease, transform .12s var(--yj-ease-out), box-shadow .15s ease;
+
+}
+
+.onboarding-pet-card:hover {
+    border-color: var(--yj-color-accent, #e08a3f);
+    transform: translateY(-2px);
+}
+
+.onboarding-pet-card.is-selected {
+    border-color: var(--yj-color-accent, #e08a3f);
+    box-shadow: 0 0 0 3px rgba(224, 138, 63, .28);
+    background: #f7efe1;
+}
+
+.onboarding-pet-card:focus-visible {
+    outline: 3px solid var(--yj-color-accent, #e08a3f);
+    outline-offset: 2px;
+}
+
+.onboarding-pet-sprite {
+    width: 66px;
+    height: 66px;
+    object-fit: contain;
+}
+
+.onboarding-pet-name {
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.onboarding-pet-kind {
+    color: var(--yj-color-ink-soft);
+    font-size: .82rem;
+}
+
+@media (max-width: 480px) {
+    .onboarding-theme-grid { grid-template-columns: 1fr; }
+    #onboarding-panel { padding: 24px 18px; }
 }
 
 
@@ -6046,14 +6299,6 @@ justify-content:center;
     width: 100%;
 
     text-align: center;
-
-}
-
-#onboarding-panel #save-name {
-
-    width: 100%;
-
-    margin-top: 4px;
 
 }
 
