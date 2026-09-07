@@ -197,37 +197,137 @@
 
 
     /* =====================================================
-       KONTO & SPIELSTAND
-       Nur die sichtbare Platzierung ist neu - Anmelden/Registrieren
-       läuft weiter über openAccountPanel() (JS/auth.js), Ausloggen
-       über signOutAccount(). Der Gast-/Angemeldet-Wechsel der beiden
-       Blöcke erledigt updateAuthUI() über [data-guest-only] /
-       [data-auth-only] wie bisher.
+       KONTO & SPIELSTAND  (Anker #konto)
+       Alle Aktionen öffnen NUR bestehende, echte Auth-Abläufe aus
+       JS/auth.js (openAccountPanel() + das dortige Konto-Panel:
+       Anmelden/Registrieren-Tabs, "E-Mail ändern" / "Passwort ändern"
+       als <details>, Ausloggen über signOutAccount()). Es wird keine
+       Auth-/Cloud-/Hydration-Logik verändert. Der Gast-/Angemeldet-
+       Wechsel der beiden Blöcke erledigt updateAuthUI() über
+       [data-guest-only] / [data-auth-only].
        ===================================================== */
 
-    const accountLogoutButton =
-        document.getElementById("settings-account-logout");
+    /* Konto-Panel öffnen und darin einen bestimmten Tab bzw. eine der
+       <details>-Sektionen aktivieren. Alles nur über vorhandene
+       Steuerelemente des Panels - kein neuer Ablauf. */
+    function openAccountPanelAt(action) {
 
-    if (accountLogoutButton) {
+        if (typeof openAccountPanel !== "function") {
+            return;
+        }
 
-        accountLogoutButton.addEventListener("click", async function () {
+        openAccountPanel();
 
-            const confirmed =
-                typeof showMirelonConfirm === "function"
-                    ? await showMirelonConfirm(
-                        "Möchtest du dich wirklich ausloggen? Dein Spielstand " +
-                        "bleibt sicher in deinem Konto gespeichert und ist beim " +
-                        "nächsten Anmelden wieder da.",
-                        { okLabel: "Ausloggen", cancelLabel: "Angemeldet bleiben" }
-                    )
-                    : window.confirm("Wirklich ausloggen?");
+        // Panel-DOM existiert nach openAccountPanel() (createAccountPanel()).
+        window.requestAnimationFrame(function () {
 
-            if (confirmed && typeof signOutAccount === "function") {
-                signOutAccount();
+            if (action === "signup") {
+                const t = document.getElementById("account-tab-signup");
+                if (t) { t.click(); }
+                return;
+            }
+
+            if (action === "login") {
+                const t = document.getElementById("account-tab-login");
+                if (t) { t.click(); }
+                return;
+            }
+
+            if (action === "email" || action === "password") {
+
+                const sections = document.querySelectorAll(
+                    "#account-logged-in .account-change-section"
+                );
+                // Reihenfolge im Panel: [0] E-Mail ändern, [1] Passwort ändern
+                const target = action === "email" ? sections[0] : sections[1];
+
+                sections.forEach(function (d) { d.open = (d === target); });
+
+                if (target) {
+                    target.scrollIntoView({ block: "nearest" });
+                    const input = target.querySelector("input");
+                    if (input) { input.focus(); }
+                }
             }
 
         });
+    }
+
+    const bind = function (id, handler) {
+        const el = document.getElementById(id);
+        if (el) { el.addEventListener("click", handler); }
+    };
+
+    bind("settings-account-create", function () { openAccountPanelAt("signup"); });
+    bind("settings-account-signin", function () { openAccountPanelAt("login"); });
+    bind("settings-account-email", function () { openAccountPanelAt("email"); });
+    bind("settings-account-password", function () { openAccountPanelAt("password"); });
+
+    bind("settings-account-logout", async function () {
+
+        const confirmed =
+            typeof showMirelonConfirm === "function"
+                ? await showMirelonConfirm(
+                    "Möchtest du dich wirklich ausloggen? Dein Spielstand " +
+                    "bleibt sicher in deinem Konto gespeichert und ist beim " +
+                    "nächsten Anmelden wieder da.",
+                    { okLabel: "Ausloggen", cancelLabel: "Angemeldet bleiben" }
+                )
+                : window.confirm("Wirklich ausloggen?");
+
+        if (confirmed && typeof signOutAccount === "function") {
+            signOutAccount();
+        }
+
+    });
+
+
+    /* =====================================================
+       SPRUNG ZUM KONTO-ANKER  (#konto)
+       Von der Sidebar-Profilkarte (Avatar/Name) aus. Sauberes
+       Scrollen + kurze, sehr dezente Umrandung; prefers-reduced-
+       motion schaltet die weiche Bewegung ab.
+       ===================================================== */
+
+    let kontoHighlightTimer = null;
+
+    function focusKontoSection() {
+
+        const section = document.getElementById("konto");
+
+        if (!section) {
+            return;
+        }
+
+        const reduceMotion =
+            window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        section.scrollIntoView({
+            behavior: reduceMotion ? "auto" : "smooth",
+            block: "start"
+        });
+
+        section.classList.add("is-anchor-highlight");
+
+        window.clearTimeout(kontoHighlightTimer);
+        kontoHighlightTimer = window.setTimeout(function () {
+            section.classList.remove("is-anchor-highlight");
+        }, 2200);
 
     }
+
+    function maybeFocusKonto() {
+        if (window.location.hash === "#konto") {
+            focusKontoSection();
+        }
+    }
+
+    // Beim Laden (Gast: sofort; angemeldet: erst wenn der echte
+    // Spielstand steht und die Seite sichtbar ist -> player-ready).
+    window.requestAnimationFrame(maybeFocusKonto);
+    window.addEventListener("player-ready", maybeFocusKonto);
+    // Gleiche Seite, Klick auf den Sidebar-Link -> nur der Hash ändert sich.
+    window.addEventListener("hashchange", maybeFocusKonto);
 
 })();

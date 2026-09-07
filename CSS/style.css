@@ -845,9 +845,11 @@ main {
    ===================================================== */
 
 /* Fester Profilbereich oben in der Sidebar.
-   - eingeklappt: nur Avatar + kleines Eck-Level-Abzeichen
+   - eingeklappt: nur Avatar (= Einstieg zu Profil & Konto) + kleines
+     Eck-Level-Abzeichen; Inventar-Knopf getrennt darunter.
    - offen: klare Profilkarte als Grid
-       [ Avatar ] [ Name / Münzen / Erfolge ] [ großes Abzeichen ]
+       [ Avatar + Name/Münzen/Erfolge = 1 Link ] [ großes Abzeichen ]
+       [ Inventar-Knopf ]
        [ XP-Text + breiter Fortschrittsbalken + Ziel (volle Breite) ]
 */
 .sidebar-player{
@@ -855,12 +857,13 @@ main {
     position:relative;
 
     display:grid;
-    grid-template-columns:56px minmax(0,1fr);
+    grid-template-columns:minmax(0,1fr) auto;
     grid-template-areas:
-        "avatar info"
-        "xp     xp";
-    column-gap:12px;
-    row-gap:0;
+        "profile badge"
+        "tools   ."
+        "xp      xp";
+    column-gap:10px;
+    row-gap:8px;
 
     align-items:center;
 
@@ -869,34 +872,99 @@ main {
 }
 
 #sidebar.open .sidebar-player{
+    row-gap:10px;
+}
 
-    grid-template-columns:58px minmax(0,1fr) auto;
-    grid-template-areas:
-        "avatar info badge"
-        "xp     xp   xp";
-    row-gap:12px;
+/* Avatar + Name/Münzen/Erfolge = EIN klickbarer, tastaturbedienbarer
+   Einstieg zu einstellungen.html#konto. Kein zusätzlicher Login-/
+   Logout-Knopf in der Sidebar. */
+.sidebar-profile-link{
 
+    grid-area:profile;
+
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+
+    min-width:0;
+
+    text-decoration:none;
+    color:inherit;
+    cursor:inherit;
+
+    border-radius:14px;
+    padding:6px;
+    margin:-6px -6px 0;
+
+    transition:background .18s ease;
+
+}
+
+.sidebar-profile-link:hover{
+    background:var(--sb-hover-bg);
+}
+
+.sidebar-profile-link:focus-visible{
+    outline:2px solid var(--sb-text);
+    outline-offset:2px;
+    background:var(--sb-hover-bg);
+}
+
+/* eingeklappt: nur der Avatar ist der Einstieg, mittig */
+#sidebar:not(.open) .sidebar-profile-link{
+    justify-content:center;
+}
+
+/* Zurückhaltender Hinweis, nur bei Hover/Fokus (offene Sidebar) */
+.sidebar-profile-hint{
+
+    flex-basis:100%;
+
+    margin-top:2px;
+
+    color:var(--sb-accent);
+    font-size:.72rem;
+    font-weight:600;
+
+    opacity:0;
+    max-height:0;
+    overflow:hidden;
+
+    transition:opacity .18s ease, max-height .18s ease;
+
+}
+
+.sidebar-profile-link:hover .sidebar-profile-hint,
+.sidebar-profile-link:focus-visible .sidebar-profile-hint{
+    opacity:.9;
+    max-height:1.4em;
+}
+
+#sidebar:not(.open) .sidebar-profile-hint{
+    display:none;
+}
+
+/* eingeklappt: Info NICHT nur unsichtbar, sondern aus dem Layout -
+   sonst reserviert der (umgebrochene) Text Platz und der Link-
+   Klickbereich wird viel größer als der Avatar. */
+#sidebar:not(.open) .sidebar-player-info{
+    display:none;
 }
 
 .sidebar-avatar-wrap{
 
-    grid-area:avatar;
-
-    width:56px;
-
     display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    gap:8px;
 
     flex-shrink:0;
 
 }
 
 #inventory-button{
+
+    grid-area:tools;
+    justify-self:start;
+    margin-left:3px;
 
     width:36px;
     height:36px;
@@ -918,6 +986,11 @@ main {
 
     transition:.25s var(--yj-ease-spring);
 
+}
+
+#sidebar:not(.open) #inventory-button{
+    justify-self:center;
+    margin-left:0;
 }
 
 .inventory-icon {
@@ -995,7 +1068,7 @@ main {
 
 .sidebar-player-info{
 
-    grid-area:info;
+    flex:1 1 auto;
 
     display:flex;
 
@@ -1065,9 +1138,10 @@ main {
      überlappt nichts (eigene Grid-Spalte) */
 .sidebar-level-badge{
 
-    grid-area:badge;
-
-    /* eingeklappt: kleines, aber eindeutig sichtbares Eck-Abzeichen */
+    /* eingeklappt: kleines, aber eindeutig sichtbares Eck-Abzeichen.
+       KEIN grid-area hier - sonst wäre der Container-Block eines
+       absolut positionierten Grid-Items die (0px breite) Spalte
+       rechts und das Abzeichen läge außerhalb der Sidebar. */
     position:absolute;
     left:33px;
     top:28px;
@@ -1086,9 +1160,11 @@ main {
 
 #sidebar.open .sidebar-level-badge{
 
-    /* relative (nicht static): hält die absolut positionierte
-       .sidebar-level-badge-shape in ihren eigenen 62px - sonst
-       spannt inset:0 über die ganze Profilkarte. */
+    /* offen: eigene Grid-Spalte rechts. relative (nicht static):
+       hält die absolut positionierte .sidebar-level-badge-shape in
+       ihren eigenen 62px - sonst spannt inset:0 über die ganze Karte. */
+    grid-area:badge;
+
     position:relative;
     left:auto;
     top:auto;
@@ -4323,20 +4399,59 @@ justify-content:center;
 
 }
 
-/* Konto & Spielstand */
+/* =====================================================
+   KONTO & SPIELSTAND  (Einstellungen, Anker #konto)
+   Freundliche Hierarchie: Icon + Überschrift, kurzer Status,
+   dann klar erkennbare Aktionen. Kein grelles Warnrot.
+   ===================================================== */
+.settings-panel--konto {
+    scroll-margin-top: 20px;
+}
+
+/* Mobil: fixe Topbar (56px) nicht über den Kartenkopf scrollen */
+@media (max-width: 960px) {
+    .settings-panel--konto {
+        scroll-margin-top: 72px;
+    }
+}
+
+/* dezente Hervorhebung nach dem Sprung über Avatar/Name */
+.settings-panel--konto.is-anchor-highlight {
+    outline: 2px solid var(--yj-color-border, #e3b23c);
+    outline-offset: 4px;
+    box-shadow: 0 0 0 6px rgba(227, 178, 60, .15);
+    transition: outline-color .35s ease, box-shadow .35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .settings-panel--konto.is-anchor-highlight {
+        transition: none;
+    }
+}
+
 .settings-account {
 
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 12px;
 
-    padding: 4px 0 10px;
+    padding: 4px 0 12px;
 
 }
 
 .settings-account[hidden] {
     display: none;
+}
+
+.settings-account .settings-row {
+    padding: 12px 0 0;
+    border: none;
+}
+
+.settings-account-icon {
+    font-size: 1.15em;
+    margin-right: 2px;
 }
 
 .settings-account-status {
@@ -4348,38 +4463,74 @@ justify-content:center;
 
 }
 
-.settings-account-hint {
+.settings-account-ok {
 
-    margin: 0;
+    margin: 4px 0 0;
 
-    color: var(--yj-color-ink-soft);
-    font-size: .9rem;
-
-}
-
-.settings-account-hint--ok {
     color: var(--yj-color-success, #3f8f4f);
     font-weight: 600;
+    font-size: .92rem;
+
 }
 
-.settings-account-logout {
+.settings-account-actions {
 
-    margin-top: 2px;
-    padding: 4px 2px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+}
+
+/* sekundäre Textaktion (Gast: "Ich habe schon ein Konto") */
+.settings-account-secondary {
+
+    padding: 10px 4px;
 
     border: none;
     background: none;
 
     color: var(--yj-color-ink-soft);
     font: inherit;
-    font-size: .9rem;
     text-decoration: underline;
 
     cursor: pointer;
 
 }
 
+.settings-account-secondary:hover {
+    color: var(--yj-color-ink);
+}
+
+/* "Ausloggen": klarer, aber sekundärer Knopf mit Icon - kein Textlink */
+.settings-account-logout {
+
+    align-self: flex-start;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-top: 2px;
+    padding: 8px 18px;
+
+    border: 2px solid var(--yj-color-border, #cdb896);
+    border-radius: var(--yj-radius-pill, 999px);
+
+    background: var(--mirelon-card-bg, #fff);
+
+    color: var(--yj-color-ink-soft);
+    font: inherit;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background .18s ease, border-color .18s ease, color .18s ease;
+
+}
+
 .settings-account-logout:hover {
+    background: #f4ead9;
+    border-color: var(--yj-color-accent, #d98b3a);
     color: var(--yj-color-ink);
 }
 

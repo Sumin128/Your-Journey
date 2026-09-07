@@ -99,18 +99,23 @@ function buildSidebarMarkup() {
         </div>
 
         <div class="sidebar-player">
-            <div class="sidebar-avatar-wrap">
-                <img id="sidebar-player-avatar" src="" alt="Spieler">
-                <button id="inventory-button" type="button">
-                    <img src="Icons/Sidebar/inventar.png" alt="" class="inventory-icon" decoding="async">
-                </button>
-            </div>
+            <a id="sidebar-profile-link" class="sidebar-profile-link" href="einstellungen.html#konto" aria-label="Profil &amp; Konto öffnen">
+                <span class="sidebar-avatar-wrap">
+                    <img id="sidebar-player-avatar" src="" alt="">
+                </span>
 
-            <div class="sidebar-player-info">
-                <strong id="sidebar-player-name">Abenteurer</strong>
-                <span id="sidebar-feathers"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
-                <span id="sidebar-achievements">⭐ 0 Erfolge</span>
-            </div>
+                <span class="sidebar-player-info">
+                    <strong id="sidebar-player-name">Abenteurer</strong>
+                    <span id="sidebar-feathers"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
+                    <span id="sidebar-achievements">⭐ 0 Erfolge</span>
+                </span>
+
+                <span class="sidebar-profile-hint" aria-hidden="true">Profil &amp; Konto öffnen</span>
+            </a>
+
+            <button id="inventory-button" type="button" aria-label="Inventar öffnen">
+                <img src="Icons/Sidebar/inventar.png" alt="" class="inventory-icon" decoding="async">
+            </button>
 
             <span id="sidebar-level-badge" class="sidebar-level-badge" aria-hidden="true">
                 <span class="sidebar-level-badge-shape"></span>
