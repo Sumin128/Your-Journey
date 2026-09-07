@@ -206,7 +206,7 @@
         window.MIRELON_BADGE_SHAPES.forEach(function (shape) {
             const inner =
                 '<span class="settings-badge-choice-icon" style="background-image:url(\'images/badges/' +
-                shape + "_" + cur.color + '.png\')"></span>' +
+                shape + "_" + cur.color + '.png?v=2\')"></span>' +
                 "<span>" + (SHAPE_LABEL[shape] || shape) + "</span>";
             badgeShapesEl.appendChild(makeChoiceButton(
                 "shape", shape, shape === cur.shape, inner,
@@ -237,7 +237,7 @@
             const shp = badgePreview.querySelector(".settings-badge-preview-shape");
             if (shp) {
                 shp.style.backgroundImage =
-                    'url("images/badges/' + cur.shape + "_" + cur.color + '.png")';
+                    'url("images/badges/' + cur.shape + "_" + cur.color + '.png?v=2")';
             }
         }
         if (badgePreviewNum) {

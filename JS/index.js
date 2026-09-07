@@ -260,7 +260,7 @@ function renderOnboardingBadgeState() {
     const shapeEl = onboardingOverlay.querySelector(".onboarding-badge-shape");
     if (shapeEl) {
         shapeEl.style.backgroundImage =
-            'url("images/badges/' + onboardingDraft.badge.shape + "_" + onboardingDraft.badge.color + '.png")';
+            'url("images/badges/' + onboardingDraft.badge.shape + "_" + onboardingDraft.badge.color + '.png?v=2")';
     }
 }
 

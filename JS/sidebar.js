@@ -588,7 +588,7 @@ function updateSidebarLevel() {
         const shapeEl = badge.querySelector(".sidebar-level-badge-shape");
         if (shapeEl) {
             shapeEl.style.backgroundImage =
-                'url("images/badges/' + choice.shape + "_" + choice.color + '.png")';
+                'url("images/badges/' + choice.shape + "_" + choice.color + '.png?v=2")';
         }
     }
     if (badgeNum) {
