@@ -171,7 +171,15 @@ window.addEventListener("mirelon:earn-xp", async function (event) {
         rpcArgs.p_round_id = roundId;
     }
 
-    const rpcResult = await supabaseClient.rpc("earn_xp", rpcArgs);
+    let rpcResult = await supabaseClient.rpc("earn_xp", rpcArgs);
+
+    // Fallback, falls supabase_migration_progression_v2.sql noch nicht
+    // eingespielt ist (dann kennt der Server nur earn_xp(text)):
+    // ohne die neuen Parameter erneut versuchen.
+    if (rpcResult.error &&
+        /function .*earn_xp.* does not exist|p_difficulty|p_round_id/i.test(rpcResult.error.message || "")) {
+        rpcResult = await supabaseClient.rpc("earn_xp", { p_reason: reason });
+    }
 
     if (rpcResult.error) {
 
