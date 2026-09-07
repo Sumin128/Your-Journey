@@ -43,9 +43,9 @@ const TEXT_QUIZ_CATEGORIES = [
 /* Rundenlaengen. difficulty = die XP-Schwierigkeit (bestehende
    earn_xp()-Logik: leicht/normal/schwer). */
 const TEXT_QUIZ_LENGTHS = [
-    { id: "kurz",   label: "Kurz",   count: 5,  difficulty: "leicht", note: "5 Fragen · ca. 3 Minuten" },
-    { id: "mittel", label: "Mittel", count: 10, difficulty: "normal", note: "10 Fragen · ca. 6 Minuten" },
-    { id: "gross",  label: "Groß",   count: 15, difficulty: "schwer", note: "15 Fragen · ca. 10 Minuten" }
+    { id: "kurz",   label: "Kurz",   count: 5,  difficulty: "leicht", note: "5 Fragen" },
+    { id: "mittel", label: "Mittel", count: 10, difficulty: "normal", note: "10 Fragen" },
+    { id: "gross",  label: "Groß",   count: 15, difficulty: "schwer", note: "15 Fragen" }
 ];
 
 const TEXT_QUIZ_QUESTIONS = [
