@@ -158,52 +158,58 @@ updateOnboardingVisibility();
 
 
 /* =====================================================
-   SCHLOSS-HOTSPOT AUF DER KARTE
-   Liest dieselbe einzige Quelle der Wahrheit wie die Sidebar-Sperre
-   (player.progression.unlockedFeatures, siehe JS/sidebar.js) - kein
-   zweites Freischalt-Flag. Der Klick-auf-gesperrt-Fall nutzt dieselbe
-   Nachrichten-Funktion wie die Sidebar (window.showLockedFeatureMessage),
-   damit Text/Ton an nur einer Stelle gepflegt werden.
+   "KOMMT BALD"-HOTSPOTS AUF DER KARTE (Schloss & Tamos Werkstatt)
+   Beide werden GEMEINSAM mit player.progression.unlockedFeatures
+   = ["castle"] (Stufe 3) nutzbar - einzige Quelle der Wahrheit,
+   dieselbe wie Sidebar (JS/sidebar.js) und Schloss-Seite
+   (JS/schloss.js). Klick-auf-gesperrt nutzt window.showLockedFeatureMessage.
    ===================================================== */
 
-function updateCastleHotspot() {
+// data-locked-feature -> Feature, das den Ort freischaltet
+const HOTSPOT_GATE = { castle: "castle", tamo: "castle" };
+const HOTSPOT_OPEN_TOOLTIP = {
+    castle: "Gehe zu Deinem Schloss",
+    tamo: "Gehe zu Tamos Werkstatt"
+};
 
-    const hotspot =
-        document.querySelector('.home-map-hotspot[data-locked-feature="castle"]');
-
-    if (!hotspot) {
-        return;
-    }
+function updateLockedHotspots() {
 
     const unlocked =
-        typeof player !== "undefined" &&
-        Boolean(player.progression) &&
-        Array.isArray(player.progression.unlockedFeatures) &&
-        player.progression.unlockedFeatures.indexOf("castle") !== -1;
+        (typeof player !== "undefined" && player.progression &&
+            Array.isArray(player.progression.unlockedFeatures))
+            ? player.progression.unlockedFeatures
+            : [];
 
-    if (!unlocked) {
-        return;
-    }
+    document.querySelectorAll('.home-map-hotspot--locked[data-locked-feature]').forEach(function (hotspot) {
 
-    hotspot.classList.remove("home-map-hotspot--locked");
-    hotspot.removeAttribute("aria-disabled");
-    hotspot.removeAttribute("data-locked-feature");
+        const key = hotspot.dataset.lockedFeature;
+        const gate = HOTSPOT_GATE[key] || key;
 
-    const badge = hotspot.querySelector(".home-map-lock-badge");
-    if (badge) {
-        badge.remove();
-    }
+        if (unlocked.indexOf(gate) === -1) {
+            return;
+        }
 
-    const tooltip = hotspot.querySelector(".home-map-tooltip");
-    if (tooltip) {
-        tooltip.textContent = "Gehe zu Deinem Schloss";
-    }
+        hotspot.classList.remove("home-map-hotspot--locked");
+        hotspot.removeAttribute("aria-disabled");
+        hotspot.removeAttribute("data-locked-feature");
+
+        const badge = hotspot.querySelector(".home-map-lock-badge");
+        if (badge) {
+            badge.remove();
+        }
+
+        const tooltip = hotspot.querySelector(".home-map-tooltip");
+        if (tooltip && HOTSPOT_OPEN_TOOLTIP[key]) {
+            tooltip.textContent = HOTSPOT_OPEN_TOOLTIP[key];
+        }
+
+    });
 
 }
 
-updateCastleHotspot();
+updateLockedHotspots();
 
-window.addEventListener("player-updated", updateCastleHotspot);
+window.addEventListener("player-updated", updateLockedHotspots);
 
 document.querySelectorAll(".home-map").forEach(function (mapEl) {
 

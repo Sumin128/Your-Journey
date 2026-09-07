@@ -25,6 +25,52 @@
     width: 100%;
 }
 
+/* [hidden] muss die display-Regeln unten schlagen (JS/tamo.js
+   togglet .tamo-intro / .tamo-workbench / #tamo-shelf / .tamo-hint /
+   #tamo-locked per hidden-Attribut). */
+.tamo-page [hidden] {
+    display: none !important;
+}
+
+/* --- "Kommt bald"-Karte (vor Stufe 3, siehe JS/tamo.js) --- */
+
+.tamo-locked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+    padding: 26px 22px;
+    background: linear-gradient(180deg, #fbf1dd 0%, #f3e2c1 100%);
+    border: 2px solid #6b4423;
+}
+
+.tamo-locked h1 {
+    margin: 0;
+    color: var(--yj-color-wood-dark, #5b3a1c);
+    font-size: clamp(1.35rem, 1.1rem + 1.1vw, 2rem);
+}
+
+.tamo-locked p {
+    margin: 0;
+    max-width: 44ch;
+    color: var(--yj-color-ink-soft, #6b573f);
+    line-height: 1.55;
+}
+
+.tamo-locked .tamo-portrait {
+    width: clamp(110px, 22vw, 150px);
+    opacity: 0.92;
+}
+
+.tamo-locked-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 4px;
+}
+
 /* --- Intro mit Tamo --- */
 
 .tamo-intro {

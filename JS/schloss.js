@@ -194,8 +194,8 @@
             lockedSection.hidden = false;
             editorSection.hidden = true;
 
-            if (lockedText && typeof LOCKED_FEATURE_MESSAGES !== "undefined") {
-                lockedText.textContent = LOCKED_FEATURE_MESSAGES.castle;
+            if (lockedText && typeof window.getLockedFeatureMessage === "function") {
+                lockedText.textContent = window.getLockedFeatureMessage("castle");
             }
 
             return;

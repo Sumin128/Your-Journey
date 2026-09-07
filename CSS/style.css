@@ -1254,28 +1254,63 @@ main {
 
 }
 
-/* Gesperrte Sidebar-Ziele (z. B. "Mein Schloss" vor Level 3, siehe
-   JS/sidebar.js) - bleiben sichtbar, wirken aber gedämpft und
-   navigieren nicht. */
-.sidebar-link--locked{
+/* "Kommt bald"-Ziele (Mein Schloss & Tamos Werkstatt vor Stufe 3,
+   siehe JS/sidebar.js). Freundlich sichtbar, leicht gedämpft, KEIN
+   Vorhängeschloss/Schlüssel - stattdessen eine kleine "ab Stufe 3"-
+   Zeile und ein dezenter Sternen-Schimmer am Icon. */
+.sidebar-sublink--coming{
 
     position: relative;
-    opacity: 0.6;
+    opacity: 0.82;
     cursor: pointer;
 
 }
 
-.sidebar-link--locked .sidebar-icon-img{
+.sidebar-sublink--coming .sidebar-icon-img{
 
-    filter: grayscale(0.6);
+    opacity: 0.8;
 
 }
 
-.sidebar-lock-badge{
+.sidebar-sublink--coming .sidebar-label{
 
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+
+}
+
+.sidebar-coming-note{
+
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--sb-accent);
+    letter-spacing: 0.01em;
+
+}
+
+.sidebar-sublink--coming .sidebar-icon{
+
+    position: relative;
+
+}
+
+.sidebar-sublink--coming .sidebar-icon::after{
+
+    content: "";
     position: absolute;
-    right: 10px;
-    font-size: 0.85rem;
+    right: 1px;
+    top: 3px;
+
+    width: 4px;
+    height: 4px;
+
+    border-radius: 50%;
+    background: var(--sb-accent);
+    box-shadow: -3px 7px 0 -1px var(--sb-accent), 2px 11px 0 -2px var(--sb-accent);
+
+    opacity: 0.85;
+    pointer-events: none;
 
 }
 

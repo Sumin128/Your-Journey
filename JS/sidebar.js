@@ -6,6 +6,45 @@ const sidebar =
     document.getElementById("sidebar");
 
 /* =====================================================
+   NOCH-NICHT-FREIGESCHALTETE ORTE ("kommt bald")
+   Mein Schloss UND Tamos Werkstatt werden GEMEINSAM mit
+   player.progression.unlockedFeatures = ["castle"] (Stufe 3)
+   nutzbar. Vorher freundlich sichtbar, ohne Schloss-Symbol.
+   Einzige Quelle der Wahrheit: dieselbe Prüfung wie Karten-
+   Hotspot (JS/index.js) und Schloss-Seite (JS/schloss.js).
+   ===================================================== */
+const SIDEBAR_COMING_SOON = {
+    castle: { gate: "castle", note: "ab Stufe 3" },
+    tamo:   { gate: "castle", note: "kommt mit deinem Schloss" }
+};
+
+const SCHLOSS_UNLOCK_XP = 300;
+
+function isFeatureUnlocked(key) {
+    return typeof player !== "undefined" &&
+        Boolean(player.progression) &&
+        Array.isArray(player.progression.unlockedFeatures) &&
+        player.progression.unlockedFeatures.indexOf(key) !== -1;
+}
+
+/* Freundlicher Hinweistext beim Klick auf einen "kommt bald"-Ort -
+   für Schloss dynamisch mit den noch fehlenden XP. Genutzt von der
+   Sidebar, dem Karten-Hotspot (JS/index.js) und der Schloss-Seite
+   (JS/schloss.js) - Text an genau einer Stelle. */
+function getLockedFeatureMessage(key) {
+    if (key === "castle") {
+        const xp = (typeof player !== "undefined" && player.progression && player.progression.xp) || 0;
+        const left = Math.max(0, SCHLOSS_UNLOCK_XP - xp);
+        return "Sammle noch " + left + " XP, dann kannst du dein eigenes Schloss einrichten.";
+    }
+    if (key === "tamo") {
+        return "Tamo richtet seine Werkstatt gerade ein. Er kommt, sobald dein Schloss bereit ist.";
+    }
+    return "Das ist noch nicht freigeschaltet.";
+}
+window.getLockedFeatureMessage = getLockedFeatureMessage;
+
+/* =====================================================
    SIDEBAR-MARKUP ZENTRAL ERZEUGEN
    Früher war die <nav id="sidebar"> auf jeder Seite von
    Hand kopiert (~230 Zeilen × 14 Seiten). Jetzt steht auf
@@ -29,21 +68,21 @@ function buildSidebarMarkup() {
         return `<a href="${href}" class="${cls}"${current}>${icon(iconSrc)}<span class="sidebar-label">${label}</span></a>`;
     };
 
-    /* lockedFeature (optional): Schlüssel aus
-       player.progression.unlockedFeatures (z. B. "castle"). Ist er
-       gesetzt, bleibt der Link sichtbar (das Ziel soll motivierend
-       erkennbar bleiben, nicht komplett verborgen sein), aber mit
-       🔒-Badge - ein Klick zeigt showLockedFeatureMessage() statt zu
-       navigieren, siehe den delegierten Klick-Handler weiter unten.
-       updateSidebarLockState() aktualisiert das live, sobald die
-       Cloud-Daten nach dem Sidebar-Aufbau eintreffen. */
-    const sublink = (href, label, iconSrc, lockedFeature) => {
-        const locked = Boolean(lockedFeature);
-        const current = !locked && href.toLowerCase() === here ? ' aria-current="page"' : "";
-        const cls = "sidebar-link sidebar-sublink" + (locked ? " sidebar-link--locked" : "");
-        const lockedAttr = locked ? ` data-locked-feature="${lockedFeature}" aria-disabled="true"` : "";
-        const badge = locked ? '<span class="sidebar-lock-badge" aria-hidden="true">🔒</span>' : "";
-        return `<a href="${href}" class="${cls}"${current}${lockedAttr}>${icon(iconSrc)}<span class="sidebar-label">${label}</span>${badge}</a>`;
+    /* comingKey (optional): Schlüssel aus SIDEBAR_COMING_SOON. Der Ort
+       ist noch nicht nutzbar, bleibt aber freundlich sichtbar - KEIN
+       Vorhängeschloss/Schlüssel, sondern eine kleine "kommt bald"-Zeile
+       ("ab Stufe 3" o. ä.). Ein Klick zeigt showLockedFeatureMessage()
+       statt zu navigieren (delegierter Handler weiter unten).
+       updateSidebarLockState() macht den Link live nutzbar, sobald das
+       Feature freigeschaltet ist. */
+    const sublink = (href, label, iconSrc, comingKey) => {
+        const cfg = comingKey ? SIDEBAR_COMING_SOON[comingKey] : null;
+        const coming = Boolean(cfg) && !isFeatureUnlocked(cfg.gate);
+        const current = !coming && href.toLowerCase() === here ? ' aria-current="page"' : "";
+        const cls = "sidebar-link sidebar-sublink" + (coming ? " sidebar-sublink--coming" : "");
+        const attr = coming ? ` data-coming-feature="${comingKey}" aria-disabled="true"` : "";
+        const note = coming ? `<span class="sidebar-coming-note">${cfg.note}</span>` : "";
+        return `<a href="${href}" class="${cls}"${current}${attr}>${icon(iconSrc)}<span class="sidebar-label">${label}${note}</span></a>`;
     };
 
     // defaultOpen: Gruppe ist beim Laden aufgeklappt, auch ohne aktiven
@@ -52,15 +91,6 @@ function buildSidebarMarkup() {
         `<button type="button" class="sidebar-group-header"${defaultOpen ? ' data-default-open="true"' : ""}>${icon(iconSrc)}` +
         `<span class="sidebar-label">${label}</span><span class="sidebar-chevron">▸</span></button>` +
         `<div class="sidebar-subnav">${subs.join("")}</div>`;
-
-    // Einzige Quelle der Wahrheit fürs Schloss-Freischalten, siehe
-    // docs/mein-schloss.md - dieselbe Prüfung nutzt auch der
-    // Karten-Hotspot in index.html.
-    const castleUnlocked =
-        typeof player !== "undefined" &&
-        Boolean(player.progression) &&
-        Array.isArray(player.progression.unlockedFeatures) &&
-        player.progression.unlockedFeatures.indexOf("castle") !== -1;
 
     return `
         <div class="sidebar-header">
@@ -87,7 +117,7 @@ function buildSidebarMarkup() {
         <div class="sidebar-nav">
             ${group("Welt", "Icons/Sidebar/lernorte.png", [
                 sublink("index.html", "Startkarte", "Icons/Sidebar/startkarte.png"),
-                sublink("schloss.html", "Mein Schloss", "Icons/Sidebar/schloss.png", castleUnlocked ? null : "castle"),
+                sublink("schloss.html", "Mein Schloss", "Icons/Sidebar/schloss.png", "castle"),
                 sublink("kuros_nest.html", "Kuros Nest", "Icons/Sidebar/rabe-2.png"),
                 sublink("eulenschule.html", "Tessas Hasenschule", "Icons/Sidebar/hase.png"),
                 sublink("fuchs.html", "Faros Fuchsbau", "Icons/Sidebar/fuchs.png"),
@@ -103,7 +133,7 @@ function buildSidebarMarkup() {
             ${group("Läden", "Icons/Sidebar/laeden.png", [
                 sublink("shop_seite.html", "Kuros Laden", "Icons/Sidebar/kuros_laden.png"),
                 sublink("bakos_basar.html", "Bakos Basar", "Icons/Sidebar/shop.png"),
-                sublink("tamo_werkstatt.html", "Tamos Werkstatt", "Icons/Sidebar/tamo_werkstatt.png")
+                sublink("tamo_werkstatt.html", "Tamos Werkstatt", "Icons/Sidebar/tamo_werkstatt.png", "tamo")
             ])}
 
             ${group("Fortschritt", "Icons/Sidebar/fortschritt.png", [
@@ -304,22 +334,16 @@ sidebarGroupHeaders.forEach(function (header) {
 
 
 /* =====================================================
-   GESPERRTE FEATURES (z. B. "Mein Schloss" vor Level 3)
-   Ein Klick auf einen gesperrten Sidebar-Link navigiert NICHT,
-   sondern zeigt eine freundliche In-Welt-Nachricht statt einer
-   technischen "Level 3 nötig"-Meldung. Dieselbe Nachrichten-Funktion
-   nutzt auch der Karten-Hotspot in index.html (window.showLockedFeatureMessage).
+   "KOMMT BALD"-ORTE (Mein Schloss & Tamos Werkstatt vor Stufe 3)
+   Ein Klick navigiert NICHT, sondern zeigt eine freundliche
+   In-Welt-Nachricht (kein technisches "Level 3 nötig"). Dieselbe
+   getLockedFeatureMessage() nutzen auch Karten-Hotspot (JS/index.js)
+   und Schloss-Seite (JS/schloss.js).
    ===================================================== */
-
-const LOCKED_FEATURE_MESSAGES = {
-    castle: "Das alte Schloss schläft noch tief im Wald… Vielleicht hat Faro bald eine Idee, wie man es wieder zum Leben erwecken kann, wenn ihr gemeinsam noch ein bisschen mehr erlebt habt! 🦊"
-};
 
 function showLockedFeatureMessage(featureKey) {
 
-    const message =
-        LOCKED_FEATURE_MESSAGES[featureKey] ||
-        "Das ist noch nicht freigeschaltet.";
+    const message = getLockedFeatureMessage(featureKey);
 
     if (typeof showMirelonToast === "function") {
         showMirelonToast(message, "info");
@@ -335,15 +359,15 @@ if (sidebar) {
 
     sidebar.addEventListener("click", function (event) {
 
-        const lockedLink = event.target.closest(".sidebar-link--locked");
+        const comingLink = event.target.closest(".sidebar-sublink--coming");
 
-        if (!lockedLink) {
+        if (!comingLink) {
             return;
         }
 
         event.preventDefault();
 
-        showLockedFeatureMessage(lockedLink.dataset.lockedFeature);
+        showLockedFeatureMessage(comingLink.dataset.comingFeature);
 
     });
 
@@ -353,32 +377,34 @@ if (sidebar) {
 // ändert (Cloud-Daten treffen erst nach dem Login-Pull ein, oder ein
 // Level-Aufstieg passiert waehrend die Seite offen ist) - baut nicht
 // die ganze Sidebar neu (das wuerde z. B. offene Gruppen zuklappen),
-// sondern aktualisiert nur die betroffenen Links.
+// sondern macht nur die betroffenen Links nutzbar.
 function updateSidebarLockState() {
 
     if (typeof player === "undefined") {
         return;
     }
 
-    const unlocked =
-        (player.progression && Array.isArray(player.progression.unlockedFeatures))
-            ? player.progression.unlockedFeatures
-            : [];
+    document.querySelectorAll(".sidebar-sublink--coming[data-coming-feature]").forEach(function (el) {
 
-    document.querySelectorAll(".sidebar-link--locked[data-locked-feature]").forEach(function (el) {
+        const cfg = SIDEBAR_COMING_SOON[el.dataset.comingFeature];
 
-        if (unlocked.indexOf(el.dataset.lockedFeature) === -1) {
+        if (!cfg || !isFeatureUnlocked(cfg.gate)) {
             return;
         }
 
-        el.classList.remove("sidebar-link--locked");
-        el.removeAttribute("data-locked-feature");
+        el.classList.remove("sidebar-sublink--coming");
+        el.removeAttribute("data-coming-feature");
         el.removeAttribute("aria-disabled");
 
-        const badge = el.querySelector(".sidebar-lock-badge");
+        const note = el.querySelector(".sidebar-coming-note");
 
-        if (badge) {
-            badge.remove();
+        if (note) {
+            note.remove();
+        }
+
+        if (el.getAttribute("href") &&
+            el.getAttribute("href").toLowerCase() === (location.pathname.split("/").pop() || "index.html").toLowerCase()) {
+            el.setAttribute("aria-current", "page");
         }
 
     });

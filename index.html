@@ -17,11 +17,11 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=42">
+        href="CSS/style.css?v=43">
 
     <link
         rel="stylesheet"
-        href="CSS/components/index.css?v=18">
+        href="CSS/components/index.css?v=19">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=4">
 
     <title>Mirelon</title>
@@ -149,12 +149,16 @@
             </a>
 
             <!-- Tamos Werkstatt = das Haus mit dem Wasserrad, mittig-rechts
-                 am Bachlauf. -->
+                 am Bachlauf. Vor Stufe 3 "kommt bald" (gemeinsam mit dem
+                 Schloss freigeschaltet) - JS/index.js schaltet um. Kein
+                 Vorhängeschloss/Schlüssel-Symbol. -->
             <a
                 href="tamo_werkstatt.html"
-                class="home-map-hotspot"
+                class="home-map-hotspot home-map-hotspot--locked"
+                data-locked-feature="tamo"
+                aria-disabled="true"
                 style="--x:62%; --y:47%; --w:17%; --h:21%;">
-                <span class="home-map-tooltip">Gehe zu Tamos Werkstatt</span>
+                <span class="home-map-tooltip">Tamos Werkstatt – ab Stufe 3</span>
             </a>
 
             <!-- Position ist eine grobe Erst-Schätzung ("oben rechts" im
@@ -162,15 +166,15 @@
                  nachjustieren (nur die vier --x/--y/--w/--h-Werte).
                  Gesperrt/freigeschaltet wird per JS umgeschaltet, siehe
                  JS/index.js (einzige Quelle der Wahrheit:
-                 player.progression.unlockedFeatures, wie in JS/sidebar.js). -->
+                 player.progression.unlockedFeatures, wie in JS/sidebar.js).
+                 Kein Vorhängeschloss/Schlüssel-Symbol. -->
             <a
                 href="schloss.html"
                 class="home-map-hotspot home-map-hotspot--locked"
                 data-locked-feature="castle"
                 aria-disabled="true"
                 style="--x:75%; --y:2%; --w:11%; --h:15%;">
-                <span class="home-map-tooltip">Das Schloss wartet noch …</span>
-                <span class="home-map-lock-badge" aria-hidden="true">🔒</span>
+                <span class="home-map-tooltip">Mein Schloss – ab Stufe 3</span>
             </a>
 
 
@@ -185,15 +189,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="JS/player.js?v=30"></script>
     <script src="JS/level-data.js?v=1"></script>
-    <script src="JS/level-up.js?v=1"></script>
+    <script src="JS/level-up.js?v=2"></script>
     <script src="JS/auth.js?v=9"></script>
-    <script src="JS/sidebar.js?v=18"></script>
+    <script src="JS/sidebar.js?v=19"></script>
     <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=8"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/data.js?v=3"></script>
-    <script src="JS/index.js?v=2"></script>
+    <script src="JS/index.js?v=3"></script>
     <script src="JS/map-sparkles.js?v=1"></script>
 
 

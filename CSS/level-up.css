@@ -170,6 +170,17 @@
 
 }
 
+.mirelon-story-title {
+
+    margin: 0 0 10px;
+
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-size: 1.25rem;
+    color: var(--yj-color-wood-dark, #5b3a1c);
+    text-align: center;
+
+}
+
 .mirelon-story-text {
 
     margin: 0 0 22px;
@@ -178,6 +189,7 @@
     font-weight: 600;
     line-height: 1.5;
     text-align: center;
+    white-space: pre-line;
 
 }
 

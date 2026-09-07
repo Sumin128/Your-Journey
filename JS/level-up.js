@@ -16,8 +16,9 @@ const STORY_EVENTS = {
     castle_unlock: {
         character: "Faro",
         avatar: "images/faro1.png",
-        text: "Hey, du Entdecker-Ass! Ich hab da draußen im Wald was Spannendes gefunden – ein altes Schloss! Es hat schon lange auf jemanden gewartet, der sich darum kümmert. Willst du es dir ansehen?",
-        confirmLabel: "Ja, zeig's mir! 🏰",
+        title: "⭐ Stufe 3 erreicht!",
+        text: "Dein Schloss ist bereit! Ein neuer Ort wartet auf dich – richte ihn so ein, wie du möchtest.\n\nTamo der Biber hat seine Werkstatt eröffnet und hilft dir mit neuen Möbeln.",
+        confirmLabel: "Zum Schloss",
         dismissLabel: "Später",
         goTo: "schloss.html"
     }
@@ -35,7 +36,7 @@ function formatRewardLine(reward) {
     }
 
     if (reward.type === "featureUnlock" && reward.key === "castle") {
-        return "🏰 Das Schloss ist freigeschaltet!";
+        return "🏰 Mein Schloss & Tamos Werkstatt sind offen!";
     }
 
     if (reward.type === "furniture") {
@@ -142,6 +143,7 @@ function showStoryEvent(storyEventKey, level) {
         <div class="mirelon-story-backdrop"></div>
         <div class="mirelon-story-card" role="alertdialog" aria-modal="true">
             <img src="${story.avatar}" alt="${story.character}" class="mirelon-story-avatar" decoding="async">
+            ${story.title ? '<h2 class="mirelon-story-title"></h2>' : ""}
             <p class="mirelon-story-text"></p>
             <div class="mirelon-story-actions">
                 <button type="button" class="yj-button yj-button--secondary yj-button--compact mirelon-story-dismiss"></button>
@@ -150,6 +152,9 @@ function showStoryEvent(storyEventKey, level) {
         </div>
     `;
 
+    if (story.title) {
+        overlay.querySelector(".mirelon-story-title").textContent = story.title;
+    }
     overlay.querySelector(".mirelon-story-text").textContent = story.text;
     overlay.querySelector(".mirelon-story-confirm").textContent = story.confirmLabel;
     overlay.querySelector(".mirelon-story-dismiss").textContent = story.dismissLabel;

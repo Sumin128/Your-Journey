@@ -23,10 +23,30 @@
 
     const shelfEl = document.getElementById("tamo-shelf");
     const coinCountEl = document.getElementById("tamo-coin-count");
+    const lockedEl = document.getElementById("tamo-locked");
 
     if (!shelfEl) {
         return;
     }
+
+    // Tamos Werkstatt öffnet GEMEINSAM mit dem Schloss (Stufe 3) -
+    // einzige Quelle der Wahrheit: player.progression.unlockedFeatures,
+    // dieselbe Prüfung wie Sidebar (JS/sidebar.js) und Schloss
+    // (JS/schloss.js). Direkter Aufruf der URL vorher wird hier
+    // freundlich abgefangen (keine Käufe möglich).
+    function castleUnlocked() {
+        return Boolean(player.progression) &&
+            Array.isArray(player.progression.unlockedFeatures) &&
+            player.progression.unlockedFeatures.indexOf("castle") !== -1;
+    }
+
+    // Alles außer der "kommt bald"-Karte
+    const openSections = [
+        document.querySelector(".tamo-intro"),
+        document.querySelector(".tamo-workbench"),
+        shelfEl,
+        document.querySelector(".tamo-hint")
+    ];
 
     /* Tamos Kategorien in Anzeige-Reihenfolge. tamoCategory() ordnet
        jedes Katalog-Möbel einem dieser Fächer zu (Katalog-`category`
@@ -142,6 +162,21 @@
     /* ---- Rendern ---- */
 
     function render() {
+
+        const locked = !castleUnlocked();
+
+        if (lockedEl) {
+            lockedEl.hidden = !locked;
+        }
+        openSections.forEach(function (el) {
+            if (el) { el.hidden = locked; }
+        });
+
+        // Der seiten-eigene Text steht schon im HTML (#tamo-locked-text) -
+        // absichtlich anders als der kurze Sidebar-Hinweis.
+        if (locked) {
+            return;
+        }
 
         if (coinCountEl) {
             coinCountEl.textContent = coins();
