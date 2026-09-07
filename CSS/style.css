@@ -4450,16 +4450,12 @@ justify-content:center;
     padding: 14px 18px;
 
     border-radius: var(--yj-radius-sm, 12px);
-    border-left: 5px solid var(--yj-color-accent, #e08a3f);
 
     background: rgba(255, 250, 240, .9);
 
     text-align: left;
 
 }
-
-.quiz-explanation.is-correct { border-left-color: #3f8f4f; }
-.quiz-explanation.is-wrong { border-left-color: #d0863a; }
 
 .quiz-explanation p {
     margin: 0 0 12px;
@@ -4468,7 +4464,8 @@ justify-content:center;
 }
 
 .quiz-next-button {
-    margin-top: 2px;
+    display: block;
+    margin: 8px auto 0;
 }
 
 .quiz-result-score {
