@@ -86,6 +86,92 @@ function initSchloss3D(canvas) {
         };
     }
 
+    /* =====================================================
+       PLATZIERUNGS-ARCHITEKTUR
+       Ein zentraler Dispatch statt Sonderlogik pro Möbel. Jedes
+       Katalog-Möbel hat einen placementType:
+         - (fehlt) / "floor"  : normales Bodenmöbel, Kollision, y=0
+         - "floorDecor"       : Teppich - flach, keine Kollision
+         - "surfaceDecor"     : steht auf Möbel-Oberflächen (Tisch/Regal/
+                                 Truhe...) oder als Fallback auf dem Boden;
+                                 snappt auf die getroffene Oberflächenhöhe
+         - "wallDecor"        : hängt an einer der drei Innenwände
+                                 (Rückwand / links / rechts), automatisch
+                                 zur Wand ausgerichtet, Höhe frei im
+                                 sinnvollen Bereich, keine Boden-Kollision
+       surfaceDecor + wallDecor sind bewusst allgemein - dieselbe Logik
+       trägt später Vasen, Bücher, Spielzeug, Tisch-Pflanzen usw.
+       ===================================================== */
+
+    const HALF_W = ROOM_WIDTH / 2;      // Seitenwände x = ±HALF_W
+    const BACK_Z = -ROOM_DEPTH / 2;     // Rückwand z = BACK_Z
+    const WALL_OFFSET = 0.05;           // Wanddeko steht so weit vor der Wand
+    const WALL_H_MIN = 0.9;             // erlaubter Höhenbereich für Wanddeko
+    const WALL_H_MAX = 3.4;
+
+    // Öffnungen in den Wänden - MUSS mit buildProceduralShell (WIN / FP /
+    // Türblatt) übereinstimmen. Rechtecke in Wand-lokalen Koordinaten:
+    // Rückwand: [x, y], Seitenwände: [z, y].
+    const WALL_OPENINGS = {
+        back: [
+            { a1: -1.75, a2: 1.75, y1: 0.8, y2: 3.7 },   // Dreifachfenster
+            { a1: 2.05, a2: 3.75, y1: 0.0, y2: 1.9 }     // Kaminöffnung + Sturz
+        ],
+        left: [
+            { a1: -1.5, a2: 0.05, y1: 0.0, y2: 2.9 }      // Holztür
+        ],
+        right: []
+    };
+
+    // Liegt (a, y) in einer Wandöffnung? a = x (Rückwand) bzw. z (Seiten).
+    function inWallOpening(wall, a, y) {
+        const list = WALL_OPENINGS[wall] || [];
+        for (let i = 0; i < list.length; i++) {
+            const o = list[i];
+            if (a > o.a1 && a < o.a2 && y > o.y1 && y < o.y2) { return o; }
+        }
+        return null;
+    }
+
+    // Wand-lokale Position (Entlang-Koordinate a + Höhe y) auf die gültige
+    // Wandfläche begrenzen: im Raum bleiben, Öffnungen meiden, Höhe im
+    // sinnvollen Bereich. half = halbe Breite/Höhe des Objekts.
+    function clampToWall(wall, a, y, half) {
+        const hw = half || 0.3;
+        const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - hw - WALL_MARGIN;
+        a = Math.max(-limA, Math.min(limA, a));
+        y = Math.max(WALL_H_MIN + hw * 0.4, Math.min(WALL_H_MAX, y));
+
+        // Öffnung? -> Entlang-Koordinate an die nähere Öffnungskante schieben
+        const o = inWallOpening(wall, a, y);
+        if (o) {
+            const distLeft = Math.abs(a - (o.a1 - hw));
+            const distRight = Math.abs((o.a2 + hw) - a);
+            a = distLeft < distRight ? (o.a1 - hw) : (o.a2 + hw);
+            a = Math.max(-limA, Math.min(limA, a));
+        }
+        return { a: a, y: y };
+    }
+
+    // Weltposition + Ausrichtung aus (wall, a, y).
+    function wallToWorld(wall, a, y) {
+        if (wall === "left") { return { x: -HALF_W + WALL_OFFSET, y: y, z: a, rot: Math.PI / 2 }; }
+        if (wall === "right") { return { x: HALF_W - WALL_OFFSET, y: y, z: a, rot: -Math.PI / 2 }; }
+        return { x: a, y: y, z: BACK_Z + WALL_OFFSET, rot: 0 }; // back
+    }
+
+    // Aus einer Weltposition zurück auf (wall, a) schließen (für geladene
+    // Instanzen / Auswahl).
+    function worldToWall(x, z) {
+        if (x < -HALF_W + 0.5) { return { wall: "left", a: z }; }
+        if (x > HALF_W - 0.5) { return { wall: "right", a: z }; }
+        return { wall: "back", a: x };
+    }
+
+    function placementType(furniture) {
+        return (furniture && furniture.placementType) || "floor";
+    }
+
     // Echte Raumhülle (GLTFLoader). Ist der Pfad gesetzt und lädt das
     // Modell, ersetzt es die prozedurale Hülle; sonst baut
     // buildProceduralShell() die einfache Geometrie als technischen
@@ -106,6 +192,13 @@ function initSchloss3D(canvas) {
     const FIRE_ANCHOR = new THREE.Vector3(2.9, 0, -ROOM_DEPTH / 2 + 0.45);
 
     const isMobile = window.matchMedia("(max-width: 700px)").matches;
+
+    // Licht-Budget: nur die MAX_DYN_LIGHTS kameranächsten brennenden
+    // Lichter (Lampe + Kerzen) tragen wirklich ein Punktlicht bei - der
+    // Rest zeigt nur Flamme/Kern. Hält die gleichzeitige Lichtzahl für
+    // Browser/Mobil klein.
+    const MAX_DYN_LIGHTS = isMobile ? 3 : 6;
+    let _lightBudgetTick = 0;
 
     function activeRoom() {
         return player.schloss.rooms[player.schloss.activeRoom || "wohnzimmer"];
@@ -402,13 +495,35 @@ function initSchloss3D(canvas) {
         }
 
         const design = furniture.designs[instance.design] || furniture.designs[0];
+        const ptype = placementType(furniture);
 
         const group = new THREE.Group();
-        group.position.set(instance.x, 0, instance.z);
-        group.rotation.y = instance.rotationY || 0;
         group.userData.instanceId = instance.instanceId;
         group.userData.footprint = furniture.footprint || { w: 0.6, d: 0.6 };
         group.userData.furniture = furniture;
+        group.userData.placementType = ptype;
+
+        if (ptype === "wallDecor") {
+            // Wanddeko-Instanz: {wall, a (Entlang-Koord), y (Höhe)}.
+            // Ältere/fehlende Werte tolerant aus x/z ableiten.
+            const half = (furniture.footprint ? Math.max(furniture.footprint.w, furniture.footprint.d) : 0.5) / 2;
+            let wall = instance.wall;
+            let a = instance.a;
+            if (!wall) {
+                const g = worldToWall(instance.x || 0, typeof instance.z === "number" ? instance.z : BACK_Z);
+                wall = g.wall;
+                a = (typeof a === "number") ? a : g.a;
+            }
+            const cl = clampToWall(wall, a || 0, (typeof instance.y === "number" ? instance.y : 1.8), half);
+            const w = wallToWorld(wall, cl.a, cl.y);
+            group.position.set(w.x, w.y, w.z);
+            group.rotation.y = w.rot;
+            group.userData.wall = wall;
+            group.userData.wallA = cl.a;
+        } else {
+            group.position.set(instance.x, instance.y || 0, instance.z);
+            group.rotation.y = instance.rotationY || 0;
+        }
 
         // Echtes 3D-Modell, wenn design.model gesetzt ist - sonst (und
         // als Fallback bei Ladefehler) der gemalte 2D-Cutout.
@@ -420,12 +535,21 @@ function initSchloss3D(canvas) {
             populateWithCutout(group, furniture, design, instance.color);
         }
 
-        // Leuchtende Möbel (furniture.light, z. B. Waldlampe): echte
-        // kleine Punktlichtquelle + warmer Leuchtkern. Zustand aus
-        // instance.lightOn (fehlt der Wert -> an).
-        if (furniture.light) {
+        // Möbel-Oberfläche (Tisch/Regal/Truhe...): Zone registrieren, auf
+        // der surfaceDecor-Objekte (Kerzen usw.) stehen dürfen.
+        if (furniture.surface) {
+            group.userData.surface = furniture.surface;
+        }
+
+        // Leuchtende Möbel: Waldlampe (furniture.light) bzw. Kerze
+        // (furniture.flame + light). Zustand aus instance.lightOn
+        // (fehlt der Wert -> an).
+        if (furniture.flame) {
+            addCandleLight(group, furniture.light || {});
+            setLightState(group, instance.lightOn !== false);
+        } else if (furniture.light) {
             addLampLight(group, furniture.light);
-            setLampState(group, instance.lightOn !== false);
+            setLightState(group, instance.lightOn !== false);
         }
 
         scene.add(group);
@@ -433,6 +557,45 @@ function initSchloss3D(canvas) {
 
         return group;
 
+    }
+
+    // Aktive Oberflächen-Zonen aller platzierten Trägermöbel (Weltkoords).
+    // shape "rect": halbe Maße hw/hd, rotiert um rotY; "circle": Radius r.
+    function getSupportSurfaces(exceptGroup) {
+        const out = [];
+        placedGroups.forEach(function (g) {
+            if (g === exceptGroup) { return; }
+            const s = g.userData.surface;
+            if (!s) { return; }
+            out.push({
+                group: g,
+                cx: g.position.x,
+                cz: g.position.z,
+                rotY: g.rotation.y,
+                top: s.top,
+                shape: s.shape || "rect",
+                r: s.r || 0.4,
+                hw: (s.w || 0.8) / 2,
+                hd: (s.d || 0.8) / 2
+            });
+        });
+        // höchste zuerst - beim Ziehen gewinnt die oberste Fläche
+        out.sort(function (a, b) { return b.top - a.top; });
+        return out;
+    }
+
+    // Liegt der Weltpunkt (x,z) auf der Oberflächenzone s (mit Rand margin)?
+    function pointOnSurface(s, x, z, margin) {
+        const m = margin || 0;
+        if (s.shape === "circle") {
+            const dx = x - s.cx, dz = z - s.cz;
+            return dx * dx + dz * dz <= (s.r - m) * (s.r - m);
+        }
+        // rect: in Möbel-lokale Achsen zurückdrehen
+        const c = Math.cos(-s.rotY), sn = Math.sin(-s.rotY);
+        const lx = (x - s.cx) * c - (z - s.cz) * sn;
+        const lz = (x - s.cx) * sn + (z - s.cz) * c;
+        return Math.abs(lx) <= s.hw - m && Math.abs(lz) <= s.hd - m;
     }
 
     room.placedItems.forEach(addFurnitureGroup);
@@ -448,14 +611,9 @@ function initSchloss3D(canvas) {
             return;
         }
 
-        // Frisch platzierte Möbel gestaffelt nahe der gut sichtbaren
-        // Raummitte (rein kosmetisch - Kind zieht sie danach frei an
-        // ihren Platz, jetzt bis fast an die vordere Bodenkante).
+        const furniture = getSchlossFurniture(furnitureId);
+        const ptype = placementType(furniture);
         const index = room.placedItems.length;
-        const col = index % 5;
-        const row = Math.floor(index / 5) % 3;
-        const spawn = clampToFloor(-2.6 + col * 1.3, 0.6 + row * 1.0,
-            (getSchlossFurniture(furnitureId).footprint) || { w: 0.6, d: 0.6 });
 
         const instance = {
             instanceId: "i" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
@@ -463,17 +621,68 @@ function initSchloss3D(canvas) {
             design: 0,
             color: null,
             customVariantId: null,
-            x: spawn.x,
-            z: spawn.z,
             rotationY: 0,
             scale: 1,
             content: null,
             lightOn: true
         };
 
+        if (ptype === "wallDecor") {
+            // An die Rückwand, gestaffelt an einer freien Stelle, Augenhöhe.
+            // clampToWall hält den Startplatz aus Fenster/Kamin heraus.
+            const spots = [-2.9, 3.55, -3.5, 0, -1.0, 1.85];
+            const half = (furniture.footprint ? Math.max(furniture.footprint.w, furniture.footprint.d) : 0.5) / 2;
+            const cl = clampToWall("back", spots[index % spots.length], 1.85, half);
+            const w = wallToWorld("back", cl.a, cl.y);
+            instance.wall = "back"; instance.a = cl.a; instance.y = cl.y;
+            instance.x = w.x; instance.z = w.z; instance.rotationY = w.rot;
+        } else if (ptype === "surfaceDecor") {
+            // Start gut sichtbar auf dem Boden vor der Mitte - das Kind
+            // zieht die Deko danach auf einen Tisch/ein Regal (dort
+            // snappt sie auf die Oberflächenhöhe).
+            const sp = clampToFloor(-0.5 + (index % 4) * 0.45, 2.0,
+                furniture.footprint || { w: 0.3, d: 0.3 });
+            instance.x = sp.x; instance.z = sp.z; instance.y = 0;
+        } else {
+            // Bodenmöbel: gestaffelt nahe der Raummitte.
+            const col = index % 5;
+            const row = Math.floor(index / 5) % 3;
+            const spawn = clampToFloor(-2.6 + col * 1.3, 0.6 + row * 1.0,
+                furniture.footprint || { w: 0.6, d: 0.6 });
+            instance.x = spawn.x; instance.z = spawn.z; instance.y = 0;
+        }
+
         room.placedItems.push(instance);
 
         const group = addFurnitureGroup(instance);
+
+        // Endgültige (ggf. geclampte) Werte aus der Gruppe zurückschreiben,
+        // damit die gespeicherte Instanz und die Szene übereinstimmen.
+        if (group) {
+            if (ptype === "wallDecor") {
+                instance.wall = group.userData.wall;
+                instance.a = Math.round(group.userData.wallA * 1000) / 1000;
+                instance.y = Math.round(group.position.y * 1000) / 1000;
+                instance.x = group.position.x;
+                instance.z = group.position.z;
+                instance.rotationY = group.rotation.y;
+            } else {
+                instance.x = group.position.x;
+                instance.z = group.position.z;
+                instance.y = Math.round(group.position.y * 1000) / 1000;
+            }
+            if (ptype === "surfaceDecor") {
+                group.userData.onSurface = null;
+                const sList = getSupportSurfaces(group);
+                for (let si = 0; si < sList.length; si++) {
+                    if (Math.abs(sList[si].top - group.position.y) < 0.02 &&
+                        pointOnSurface(sList[si], group.position.x, group.position.z, 0)) {
+                        group.userData.onSurface = sList[si].group;
+                        break;
+                    }
+                }
+            }
+        }
 
         saveSchloss();
         selectGroup(group);
@@ -504,17 +713,24 @@ function initSchloss3D(canvas) {
 
     let selected = null;
 
+    // Hat das Möbel einen schaltbaren Lichtzustand (Lampe ODER Kerze)?
+    function hasSwitchableLight(group) {
+        const f = group && group.userData.furniture;
+        return Boolean(f && (f.light || f.flame));
+    }
+
     function updateLightToggle(group) {
 
         if (!lightToggleBtn) { return; }
 
-        const isLamp = Boolean(group && group.userData.furniture && group.userData.furniture.light);
-        lightToggleBtn.hidden = !isLamp;
+        const isLight = hasSwitchableLight(group);
+        lightToggleBtn.hidden = !isLight;
 
-        if (isLamp) {
+        if (isLight) {
             const inst = findInstance(group);
             const on = !inst || inst.lightOn !== false;
-            lightToggleBtn.textContent = on ? "💡" : "🌙";
+            const isCandle = Boolean(group.userData.furniture.flame);
+            lightToggleBtn.textContent = on ? (isCandle ? "🕯️" : "💡") : "🌙";
             lightToggleBtn.setAttribute("aria-pressed", String(on));
         }
 
@@ -529,6 +745,11 @@ function initSchloss3D(canvas) {
             selectionRing.position.x = group.position.x;
             selectionRing.position.z = group.position.z;
             if (rotateControls) { rotateControls.hidden = false; }
+            // Wanddeko ist automatisch zur Wand ausgerichtet - Drehen
+            // ergibt keinen Sinn, die Dreh-Knöpfe werden ausgeblendet.
+            const isWall = group.userData.placementType === "wallDecor";
+            if (rotateLeftBtn) { rotateLeftBtn.hidden = isWall; }
+            if (rotateRightBtn) { rotateRightBtn.hidden = isWall; }
             renderColorSwatches(group);
             updateLightToggle(group);
         } else {
@@ -549,8 +770,9 @@ function initSchloss3D(canvas) {
 
             const nextOn = instance.lightOn === false; // war aus -> an
             instance.lightOn = nextOn;
-            setLampState(selected, nextOn);
-            lightToggleBtn.textContent = nextOn ? "💡" : "🌙";
+            setLightState(selected, nextOn);
+            const isCandle = Boolean(selected.userData.furniture && selected.userData.furniture.flame);
+            lightToggleBtn.textContent = nextOn ? (isCandle ? "🕯️" : "💡") : "🌙";
             lightToggleBtn.setAttribute("aria-pressed", String(nextOn));
             saveSchloss();
 
@@ -607,6 +829,11 @@ function initSchloss3D(canvas) {
     function rotateSelected(delta) {
 
         if (!selected) {
+            return;
+        }
+
+        // Wanddeko bleibt zur Wand ausgerichtet - nicht drehbar.
+        if (selected.userData.placementType === "wallDecor") {
             return;
         }
 
@@ -717,6 +944,8 @@ function initSchloss3D(canvas) {
 
     });
 
+    const _p = new THREE.Vector3();
+
     canvas.addEventListener("pointermove", function (event) {
 
         if (!dragging || !selected || event.pointerId !== dragPointerId) {
@@ -725,60 +954,150 @@ function initSchloss3D(canvas) {
 
         updatePointerNDC(event);
         raycaster.setFromCamera(pointerNDC, camera);
-
-        const point = new THREE.Vector3();
-        const hit = raycaster.ray.intersectPlane(floorPlane, point);
-
-        if (!hit) {
-            return;
-        }
-
         dragMoved = true;
 
-        const footprint = selected.userData.footprint || { w: 0.6, d: 0.6 };
+        const ptype = selected.userData.placementType || "floor";
 
-        let c = clampToFloor(point.x, point.z, footprint);
+        if (ptype === "wallDecor") { dragWallDecor(); }
+        else if (ptype === "surfaceDecor") { dragSurfaceDecor(); }
+        else { dragFloorItem(); }
+
+    });
+
+    // --- Bodenmöbel: Raumgrenzen + verzeihende Kollision (unverändert) ---
+    function dragFloorItem() {
+
+        const hit = raycaster.ray.intersectPlane(floorPlane, _p);
+        if (!hit) { return; }
+
+        const footprint = selected.userData.footprint || { w: 0.6, d: 0.6 };
+        let c = clampToFloor(_p.x, _p.z, footprint);
         let x = c.x, z = c.z;
 
-        // Boden-Dekoration (Teppich) nimmt NICHT an der Möbel-Kollision
-        // teil - weder als geschobenes noch als schiebendes Objekt.
-        // Tisch/Stuhl dürfen darauf stehen. Raumgrenzen gelten weiter.
         if (!isFloorDecor(selected)) {
-
-            // Einfache, verzeihende Überlappungsprüfung: kein hartes
-            // Blockieren, sondern ein sanftes Auseinanderschieben, falls
-            // sich zwei Möbel-"Kreise" zu stark überschneiden.
             placedGroups.forEach(function (other) {
-
-                if (other === selected || isFloorDecor(other)) {
-                    return;
-                }
-
+                if (other === selected || isFloorDecor(other)) { return; }
+                const op = other.userData.placementType || "floor";
+                if (op === "wallDecor" || op === "surfaceDecor") { return; }
                 const otherFootprint = other.userData.footprint || { w: 0.6, d: 0.6 };
                 const dx = x - other.position.x;
                 const dz = z - other.position.z;
                 const distance = Math.sqrt(dx * dx + dz * dz);
                 const minDistance = (footprint.w + footprint.d) / 4 + (otherFootprint.w + otherFootprint.d) / 4;
-
                 if (distance > 0.0001 && distance < minDistance) {
                     const push = minDistance - distance;
                     x += (dx / distance) * push;
                     z += (dz / distance) * push;
                 }
-
             });
-
             c = clampToFloor(x, z, footprint);
-            x = c.x;
-            z = c.z;
-
+            x = c.x; z = c.z;
         }
 
         selected.position.set(x, 0, z);
-        selectionRing.position.x = x;
-        selectionRing.position.z = z;
+        selectionRing.position.set(x, 0.02, z);
+    }
 
-    });
+    // --- surfaceDecor (Kerze usw.): auf die getroffene Möbel-Oberfläche
+    // snappen, sonst Boden. Mehrere auf derselben Fläche nur ohne
+    // Überschneidung. ---
+    function dragSurfaceDecor() {
+
+        const fp = selected.userData.footprint || { w: 0.25, d: 0.25 };
+        const rad = Math.max(fp.w, fp.d) / 2;
+        const surfaces = getSupportSurfaces(selected);
+        let target = null;
+
+        for (let i = 0; i < surfaces.length; i++) {
+            const s = surfaces[i];
+            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -s.top);
+            if (!raycaster.ray.intersectPlane(plane, _p)) { continue; }
+            // grosszuegig: der Cursor muss nur GROB die Fläche treffen
+            // (halber Objekt-Radius Toleranz), danach wird sauber
+            // hineingeschoben.
+            if (!pointOnSurface(s, _p.x, _p.z, -rad * 0.6)) { continue; }
+            let x = _p.x, z = _p.z;
+            // in die Zone schieben (Rand = rad)
+            if (s.shape === "circle") {
+                const dx = x - s.cx, dz = z - s.cz;
+                const d = Math.sqrt(dx * dx + dz * dz);
+                const maxD = Math.max(0.02, s.r - rad);
+                if (d > maxD && d > 0) { x = s.cx + dx / d * maxD; z = s.cz + dz / d * maxD; }
+            } else {
+                const cs = Math.cos(-s.rotY), sn = Math.sin(-s.rotY);
+                let lx = (x - s.cx) * cs - (z - s.cz) * sn;
+                let lz = (x - s.cx) * sn + (z - s.cz) * cs;
+                const mx = Math.max(0.02, s.hw - rad), mz = Math.max(0.02, s.hd - rad);
+                lx = Math.max(-mx, Math.min(mx, lx));
+                lz = Math.max(-mz, Math.min(mz, lz));
+                x = s.cx + lx * Math.cos(s.rotY) - lz * Math.sin(s.rotY);
+                z = s.cz + lx * Math.sin(s.rotY) + lz * Math.cos(s.rotY);
+            }
+            // andere surfaceDecor auf DERSELBEN Fläche nicht überlappen
+            placedGroups.forEach(function (other) {
+                if (other === selected) { return; }
+                if ((other.userData.placementType) !== "surfaceDecor") { return; }
+                if (other.userData.onSurface !== s.group) { return; }
+                const of = other.userData.footprint || { w: 0.25, d: 0.25 };
+                const orad = Math.max(of.w, of.d) / 2;
+                const dx = x - other.position.x, dz = z - other.position.z;
+                const dd = Math.sqrt(dx * dx + dz * dz);
+                const minD = rad + orad + 0.03;
+                if (dd > 0.0001 && dd < minD) {
+                    x += dx / dd * (minD - dd);
+                    z += dz / dd * (minD - dd);
+                }
+            });
+            target = { x: x, y: s.top, z: z, surface: s.group };
+            break;
+        }
+
+        if (!target) {
+            if (!raycaster.ray.intersectPlane(floorPlane, _p)) { return; }
+            const c = clampToFloor(_p.x, _p.z, fp);
+            target = { x: c.x, y: 0, z: c.z, surface: null };
+        }
+
+        selected.position.set(target.x, target.y, target.z);
+        selected.userData.onSurface = target.surface;
+        selectionRing.position.set(target.x, 0.02, target.z);
+    }
+
+    // --- wallDecor: an die nächstliegende Innenwand snappen, automatisch
+    // ausrichten, Höhe aus dem Trefferpunkt, Öffnungen meiden. ---
+    const _wallPlanes = [
+        { name: "back", plane: new THREE.Plane(new THREE.Vector3(0, 0, 1), ROOM_DEPTH / 2) },
+        { name: "left", plane: new THREE.Plane(new THREE.Vector3(1, 0, 0), ROOM_WIDTH / 2) },
+        { name: "right", plane: new THREE.Plane(new THREE.Vector3(-1, 0, 0), ROOM_WIDTH / 2) }
+    ];
+
+    function dragWallDecor() {
+
+        const fp = selected.userData.footprint || { w: 0.5, d: 0.5 };
+        const half = Math.max(fp.w, fp.d) / 2;
+        let best = null;
+
+        for (let i = 0; i < _wallPlanes.length; i++) {
+            const w = _wallPlanes[i];
+            if (!raycaster.ray.intersectPlane(w.plane, _p)) { continue; }
+            const a = w.name === "back" ? _p.x : _p.z;
+            const y = _p.y;
+            const lim = (w.name === "back" ? HALF_W : ROOM_DEPTH / 2) + 0.4;
+            if (Math.abs(a) > lim || y < 0.2 || y > WALL_H_MAX + 0.6) { continue; }
+            const dist = raycaster.ray.origin.distanceTo(_p);
+            if (!best || dist < best.dist) { best = { wall: w.name, a: a, y: y, dist: dist }; }
+        }
+
+        if (!best) { return; }
+
+        const cl = clampToWall(best.wall, best.a, best.y, half);
+        const world = wallToWorld(best.wall, cl.a, cl.y);
+        selected.position.set(world.x, world.y, world.z);
+        selected.rotation.y = world.rot;
+        selected.userData.wall = best.wall;
+        selected.userData.wallA = cl.a;
+        selectionRing.position.set(world.x, 0.02, world.z);
+    }
 
     function endDrag(event) {
 
@@ -789,14 +1108,23 @@ function initSchloss3D(canvas) {
         dragging = false;
         dragPointerId = null;
 
-        // Nur EINMAL beim Loslassen speichern, nicht bei jedem
-        // pointermove-Tick (sonst würde ein einziges Ziehen dutzende
-        // savePlayer()/sync_player_data()-Aufrufe auslösen).
+        // Nur EINMAL beim Loslassen speichern.
         if (dragMoved && selected) {
             const instance = findInstance(selected);
             if (instance) {
-                instance.x = selected.position.x;
-                instance.z = selected.position.z;
+                const ud = selected.userData;
+                if (ud.placementType === "wallDecor") {
+                    instance.wall = ud.wall;
+                    instance.a = Math.round(ud.wallA * 1000) / 1000;
+                    instance.y = Math.round(selected.position.y * 1000) / 1000;
+                    instance.x = selected.position.x;
+                    instance.z = selected.position.z;
+                    instance.rotationY = selected.rotation.y;
+                } else {
+                    instance.x = selected.position.x;
+                    instance.z = selected.position.z;
+                    instance.y = Math.round(selected.position.y * 1000) / 1000;
+                }
                 saveSchloss();
             }
         }
@@ -850,6 +1178,25 @@ function initSchloss3D(canvas) {
         if (fireMesh.userData.embers) {
             fireMesh.userData.embers.material.opacity = 0.55 + Math.sin(t * 2.1) * 0.16 + Math.sin(t * 5.3) * 0.06;
         }
+
+        // Kerzen: kleine Flamme flackern lassen + Punktlicht-Budget
+        // (nur die kameranächsten brennenden Lichter tragen wirklich bei).
+        for (let i = 0; i < placedGroups.length; i++) {
+            const g = placedGroups[i];
+            if (!g.userData.isCandle || !g.userData.lightOn) { continue; }
+            const ph = (g.position.x + g.position.z) * 3.1;
+            const cf = 0.82 + Math.sin(t * 9 + ph) * 0.12 + Math.sin(t * 21 + ph) * 0.06;
+            if (g.userData.flame) {
+                g.userData.flame.scale.y = 0.85 + cf * 0.35;
+                g.userData.flame.scale.x = 0.95 + Math.sin(t * 6 + ph) * 0.07;
+                g.userData.flame.rotation.z = Math.sin(t * 4 + ph) * 0.12;
+                g.userData.flame.material.opacity = 0.72 + cf * 0.22;
+            }
+            if (g.userData.light && g.userData.light.visible) {
+                g.userData.light.intensity = (g.userData.lightBaseIntensity || 2) * cf;
+            }
+        }
+        updateLightBudget(camera.position);
 
         renderer.render(scene, camera);
 
@@ -919,7 +1266,11 @@ function initSchloss3D(canvas) {
                 const size = box.getSize(new THREE.Vector3());
                 const modelWidth = Math.max(size.x, size.z) || 1;
                 const targetWidth = Math.max(footprint.w, footprint.d);
-                const scale = targetWidth / modelWidth;
+                // footprint = Kollisions-/Platzierungsmaß (bleibt maßgeblich).
+                // furniture.modelScale ist ein optionaler Feinkorrektur-
+                // Faktor NUR für die Optik (z. B. Lampe/Regal/Pflanze), ohne
+                // den footprint oder gespeicherte Positionen anzufassen.
+                const scale = (targetWidth / modelWidth) * (furniture.modelScale || 1);
 
                 if (isFinite(scale) && scale > 0) {
                     model.scale.setScalar(scale);
@@ -963,6 +1314,7 @@ function initSchloss3D(canvas) {
 
         const footprint = furniture.footprint || { w: 0.6, d: 0.6 };
         const flat = Boolean(furniture.flatOnFloor);
+        const wallDecor = placementType(furniture) === "wallDecor";
 
         const material = new THREE.MeshStandardMaterial({
             transparent: true,
@@ -977,19 +1329,33 @@ function initSchloss3D(canvas) {
         // Platzhalter-Fläche, bis die Textur geladen ist (vermeidet ein
         // kurzes "Nichts" beim ersten Rendern).
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(footprint.w, footprint.w), material);
+        let backing = null;
 
         if (flat) {
-            // Liegt flach auf dem Boden (z. B. Teppich, Kissen) statt
-            // aufrecht zu stehen wie normale Möbel-Cutouts - sonst würde
-            // ein Teppich wie ein aufgestelltes Bild aussehen.
+            // Liegt flach auf dem Boden (z. B. Teppich) - sonst sähe der
+            // Teppich wie ein aufgestelltes Bild aus.
             plane.rotation.x = -Math.PI / 2;
-            plane.position.y = 0.015; // knapp über dem Boden, kein Z-Fighting
+            plane.position.y = 0.015;
             plane.receiveShadow = true;
-            // Zuerst zeichnen (renderOrder < 0) + kein Tiefe-Schreiben,
-            // damit normale, aufrecht stehende Möbel immer sichtbar
-            // darüber liegen und keine Z-Fighting-Kante entsteht.
             plane.renderOrder = -1;
             material.depthWrite = false;
+        } else if (wallDecor) {
+            // Hängt an der Wand: die Bildmitte sitzt im Gruppen-Ursprung
+            // (group.position.y = Hängehöhe), Blick nach +Z (die
+            // Gruppen-Rotation richtet zur jeweiligen Wand aus). Eine
+            // dünne dunkle Rückplatte gibt Tiefe + Schlagschatten, damit
+            // es nicht wie ein Aufkleber wirkt.
+            plane.position.set(0, 0, 0.03);
+            plane.castShadow = false;
+            backing = new THREE.Mesh(
+                new THREE.BoxGeometry(footprint.w * 1.06, footprint.w * 1.06, 0.05),
+                new THREE.MeshStandardMaterial({ color: 0x5a4028, roughness: 0.8 })
+            );
+            backing.position.set(0, 0, 0);
+            backing.castShadow = !isMobile;
+            backing.receiveShadow = true;
+            group.add(backing);
+            group.userData.backing = backing;
         } else {
             plane.position.y = footprint.w / 2;
             plane.castShadow = true;
@@ -1006,8 +1372,13 @@ function initSchloss3D(canvas) {
             plane.geometry.dispose();
             plane.geometry = new THREE.PlaneGeometry(footprint.w, secondDimension);
 
-            if (!flat) {
+            if (!flat && !wallDecor) {
                 plane.position.y = secondDimension / 2;
+            }
+
+            if (backing) {
+                backing.geometry.dispose();
+                backing.geometry = new THREE.BoxGeometry(footprint.w * 1.06, secondDimension * 1.06, 0.05);
             }
 
             material.map = texture;
@@ -1859,11 +2230,75 @@ function initSchloss3D(canvas) {
 
     }
 
-    // An/Aus für eine platzierte Lampe. Aus = keine Licht-Emission und
-    // kein Kern, das Möbelstück selbst bleibt sichtbar.
-    function setLampState(group, on) {
+    // Kleine Kerzenflamme: additive Flammen-Zunge + Glühkern + dezentes
+    // Punktlicht. Die Flamme wird in animate() geflackert; das Punktlicht
+    // ist Teil des Licht-Budgets (nur die kameranächsten brennen wirklich).
+    function addCandleLight(group, lightSpec) {
+
+        const h = lightSpec.height || 0.3;
+
+        const flame = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.09, 0.16),
+            new THREE.MeshBasicMaterial({
+                map: makeFlameTexture(),
+                color: new THREE.Color(lightSpec.color || "#ffcf8a"),
+                transparent: true,
+                opacity: 0.9,
+                depthWrite: false,
+                blending: THREE.AdditiveBlending,
+                side: THREE.DoubleSide
+            })
+        );
+        flame.position.set(0, h + 0.05, 0);
+        flame.userData.baseY = h + 0.05;
+        group.add(flame);
+        group.userData.flame = flame;
+
+        const core = new THREE.Mesh(
+            new THREE.SphereGeometry(0.022, 8, 8),
+            new THREE.MeshBasicMaterial({ color: new THREE.Color("#ffe6b0") })
+        );
+        core.position.set(0, h + 0.02, 0);
+        group.add(core);
+        group.userData.core = core;
+
+        const light = new THREE.PointLight(
+            new THREE.Color(lightSpec.color || "#ffcf8a"),
+            lightSpec.intensity || 2.0,
+            lightSpec.distance || 2.4,
+            2
+        );
+        light.position.set(0, h + 0.04, 0);
+        group.add(light);
+        group.userData.light = light;
+        group.userData.isCandle = true;
+        group.userData.lightBaseIntensity = lightSpec.intensity || 2.0;
+    }
+
+    // An/Aus für ein leuchtendes Möbel (Lampe ODER Kerze). Aus = keine
+    // Emission, kein Kern, keine Flamme - das Möbel selbst bleibt sichtbar.
+    // group.userData.lightOn ist die Absicht; ob das Punktlicht auch
+    // wirklich brennt, entscheidet zusätzlich das Budget in animate().
+    function setLightState(group, on) {
+        group.userData.lightOn = on;
         if (group.userData.light) { group.userData.light.visible = on; }
         if (group.userData.core) { group.userData.core.visible = on; }
+        if (group.userData.flame) { group.userData.flame.visible = on; }
+    }
+
+    function updateLightBudget(camPos) {
+        _lightBudgetTick++;
+        if (_lightBudgetTick % 12 !== 0) { return; }
+
+        const lit = [];
+        placedGroups.forEach(function (g) {
+            if (!g.userData.light || !g.userData.lightOn) { return; }
+            lit.push({ g: g, d2: g.position.distanceToSquared(camPos) });
+        });
+        lit.sort(function (a, b) { return a.d2 - b.d2; });
+        lit.forEach(function (e, i) {
+            e.g.userData.light.visible = i < MAX_DYN_LIGHTS;
+        });
     }
 
     // Kleiner, deterministischer Pseudo-Zufallsgenerator für die
