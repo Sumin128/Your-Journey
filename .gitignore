@@ -15,3 +15,8 @@ Claude outputs/
 
 # Playwright-MCP Testartefakte
 .playwright-mcp/
+
+# Badge-Werkbank: gemalte Gouache-Rohfelder + Zwischenstaende
+# (Compositor tools/gemini-mcp/compose_badges.py ist versioniert,
+#  die fertigen images/badges/*.png ebenso)
+images/badges/neu/

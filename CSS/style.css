@@ -1150,12 +1150,14 @@ main {
    - offen: großes Abzeichen (56-64px) LINKS neben dem XP-Bereich */
 .sidebar-level-badge{
 
-    /* eingeklappt: kleines Eck-Abzeichen. KEIN grid-area hier - sonst
-       wäre der Container-Block dieses absolut positionierten Elements
-       die 0px-Spalte und es läge außerhalb der Sidebar. */
+    /* eingeklappt: kleines Eck-Abzeichen an der UNTEREN RECHTEN Avatar-
+       Ecke, leicht nach außen überlappend (wie ein Benachrichtigungs-
+       Marker). Bezug ist .sidebar-player (72px Inhaltsbreite, Avatar
+       mittig). KEIN grid-area hier - sonst wäre der Container-Block
+       dieses absolut positionierten Elements die 0px-Spalte. */
     position:absolute;
-    left:34px;
-    top:30px;
+    left:43px;
+    top:37px;
 
     width:26px;
     height:26px;
