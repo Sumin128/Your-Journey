@@ -275,7 +275,14 @@ window.addEventListener("mirelon:earn-xp", async function (event) {
 async function pullProfileFromCloud() {
 
     if (!supabaseClient || !currentSession) {
-        return;
+        return false;
+    }
+
+    /* Für die Dauer des Pulls in den Ladezustand - während eines
+       Account-Wechsels innerhalb der Sitzung darf sonst kurz der
+       alte Account-Stand sichtbar bleiben. */
+    if (typeof showHydrationLoading === "function") {
+        showHydrationLoading();
     }
 
     /* WICHTIG (Account-Wechsel-Bug): player wird hier IMMER zuerst auf
@@ -299,30 +306,27 @@ async function pullProfileFromCloud() {
     if (error || !data) {
 
         /* Netzwerk-/Serverfehler: der eigentliche Cloud-Stand ist
-           unbekannt (könnte durchaus echte Daten enthalten, die
-           gerade nur nicht abrufbar waren) - deshalb hier bewusst
-           NICHT "player-updated" feuern, das würde über den eigenen
-           Listener weiter unten sofort einen Push auslösen und damit
-           im schlimmsten Fall echte Cloud-Daten mit dem gerade erst
-           gesetzten frischen Default überschreiben. Nur die Anzeige
-           lokal auffrischen; ein späterer erfolgreicher Sync-Versuch
-           holt den echten Stand nach. */
+           unbekannt (könnte echte Daten enthalten, die gerade nur
+           nicht abrufbar waren). NIEMALS "player-updated" feuern
+           (würde einen Push des leeren Defaults auslösen) und
+           NIEMALS den leeren Default als neues Profil anbieten -
+           stattdessen Fehleransicht mit "Erneut versuchen". */
 
-        if (typeof updatePlayerUI === "function") {
-            updatePlayerUI();
+        console.warn("Cloud-Spielstand konnte nicht geladen werden:", error);
+
+        if (typeof showHydrationError === "function") {
+            showHydrationError();
         }
 
-        if (typeof applyCursor === "function") {
-            applyCursor();
-        }
-
-        return;
+        return false;
 
     }
 
     const cloudData = data.player_data || {};
+    const accountIsEmpty = Object.keys(cloudData).length === 0;
+    let pendingLegacyCleanupPush = false;
 
-    if (Object.keys(cloudData).length > 0) {
+    if (!accountIsEmpty) {
 
         /* Konto existiert schon und hat Daten: Cloud-Stand
            gewinnt, damit alle Geräte denselben Stand zeigen.
@@ -369,26 +373,42 @@ async function pullProfileFromCloud() {
         delete player.totalFeathersEarned;
 
         if (hadLegacyFeatherKeys) {
-            pushProfileToCloud();
+            pendingLegacyCleanupPush = true;
         }
 
+    }
+
+    /* Erfolgreicher Pull: der maßgebliche Stand (Cloud oder frischer
+       Account) steht jetzt -> Ladeansicht entfernen, gesamte UI in
+       EINEM Schritt rendern, "player-ready" feuern. */
+
+    if (typeof finishHydration === "function") {
+        finishHydration();
     } else {
+        window.dispatchEvent(new CustomEvent("player-updated"));
+    }
+
+    if (pendingLegacyCleanupPush) {
+        pendingLegacyCleanupPush = false;
+        pushProfileToCloud();
+    }
+
+    if (accountIsEmpty) {
 
         /* player_data ist leer (frischer Account - gerade erst
            registriert, oder die erste Sitzung nach E-Mail-
-           Bestätigung): der oben gesetzte frische Standard-
-           Spielstand bleibt zunächst stehen. Bewusst KEIN
-           automatisches Hochladen eines vorherigen lokalen Standes
-           mehr (das war der eigentliche Account-Wechsel-Bug).
-           Stattdessen: falls ein Gast-Spielstand mit echtem
-           Fortschritt existiert, EINMAL pro Sitzung bewusst fragen,
-           ob er übernommen werden soll - nie automatisch. */
+           Bestätigung). KEIN automatisches Hochladen eines
+           vorherigen lokalen Standes. Stattdessen: falls ein
+           Gast-Spielstand mit echtem Fortschritt existiert, EINMAL
+           pro Sitzung bewusst fragen, ob er übernommen werden soll.
+           Läuft NACH finishHydration(), damit der Bestätigungsdialog
+           über der sichtbaren Startansicht erscheint. */
 
         await maybeOfferGuestProgressClaim();
 
     }
 
-    window.dispatchEvent(new CustomEvent("player-updated"));
+    return true;
 
 }
 
@@ -616,7 +636,14 @@ async function signOutAccount() {
         loadPlayer();
     }
 
-    window.dispatchEvent(new CustomEvent("player-updated"));
+    /* Nach dem Logout ist der maßgebliche Stand wieder da (der
+       lokale Gast-Spielstand bzw. ein frischer Default) -> Ladeansicht
+       sicher entfernen und in einem Schritt neu rendern. */
+    if (typeof finishHydration === "function") {
+        finishHydration();
+    } else {
+        window.dispatchEvent(new CustomEvent("player-updated"));
+    }
 
     updateAuthUI();
 
@@ -1263,15 +1290,43 @@ async function initAuth() {
     createAccountIcon();
 
     if (!supabaseClient) {
+        /* Kein Supabase -> reiner Gast-Betrieb. Ladeansicht (falls
+           der Boot-Snippet fälschlich getriggert hat) auflösen. */
+        if (typeof finishHydration === "function" &&
+            typeof getPlayerHydrationState === "function" &&
+            getPlayerHydrationState() !== "ready") {
+            finishHydration();
+        }
         return;
     }
 
-    const { data } = await supabaseClient.auth.getSession();
+    let sessionData = null;
 
-    currentSession = data.session;
+    try {
+        const { data } = await supabaseClient.auth.getSession();
+        sessionData = data;
+    } catch (e) {
+        console.warn("Session konnte nicht gelesen werden:", e);
+    }
+
+    currentSession = sessionData && sessionData.session ? sessionData.session : null;
 
     if (currentSession) {
+
+        /* Angemeldet: Cloud-Stand holen. pullProfileFromCloud()
+           kümmert sich um Ladeansicht -> finishHydration()/Fehler. */
         await pullProfileFromCloud();
+
+    } else if (typeof getPlayerHydrationState === "function" &&
+               getPlayerHydrationState() !== "ready") {
+
+        /* Kein Konto: Gast. Ladeansicht auflösen (der Boot-Snippet
+           kann sie z. B. bei einem abgelaufenen Token gesetzt haben,
+           das getSession() gerade verworfen hat). */
+        if (typeof finishHydration === "function") {
+            finishHydration();
+        }
+
     }
 
     supabaseClient.auth.onAuthStateChange(function (event, session) {
@@ -1289,6 +1344,35 @@ async function initAuth() {
 
 }
 
+/* Vom "Erneut versuchen"-Button der Fehleransicht aufgerufen. */
+async function retryHydration() {
+
+    if (!supabaseClient) {
+        if (typeof finishHydration === "function") { finishHydration(); }
+        return;
+    }
+
+    if (typeof showHydrationLoading === "function") {
+        showHydrationLoading();
+    }
+
+    try {
+        const { data } = await supabaseClient.auth.getSession();
+        currentSession = data && data.session ? data.session : null;
+    } catch (e) {
+        currentSession = currentSession || null;
+    }
+
+    if (currentSession) {
+        await pullProfileFromCloud();
+    } else if (typeof finishHydration === "function") {
+        finishHydration();
+    }
+
+}
+
+window.retryHydration = retryHydration;
+
 
 document.addEventListener("DOMContentLoaded", initAuth);
 
@@ -1297,6 +1381,14 @@ document.addEventListener("DOMContentLoaded", initAuth);
    automatisch in die Cloud sichern, falls angemeldet. */
 
 window.addEventListener("player-updated", function () {
+
+    /* Während "loading"/"failed" NIE automatisch pushen - sonst
+       landet der leere Standardspieler in der Cloud. Nur wenn der
+       maßgebliche Stand feststeht. */
+    if (typeof getPlayerHydrationState === "function" &&
+        getPlayerHydrationState() !== "ready") {
+        return;
+    }
 
     if (isLoggedIn()) {
         pushProfileToCloud();

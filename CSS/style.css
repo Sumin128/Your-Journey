@@ -42,6 +42,88 @@ body {
 
 }
 
+/* =====================================================
+   HYDRATION-LADEANSICHT
+   Solange bei einem angemeldeten Spieler Session + Cloud-
+   Spielstand geladen werden, wird der Seiteninhalt komplett
+   ausgeblendet (kein Aufblitzen von leerem Name/Avatar/Theme/
+   Münzen/Onboarding). Der data-hydrating-Marker kommt schon
+   aus dem <head>-Inline-Snippet, damit nichts vor dem ersten
+   Skript sichtbar wird. Siehe JS/player.js + JS/auth.js.
+   ===================================================== */
+html[data-hydrating] {
+    background: var(--yj-gradient-forest, #21331f);
+}
+html[data-hydrating] body {
+    visibility: hidden;
+}
+
+#mirelon-hydration {
+    visibility: visible;
+
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: var(--yj-gradient-forest, #21331f);
+    background-size: cover;
+    background-position: center;
+}
+
+html:not([data-hydrating]) #mirelon-hydration {
+    display: none;
+}
+
+.mirelon-hydration-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    max-width: 340px;
+    text-align: center;
+}
+
+.mirelon-hydration-logo {
+    width: min(200px, 52vw);
+    height: auto;
+    filter: drop-shadow(0 8px 22px rgba(0, 0, 0, .45));
+    animation: mirelon-hydration-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes mirelon-hydration-pulse {
+    0%, 100% { transform: scale(1);    opacity: .92; }
+    50%      { transform: scale(1.05); opacity: 1; }
+}
+
+.mirelon-hydration-text {
+    margin: 0;
+    color: #f6ead3;
+    font-family: var(--yj-font-display, system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.4;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
+
+.mirelon-hydration--error .mirelon-hydration-logo {
+    animation: none;
+}
+
+.mirelon-hydration-actions {
+    margin-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mirelon-hydration-logo { animation: none; }
+}
+
+
 /* Vignette + feines Filmkorn über der gesamten Seite - zieht den Blick
    zur Mitte und lässt die Screens neben den gemalten Mirelon-Artworks
    nicht "flach digital" wirken, sondern gefilmt/gemalt. */

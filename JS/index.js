@@ -22,6 +22,20 @@ function updateOnboardingVisibility() {
         return;
     }
 
+    /* Nur wenn der maßgebliche Spielstand feststeht ("ready").
+       Während "loading" ist die Seite ohnehin ausgeblendet; im
+       "failed"-Zustand darf das Onboarding NIE erscheinen (der
+       echte Cloud-Stand könnte einen Namen enthalten). */
+    const hydration =
+        typeof getPlayerHydrationState === "function"
+            ? getPlayerHydrationState()
+            : "ready";
+
+    if (hydration !== "ready") {
+        onboardingOverlay.hidden = true;
+        return;
+    }
+
     onboardingOverlay.hidden = Boolean(player.name && player.avatar);
 
 }
@@ -155,6 +169,40 @@ if (onboardingSaveButton) {
 renderOnboardingAvatars();
 updateOnboardingSaveButton();
 updateOnboardingVisibility();
+
+
+/* =====================================================
+   AUF DEN ECHTEN SPIELSTAND REAGIEREN
+   "player-ready" feuert JS/auth.js NACH einem erfolgreichen
+   Cloud-Pull (oder sofort im Gast-Fall). Erst dann die
+   Startseite komplett auf den echten Stand bringen.
+   ===================================================== */
+
+function syncStartPageToPlayer() {
+
+    selectedOnboardingAvatar = player.avatar || "";
+
+    if (onboardingNameInput) {
+        onboardingNameInput.value = player.name || "";
+    }
+
+    renderOnboardingAvatars();
+    updateOnboardingSaveButton();
+    updateOnboardingVisibility();
+    updateLockedHotspots();
+
+}
+
+window.addEventListener("player-ready", syncStartPageToPlayer);
+
+/* Spätere echte Änderungen (Name/Avatar im Profil geändert o. ä.). */
+window.addEventListener("player-updated", function () {
+    if (typeof getPlayerHydrationState === "function" &&
+        getPlayerHydrationState() !== "ready") {
+        return;
+    }
+    updateOnboardingVisibility();
+});
 
 
 /* =====================================================

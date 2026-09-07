@@ -221,10 +221,192 @@ let player = createDefaultPlayer();
 
 
 /* =====================================================
+   1b. HYDRATIONS-ZUSTAND
+   Verhindert den "leerer Standardspieler blitzt auf"-Bug:
+   solange eine angemeldete Session existiert, wird NICHTS vom
+   leeren Default gerendert (Name, Avatar, Theme, Münzen,
+   Schlossstatus, Onboarding) - stattdessen eine kurze neutrale
+   Ladeansicht. Erst nach erfolgreichem Cloud-Pull übernimmt
+   JS/auth.js den echten Stand und feuert "player-ready".
+
+     "loading" -> Session/Cloud werden geladen
+     "ready"   -> echter Stand steht (Gast ODER Cloud)
+     "failed"  -> Cloud-Pull fehlgeschlagen, Fehleransicht
+
+   Der <head>-Inline-Boot (data-hydrating) blendet den Seiten-
+   inhalt schon vor dem ersten Skript aus, wenn ein Supabase-
+   Auth-Token im localStorage liegt - hier bauen wir nur noch
+   die sichtbare Ladekarte und räumen am Ende auf.
+   ===================================================== */
+
+let playerHydrationState = "loading";
+
+function getPlayerHydrationState() {
+    return playerHydrationState;
+}
+window.getPlayerHydrationState = getPlayerHydrationState;
+
+/* Synchroner, robuster Hinweis auf eine (wieder-)herstellbare
+   Session: Supabase v2 legt sie unter "sb-<ref>-auth-token" im
+   localStorage ab. Wir suchen generisch, damit ein Key-Wechsel
+   in einer neuen Supabase-Version nichts kaputt macht. */
+function hasStoredSupabaseSession() {
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.indexOf("sb-") === 0 && key.indexOf("-auth-token") !== -1) {
+                return true;
+            }
+        }
+    } catch (e) {
+        /* localStorage evtl. blockiert - dann behandeln wir es wie Gast */
+    }
+    return false;
+}
+
+/* Einzelne Seiten (Passwort zurücksetzen, E-Mail-Bestätigung)
+   zeigen ihre eigene Ansicht und dürfen NICHT von der
+   Hydrations-Ladeansicht überdeckt werden: <html data-hydration="off">. */
+function hydrationDisabledForPage() {
+    return document.documentElement &&
+        document.documentElement.getAttribute("data-hydration") === "off";
+}
+
+function ensureHydrationOverlay() {
+
+    if (hydrationDisabledForPage()) {
+        return null;
+    }
+
+    let overlay = document.getElementById("mirelon-hydration");
+
+    if (overlay || !document.body) {
+        return overlay;
+    }
+
+    overlay = document.createElement("div");
+    overlay.id = "mirelon-hydration";
+    overlay.setAttribute("role", "status");
+    overlay.setAttribute("aria-live", "polite");
+    overlay.innerHTML =
+        '<div class="mirelon-hydration-card">' +
+        '<img src="images/magischer_baum_von_mirelon_logo.png" alt="Mirelon" class="mirelon-hydration-logo" decoding="async">' +
+        '<p class="mirelon-hydration-text">Dein Abenteuer wird vorbereitet …</p>' +
+        '<div class="mirelon-hydration-actions" hidden>' +
+        '<button type="button" class="yj-button yj-button--primary" id="mirelon-hydration-retry">Erneut versuchen</button>' +
+        '</div>' +
+        '</div>';
+
+    document.body.appendChild(overlay);
+
+    const retry = overlay.querySelector("#mirelon-hydration-retry");
+    if (retry) {
+        retry.addEventListener("click", function () {
+            if (typeof retryHydration === "function") {
+                retryHydration();
+            } else {
+                location.reload();
+            }
+        });
+    }
+
+    return overlay;
+}
+
+function showHydrationLoading() {
+
+    if (hydrationDisabledForPage()) {
+        playerHydrationState = "ready";
+        return;
+    }
+
+    playerHydrationState = "loading";
+
+    if (document.documentElement) {
+        document.documentElement.setAttribute("data-hydrating", "1");
+    }
+
+    const overlay = ensureHydrationOverlay();
+    if (overlay) {
+        overlay.classList.remove("mirelon-hydration--error");
+        const text = overlay.querySelector(".mirelon-hydration-text");
+        if (text) { text.textContent = "Dein Abenteuer wird vorbereitet …"; }
+        const actions = overlay.querySelector(".mirelon-hydration-actions");
+        if (actions) { actions.hidden = true; }
+    }
+}
+
+function showHydrationError() {
+
+    playerHydrationState = "failed";
+
+    if (hydrationDisabledForPage()) {
+        window.dispatchEvent(new CustomEvent("player-hydration-failed"));
+        return;
+    }
+
+    const overlay = ensureHydrationOverlay();
+    if (overlay) {
+        overlay.classList.add("mirelon-hydration--error");
+        const text = overlay.querySelector(".mirelon-hydration-text");
+        if (text) {
+            text.textContent = "Dein Spielstand ließ sich gerade nicht laden. Deine Fortschritte sind sicher gespeichert.";
+        }
+        const actions = overlay.querySelector(".mirelon-hydration-actions");
+        if (actions) { actions.hidden = false; }
+    }
+
+    // KEIN player-ready hier - die Seite bleibt bewusst im
+    // Fehler-/Wartezustand, damit nichts vom leeren Default rendert
+    // und kein Auto-Push passiert.
+    window.dispatchEvent(new CustomEvent("player-hydration-failed"));
+}
+
+/* Von JS/auth.js aufgerufen, sobald der maßgebliche Stand
+   feststeht (Gast ODER erfolgreicher Cloud-Pull). */
+function finishHydration() {
+
+    playerHydrationState = "ready";
+
+    if (document.documentElement) {
+        document.documentElement.removeAttribute("data-hydrating");
+    }
+
+    const overlay = document.getElementById("mirelon-hydration");
+    if (overlay) {
+        overlay.remove();
+    }
+
+    updatePlayerUI();
+    if (typeof applyCursor === "function") { applyCursor(); }
+
+    window.dispatchEvent(new CustomEvent("player-ready"));
+    window.dispatchEvent(new CustomEvent("player-updated"));
+}
+
+window.showHydrationLoading = showHydrationLoading;
+window.showHydrationError = showHydrationError;
+window.finishHydration = finishHydration;
+
+
+/* =====================================================
    2. SPIELER SPEICHERN
    ===================================================== */
 
 function savePlayer() {
+
+    /* Während die Session/der Cloud-Stand noch geladen wird, NIE
+       speichern - sonst landet der leere Standardspieler im
+       Gast-Speicherplatz (und würde nach dem Logout als "Gast-
+       Spielstand" erscheinen) oder triggert einen Cloud-Push
+       eines leeren Profils. */
+
+    if (playerHydrationState === "loading") {
+
+        return;
+
+    }
+
 
     /* Waehrend ein Account eingeloggt ist, NICHT in den lokalen
        Gast-Speicherplatz schreiben - sonst wuerde der naechste
@@ -660,6 +842,13 @@ if (!player.consumables || typeof player.consumables !== "object") {
    ===================================================== */
 
 function updatePlayerUI() {
+
+    /* Solange die echte Datenquelle noch nicht feststeht, nichts
+       vom leeren Default rendern - der Seiteninhalt ist ohnehin
+       ausgeblendet (data-hydrating). */
+    if (playerHydrationState === "loading") {
+        return;
+    }
 
     const playerNameDisplays =
         document.querySelectorAll("#player-name-display");
@@ -2540,7 +2729,26 @@ function registerShopPurchase() {
 function initPlayer() {
 
     /*
-       1. Gespeicherten Spieler laden
+       0. Hydrationszustand bestimmen.
+       Liegt ein Supabase-Auth-Token im localStorage, wird gleich
+       eine Session wiederhergestellt + der Cloud-Stand geladen ->
+       bis dahin NICHTS vom Default rendern (Ladeansicht). Ohne
+       Token sind wir Gast und können sofort lokal starten.
+       Der endgültige "ready"/"failed"-Zustand kommt aus
+       JS/auth.js initAuth() (auch der Token-lose Fall wird dort
+       noch mit getSession() gegengeprüft).
+    */
+
+    if (hasStoredSupabaseSession() && !hydrationDisabledForPage()) {
+        showHydrationLoading();
+    } else {
+        playerHydrationState = "ready";
+    }
+
+
+    /*
+       1. Gespeicherten Spieler laden (bei angemeldeter Session
+          wird das gleich vom Cloud-Pull ersetzt).
     */
 
     loadPlayer();
@@ -2548,6 +2756,7 @@ function initPlayer() {
 
     /*
        2. Name, Avatar, Münzen und Erfolge anzeigen
+          (updatePlayerUI() ist im "loading"-Zustand ein No-op).
     */
 
     updatePlayerUI();
@@ -2557,7 +2766,9 @@ function initPlayer() {
        3. Gespeicherten Cursor anwenden
     */
 
-    applyCursor();
+    if (playerHydrationState !== "loading") {
+        applyCursor();
+    }
 
 }
 

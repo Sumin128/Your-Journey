@@ -9,6 +9,23 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0">
 
+    <script>
+      /* Hydration-Boot: Seiteninhalt sofort ausblenden, wenn ein Supabase-
+         Auth-Token existiert (angemeldet) - verhindert das Aufblitzen des
+         leeren Standardspielers. Auflösung: JS/player.js + JS/auth.js. */
+      (function () {
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k && k.slice(0, 3) === "sb-" && k.indexOf("-auth-token") !== -1) {
+              document.documentElement.setAttribute("data-hydrating", "1");
+              return;
+            }
+          }
+        } catch (e) {}
+      })();
+    </script>
+
 
     <link
         rel="icon"
@@ -17,7 +34,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=45">
+        href="CSS/style.css?v=46">
 
     <link
         rel="stylesheet"
@@ -376,10 +393,10 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=32"></script>
+    <script src="JS/player.js?v=33"></script>
     <script src="JS/level-data.js?v=2"></script>
     <script src="JS/level-up.js?v=3"></script>
-    <script src="JS/auth.js?v=10"></script>
+    <script src="JS/auth.js?v=11"></script>
 <script src="JS/sidebar.js?v=22"></script>
 <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=9"></script>
