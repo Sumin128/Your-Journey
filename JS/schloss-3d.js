@@ -70,20 +70,47 @@ function initSchloss3D(canvas) {
     // (Kante) nach vorne gezogen werden darf; auf der schmalsten Desktop-
     // Ansicht liegt die sichtbare Bodenkante bei ~z 5.1, mobil weiter.
     const FLOOR_FRONT_LIMIT = 4.7;
-    const FRONT_MARGIN = 0.2;
+    const FRONT_MARGIN = 0.12;
+
+    // Bewegungsgrenze für Bodenmöbel: nur die ECHTE (ggf. gedrehte)
+    // Grundfläche plus eine sehr kleine Marge. Die Fußleiste ragt ~0.05 m
+    // in den Raum; FLOOR_EDGE_MARGIN stellt die Möbelkante genau davor.
+    // Bewusst getrennt von WALL_MARGIN (Wanddeko-Abstand).
+    const FLOOR_EDGE_MARGIN = 0.05;
+
+    // seatDecor (Kissen auf Sitzmöbeln) - Konstanten oben, weil
+    // reseatKissen() schon im initialen Lade-Pass läuft.
+    const SEAT_SNAP_RADIUS = 0.55;
+    const SEAT_KISSEN_SCALE = 0.55;
 
     // Möbelposition auf den begehbaren Boden begrenzen. Rückwand +
-    // Seitenwände = echte Wände (WALL_MARGIN), vorne = FLOOR_FRONT_LIMIT.
-    // footprint kann fehlen -> kleiner Default.
-    function clampToFloor(x, z, footprint) {
+    // Seitenwände = echte Wände, vorne = FLOOR_FRONT_LIMIT (keine Wand).
+    // rotationY wird berücksichtigt: die Achsen-Ausdehnung der GEDREHTEN
+    // Grundfläche zählt, damit z. B. ein längs an die Wand gedrehtes Sofa
+    // näher heran darf als quer.
+    // Kamin-Herdplatte (flache Steinplatte vor der Kaminöffnung, muss mit
+    // fHearth in buildProceduralShell übereinstimmen): x 2.05..3.75,
+    // Vorderkante bei z ≈ -2.55. Bodenmöbel dürfen nicht darüber/hinein.
+    const HEARTH = { x1: 1.95, x2: 3.85, frontZ: -2.5 };
+
+    function clampToFloor(x, z, footprint, rotationY) {
         const fp = footprint || { w: 0.6, d: 0.6 };
-        const halfW = ROOM_WIDTH / 2 - fp.w / 2 - WALL_MARGIN;
-        const backZ = -ROOM_DEPTH / 2 + fp.d / 2 + WALL_MARGIN;
-        const frontZ = FLOOR_FRONT_LIMIT - fp.d / 2 - FRONT_MARGIN;
-        return {
-            x: Math.max(-halfW, Math.min(halfW, x)),
-            z: Math.max(backZ, Math.min(frontZ, z))
-        };
+        const c = Math.abs(Math.cos(rotationY || 0));
+        const s = Math.abs(Math.sin(rotationY || 0));
+        const halfX = (fp.w * c + fp.d * s) / 2;
+        const halfZ = (fp.w * s + fp.d * c) / 2;
+        const limX = ROOM_WIDTH / 2 - halfX - FLOOR_EDGE_MARGIN;
+        const backZ = -ROOM_DEPTH / 2 + halfZ + FLOOR_EDGE_MARGIN;
+        const frontZ = FLOOR_FRONT_LIMIT - halfZ - FRONT_MARGIN;
+        let cx = Math.max(-limX, Math.min(limX, x));
+        let cz = Math.max(backZ, Math.min(frontZ, z));
+        // Kamin: greift die Grundfläche in den Herd-Bereich hinein, das
+        // Möbel nach vorn schieben (Öffnung bleibt frei).
+        if (cx + halfX > HEARTH.x1 && cx - halfX < HEARTH.x2 &&
+            cz - halfZ < HEARTH.frontZ) {
+            cz = Math.min(frontZ, HEARTH.frontZ + halfZ);
+        }
+        return { x: cx, z: cz };
     }
 
     /* =====================================================
@@ -136,11 +163,15 @@ function initSchloss3D(canvas) {
     // Wand-lokale Position (Entlang-Koordinate a + Höhe y) auf die gültige
     // Wandfläche begrenzen: im Raum bleiben, Öffnungen meiden, Höhe im
     // sinnvollen Bereich. half = halbe Breite/Höhe des Objekts.
-    function clampToWall(wall, a, y, half) {
+    function clampToWall(wall, a, y, half, coversOpening) {
         const hw = half || 0.3;
         const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - hw - WALL_MARGIN;
         a = Math.max(-limA, Math.min(limA, a));
         y = Math.max(WALL_H_MIN + hw * 0.4, Math.min(WALL_H_MAX, y));
+
+        // Vorhang o. Ä. darf VOR einer Öffnung hängen - Öffnungs-Meidung
+        // überspringen.
+        if (coversOpening) { return { a: a, y: y }; }
 
         // Öffnung? -> Entlang-Koordinate an die nähere Öffnungskante schieben
         const o = inWallOpening(wall, a, y);
@@ -514,7 +545,7 @@ function initSchloss3D(canvas) {
                 wall = g.wall;
                 a = (typeof a === "number") ? a : g.a;
             }
-            const cl = clampToWall(wall, a || 0, (typeof instance.y === "number" ? instance.y : 1.8), half);
+            const cl = clampToWall(wall, a || 0, (typeof instance.y === "number" ? instance.y : 1.8), half, Boolean(furniture.coversOpening));
             const w = wallToWorld(wall, cl.a, cl.y);
             group.position.set(w.x, w.y, w.z);
             group.rotation.y = w.rot;
@@ -725,6 +756,13 @@ function initSchloss3D(canvas) {
 
     room.placedItems.forEach(addFurnitureGroup);
 
+    // Nach dem initialen Laden: Kissen auf ihre gespeicherten Sitz-Slots
+    // zurücksetzen (der Host kann in der Reihenfolge NACH dem Kissen
+    // gekommen sein, deshalb ein eigener Pass).
+    room.placedItems.forEach(function (inst) {
+        if (inst.onSeat) { reseatKissen(inst); }
+    });
+
 
     /* --- Platzieren aus dem Inventar (JS/schloss.js) --- */
 
@@ -881,12 +919,17 @@ function initSchloss3D(canvas) {
             selectionRing.visible = true;
             selectionRing.position.x = group.position.x;
             selectionRing.position.z = group.position.z;
+            // eingerastetes Kissen: Ring auf Sitzhöhe statt am Boden
+            selectionRing.position.y = group.userData.seat ? group.position.y + 0.02 : 0.02;
             if (rotateControls) { rotateControls.hidden = false; }
             // Wanddeko ist automatisch zur Wand ausgerichtet - Drehen
             // ergibt keinen Sinn, die Dreh-Knöpfe werden ausgeblendet.
-            const isWall = group.userData.placementType === "wallDecor";
-            if (rotateLeftBtn) { rotateLeftBtn.hidden = isWall; }
-            if (rotateRightBtn) { rotateRightBtn.hidden = isWall; }
+            // Wanddeko + eingerastetes Kissen richten sich automatisch aus
+            // -> keine Dreh-Knöpfe.
+            const noRotate = group.userData.placementType === "wallDecor" ||
+                Boolean(group.userData.seat);
+            if (rotateLeftBtn) { rotateLeftBtn.hidden = noRotate; }
+            if (rotateRightBtn) { rotateRightBtn.hidden = noRotate; }
             renderColorSwatches(group);
             updateLightToggle(group);
         } else {
@@ -977,10 +1020,24 @@ function initSchloss3D(canvas) {
 
         selected.rotation.y += delta;
 
+        // Nach dem Drehen ändert sich die Achsen-Ausdehnung der Grundfläche
+        // -> Bodenmöbel neu in den Raum klemmen (sonst ragt ein an der Wand
+        // stehendes breites Möbel nach dem Drehen in die Wand).
+        const ptype = selected.userData.placementType || "floor";
+        if (ptype === "floor" || ptype === "floorDecor") {
+            const c = clampToFloor(selected.position.x, selected.position.z,
+                selected.userData.footprint, selected.rotation.y);
+            selected.position.x = c.x;
+            selected.position.z = c.z;
+            selectionRing.position.set(c.x, 0.02, c.z);
+        }
+
         const instance = findInstance(selected);
 
         if (instance) {
             instance.rotationY = selected.rotation.y;
+            instance.x = selected.position.x;
+            instance.z = selected.position.z;
             saveSchloss();
         }
 
@@ -1098,6 +1155,7 @@ function initSchloss3D(canvas) {
 
         if (ptype === "wallDecor") { dragWallDecor(); }
         else if (ptype === "surfaceDecor") { dragSurfaceDecor(); }
+        else if (ptype === "seatDecor") { dragSeatDecor(); }
         else { dragFloorItem(); }
 
     });
@@ -1109,14 +1167,15 @@ function initSchloss3D(canvas) {
         if (!hit) { return; }
 
         const footprint = selected.userData.footprint || { w: 0.6, d: 0.6 };
-        let c = clampToFloor(_p.x, _p.z, footprint);
+        const rot = selected.rotation.y;
+        let c = clampToFloor(_p.x, _p.z, footprint, rot);
         let x = c.x, z = c.z;
 
         if (!isFloorDecor(selected)) {
             placedGroups.forEach(function (other) {
                 if (other === selected || isFloorDecor(other)) { return; }
                 const op = other.userData.placementType || "floor";
-                if (op === "wallDecor" || op === "surfaceDecor") { return; }
+                if (op === "wallDecor" || op === "surfaceDecor" || op === "seatDecor") { return; }
                 const otherFootprint = other.userData.footprint || { w: 0.6, d: 0.6 };
                 const dx = x - other.position.x;
                 const dz = z - other.position.z;
@@ -1128,7 +1187,7 @@ function initSchloss3D(canvas) {
                     z += (dz / distance) * push;
                 }
             });
-            c = clampToFloor(x, z, footprint);
+            c = clampToFloor(x, z, footprint, rot);
             x = c.x; z = c.z;
         }
 
@@ -1273,7 +1332,7 @@ function initSchloss3D(canvas) {
             }
         } else {
             if (!raycaster.ray.intersectPlane(floorPlane, _p)) { return; }
-            const c = clampToFloor(_p.x, _p.z, fp);
+            const c = clampToFloor(_p.x, _p.z, fp, selected.rotation.y);
             selected.position.set(c.x, 0, c.z);
             selected.userData.onSurface = null;
             selected.userData.settleTop = null;
@@ -1305,6 +1364,7 @@ function initSchloss3D(canvas) {
 
         const fp = selected.userData.footprint || { w: 0.5, d: 0.5 };
         const half = Math.max(fp.w, fp.d) / 2;
+        const covers = Boolean(selected.userData.furniture && selected.userData.furniture.coversOpening);
         let best = null;
 
         for (let i = 0; i < _wallPlanes.length; i++) {
@@ -1320,13 +1380,124 @@ function initSchloss3D(canvas) {
 
         if (!best) { return; }
 
-        const cl = clampToWall(best.wall, best.a, best.y, half);
+        // Vorhang: nah am Rückwand-Fenster -> auf die Fenstermitte einrasten
+        // und auf Fensterhöhe hängen (davor, nicht daneben).
+        if (covers && best.wall === "back" && Math.abs(best.a) < 2.4) {
+            const win = WALL_OPENINGS.back[0];
+            best.a = (win.a1 + win.a2) / 2;
+            best.y = Math.max(win.y1 + (win.y2 - win.y1) * 0.55, Math.min(win.y2 + 0.2, best.y));
+        }
+
+        const cl = clampToWall(best.wall, best.a, best.y, half, covers);
         const world = wallToWorld(best.wall, cl.a, cl.y);
         selected.position.set(world.x, world.y, world.z);
         selected.rotation.y = world.rot;
         selected.userData.wall = best.wall;
         selected.userData.wallA = cl.a;
         selectionRing.position.set(world.x, 0.02, world.z);
+    }
+
+    /* --- seatDecor (Kissen): Boden ODER ein echter, begrenzter Sitzplatz
+       (furniture.seatSlots) auf Waldstuhl/Waldsofa. Nie auf Lehne/Bein -
+       nur die im Katalog definierten Slots zählen. Ein Slot ist belegt,
+       wenn ein ANDERES Kissen darauf sitzt. (SEAT_*-Konstanten stehen oben,
+       weil reseatKissen schon beim initialen Laden läuft - TDZ.) --------- */
+
+    const _seatPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const _seatHit = new THREE.Vector3();
+
+    function seatOccupied(hostId, slotIdx, exceptGroup) {
+        return placedGroups.some(function (g) {
+            return g !== exceptGroup && g.userData.seat &&
+                g.userData.seat.hostId === hostId && g.userData.seat.slot === slotIdx;
+        });
+    }
+
+    // Alle FREIEN Sitzplätze in Weltkoordinaten (Möbel-Position + -Drehung
+    // auf den lokalen Slot-Offset angewandt).
+    function freeSeatSlots(exceptGroup) {
+        const out = [];
+        placedGroups.forEach(function (g) {
+            const f = g.userData.furniture;
+            if (!f || !f.seatSlots || !f.seatSlots.length) { return; }
+            const hostId = g.userData.instanceId;
+            const cs = Math.cos(g.rotation.y), sn = Math.sin(g.rotation.y);
+            f.seatSlots.forEach(function (sl, idx) {
+                if (seatOccupied(hostId, idx, exceptGroup)) { return; }
+                out.push({
+                    hostId: hostId, slot: idx, rotY: g.rotation.y,
+                    x: g.position.x + sl.x * cs - sl.z * sn,
+                    y: sl.y,
+                    z: g.position.z + sl.x * sn + sl.z * cs
+                });
+            });
+        });
+        return out;
+    }
+
+    function dragSeatDecor() {
+
+        // Für jeden freien Slot den Cursor auf eine Ebene IN SLOT-HÖHE
+        // projizieren (nicht auf den Boden - sonst schiebt die Parallaxe
+        // den Treffpunkt weg vom sichtbaren Sitz).
+        let best = null, bestD = SEAT_SNAP_RADIUS;
+        freeSeatSlots(selected).forEach(function (s) {
+            _seatPlane.constant = -s.y;
+            if (!raycaster.ray.intersectPlane(_seatPlane, _seatHit)) { return; }
+            const d = Math.sqrt(
+                (_seatHit.x - s.x) * (_seatHit.x - s.x) +
+                (_seatHit.z - s.z) * (_seatHit.z - s.z));
+            if (d < bestD) { bestD = d; best = s; }
+        });
+
+        if (best) {
+            selected.position.set(best.x, best.y, best.z);
+            selected.rotation.y = best.rotY;
+            selected.scale.setScalar(SEAT_KISSEN_SCALE);
+            selected.userData.seat = { hostId: best.hostId, slot: best.slot };
+            surfaceHighlight.visible = true;
+            surfaceHighlight.position.set(best.x, best.y + 0.012, best.z);
+            surfaceHighlight.rotation.set(-Math.PI / 2, 0, -best.rotY);
+            surfaceHighlight.scale.set(0.34, 0.34, 1);
+            selectionRing.position.set(best.x, best.y + 0.02, best.z);
+        } else {
+            if (!raycaster.ray.intersectPlane(floorPlane, _p)) { return; }
+            const c = clampToFloor(_p.x, _p.z, selected.userData.footprint, selected.rotation.y);
+            selected.position.set(c.x, 0, c.z);
+            selected.scale.setScalar(1);
+            selected.userData.seat = null;
+            surfaceHighlight.visible = false;
+            selectionRing.position.set(c.x, 0.02, c.z);
+        }
+    }
+
+    // Ein geladenes Kissen auf seinen gespeicherten Sitz zurücksetzen (der
+    // Host kann erst NACH dem Kissen in die Szene gekommen sein -> eigener
+    // Pass nach dem initialen Laden, siehe unten).
+    function reseatKissen(inst) {
+        const g = placedGroups.find(function (x) { return x.userData.instanceId === inst.instanceId; });
+        if (!g) { return; }
+        const host = placedGroups.find(function (x) { return x.userData.instanceId === inst.onSeat; });
+        const f = host && host.userData.furniture;
+        const sl = f && f.seatSlots && f.seatSlots[inst.seatSlot || 0];
+        if (host && sl) {
+            const cs = Math.cos(host.rotation.y), sn = Math.sin(host.rotation.y);
+            g.position.set(
+                host.position.x + sl.x * cs - sl.z * sn,
+                sl.y,
+                host.position.z + sl.x * sn + sl.z * cs);
+            g.rotation.y = host.rotation.y;
+            g.scale.setScalar(SEAT_KISSEN_SCALE);
+            g.userData.seat = { hostId: inst.onSeat, slot: inst.seatSlot || 0 };
+        } else {
+            // Host weg -> auf den Boden zurück
+            const c = clampToFloor(inst.x || 0, inst.z || 0, g.userData.footprint, g.rotation.y);
+            g.position.set(c.x, 0, c.z);
+            g.scale.setScalar(1);
+            g.userData.seat = null;
+            inst.onSeat = null;
+            inst.seatSlot = null;
+        }
     }
 
     function endDrag(event) {
@@ -1350,6 +1521,21 @@ function initSchloss3D(canvas) {
                     instance.y = Math.round(selected.position.y * 1000) / 1000;
                     instance.x = selected.position.x;
                     instance.z = selected.position.z;
+                    instance.rotationY = selected.rotation.y;
+                } else if (ud.placementType === "seatDecor") {
+                    // Kissen: entweder auf einem Sitz-Slot (Zielmöbel + Slot
+                    // merken) oder auf dem Boden. x/z/y/rotY immer mit-
+                    // speichern (robuster Fallback, falls der Host wegfällt).
+                    if (ud.seat) {
+                        instance.onSeat = ud.seat.hostId;
+                        instance.seatSlot = ud.seat.slot;
+                    } else {
+                        instance.onSeat = null;
+                        instance.seatSlot = null;
+                    }
+                    instance.x = selected.position.x;
+                    instance.z = selected.position.z;
+                    instance.y = Math.round(selected.position.y * 1000) / 1000;
                     instance.rotationY = selected.rotation.y;
                 } else {
                     // surfaceDecor: die Vorschau schwebt - beim Loslassen
@@ -1661,20 +1847,24 @@ function initSchloss3D(canvas) {
         } else if (wallDecor) {
             // Hängt an der Wand: die Bildmitte sitzt im Gruppen-Ursprung
             // (group.position.y = Hängehöhe), Blick nach +Z (die
-            // Gruppen-Rotation richtet zur jeweiligen Wand aus). Eine
-            // dünne dunkle Rückplatte gibt Tiefe + Schlagschatten, damit
-            // es nicht wie ein Aufkleber wirkt.
+            // Gruppen-Rotation richtet zur jeweiligen Wand aus).
             plane.position.set(0, 0, 0.03);
             plane.castShadow = false;
-            backing = new THREE.Mesh(
-                new THREE.BoxGeometry(footprint.w * 1.06, footprint.w * 1.06, 0.05),
-                new THREE.MeshStandardMaterial({ color: 0x5a4028, roughness: 0.8 })
-            );
-            backing.position.set(0, 0, 0);
-            backing.castShadow = !isMobile;
-            backing.receiveShadow = true;
+            // Schatten folgt der SILHOUETTE des Motivs (nicht mehr ein
+            // dunkles Rechteck hinter runden Objekten wie Uhr/Spiegel):
+            // dieselbe Textur, schwarz getönt, leicht vergrößert, nach
+            // hinten + unten/rechts versetzt.
+            const shadowMat = new THREE.MeshBasicMaterial({
+                color: 0x000000, transparent: true, opacity: 0.26,
+                depthWrite: false, side: THREE.DoubleSide
+            });
+            backing = new THREE.Mesh(new THREE.PlaneGeometry(footprint.w, footprint.w), shadowMat);
+            backing.position.set(0.014, -0.016, -0.006);
+            backing.scale.set(1.05, 1.05, 1);
+            backing.renderOrder = -1;
             group.add(backing);
             group.userData.backing = backing;
+            group.userData.backingMat = shadowMat;
         } else {
             plane.position.y = footprint.w / 2;
             plane.castShadow = true;
@@ -1697,7 +1887,11 @@ function initSchloss3D(canvas) {
 
             if (backing) {
                 backing.geometry.dispose();
-                backing.geometry = new THREE.BoxGeometry(footprint.w * 1.06, secondDimension * 1.06, 0.05);
+                backing.geometry = new THREE.PlaneGeometry(footprint.w, secondDimension);
+                if (group.userData.backingMat) {
+                    group.userData.backingMat.map = texture;
+                    group.userData.backingMat.needsUpdate = true;
+                }
             }
 
             material.map = texture;

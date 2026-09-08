@@ -300,6 +300,36 @@ Farb-Einfärben (`instance.color`) wirkt aktuell nur auf Cutouts – für einfä
 echtem `.glb`-Modell (Teppich) muss das Tinting später auf einen Material-Farbwechsel
 umgestellt werden.
 
+### Bedien-/Qualitätskorrekturen (2026-09-08)
+
+- **Bodenfläche bis an die Wände** (`clampToFloor`): nur noch die echte,
+  ggf. gedrehte Grundfläche (`fp.w·cos + fp.d·sin` usw.) plus
+  `FLOOR_EDGE_MARGIN = 0.05` (Möbelkante genau vor der 0.05-Fußleiste) –
+  vorher fixe 0.15. Rotation-aware: ein längs an die Wand gedrehtes Sofa
+  darf näher heran. `rotateSelected` klemmt Bodenmöbel nach dem Drehen
+  neu. Kamin-Herdplatte (`HEARTH`, deckungsgleich mit `fHearth`) ist eine
+  Sperrzone – Möbel werden davor geschoben, die Öffnung bleibt frei.
+  Vorne unverändert offen (`FLOOR_FRONT_LIMIT`).
+- **Wanddeko-Schatten** (`populateWithCutout` wallDecor): statt einer
+  dunklen `BoxGeometry` (Rechteck-Ecken hinter runder Uhr/Spiegel) jetzt
+  eine zweite Plane mit DERSELBEN Textur, schwarz getönt, 26 %, leicht
+  vergrößert + nach hinten/unten versetzt → Schatten folgt der Silhouette.
+- **Vorhang** (`coversOpening: true`): `clampToWall` überspringt die
+  Öffnungs-Meidung; `dragWallDecor` rastet ihn auf die Rückwand-
+  Fenstermitte + Fensterhöhe ein → hängt VOR dem Fenster statt daneben.
+- **Kissen auf Sitzmöbeln** (`placementType: "seatDecor"`): echte,
+  begrenzte `seatSlots` im Katalog (lokale Offsets zur Möbelgruppe) auf
+  `stuhl_wald_a` (1) und `sofa_wald_a` (2). `dragSeatDecor` projiziert den
+  Cursor auf eine Ebene IN Slot-Höhe (keine Boden-Parallaxe), snappt bei
+  `< SEAT_SNAP_RADIUS 0.55`, prüft Belegung (`seatOccupied` – 1 Kissen je
+  Slot), sonst Boden-Fallback. Eingerastet: automatisch zur Sitzrichtung
+  gedreht, auf `SEAT_KISSEN_SCALE 0.55` verkleinert, keine Dreh-Knöpfe.
+  Speichern: `instance.onSeat` (Host-instanceId) + `instance.seatSlot`
+  (kein DB-/protected-key, synct normal); `reseatKissen`-Pass NACH dem
+  initialen Laden (Host kann später in der Szene sein), Host weg → Boden.
+  Waldsessel (`baenkchen_wald_a`) bewusst OHNE Slot – 2D-Cutout, keine
+  echte Sitzfläche.
+
 ## Schlossladen (Phase 2)
 
 Möbel ohne `unlockedBy` (also `unlockedBy: null`) sind normal per Coins kaufbar, Tab

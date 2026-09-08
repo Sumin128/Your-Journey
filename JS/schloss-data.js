@@ -86,6 +86,9 @@ const SCHLOSS_FURNITURE = [
         styles: ["wald"], price: 15, size: "small", rooms: ["wohnzimmer"],
         footprint: { w: 0.7, d: 0.7 },
         designs: [{ sprite: "images/schloss/moebel/stuhl_wald_a.png", model: "images/schloss/models/stuhl_wald_a.glb" }],
+        // seatSlots: echte, begrenzte Sitzplätze für seatDecor (Kissen).
+        // Lokale Offsets zur Möbelgruppe (unrotiert), y = Sitzhöhe.
+        seatSlots: [{ x: 0, y: 0.4, z: 0.05 }],
         colorable: false, colors: [], paintable: false, hasContent: false,
         unlockedBy: { type: "level", level: 3 }
     },
@@ -144,7 +147,7 @@ const SCHLOSS_FURNITURE = [
     },
 
     { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, modelScale: 1.15, surface: { shape: "rect", inset: 0.08 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, modelRotationY: -1.5708, designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png", model: "images/schloss/models/sofa_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, modelRotationY: -1.5708, seatSlots: [{ x: -0.4, y: 0.34, z: 0.2 }, { x: 0.4, y: 0.34, z: 0.2 }], designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png", model: "images/schloss/models/sofa_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Waldlampe: echtes GLB (Tripo image_to_3d aus bereinigtem Sprite -
     // der gemalte Glueh-Kranz wurde vor der Generation entfernt, sonst
     // zackige Schirm-Kante). Punktlicht + Leuchtkern + An/Aus-Schalter
@@ -167,8 +170,13 @@ const SCHLOSS_FURNITURE = [
     // nachbearbeitet). Bleibt reines Bodenobjekt (kein surfaceDecor -> rastet
     // NICHT auf Sitzmoebeln ein). footprint 0.5 -> 0.7 + modelScale 1.35,
     // sonst war das Kissen im Raum ein unlesbar kleiner Klumpen.
-    { id: "kissen_wald_a", name: "Kuschelkissen", category: "textilien", styles: ["wald"], price: 8, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.7, d: 0.7 }, modelScale: 1.35, flatOnFloor: true, designs: [{ sprite: "images/schloss/moebel/kissen_wald_a.png", model: "images/schloss/models/kissen_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "vorhang_wald_a", name: "Waldvorhang", category: "textilien", styles: ["wald"], price: 14, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/vorhang_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // kissen: seatDecor - Boden ODER echter Sitz-Slot auf Waldstuhl/Waldsofa
+    // (JS/schloss-3d.js dragSeatDecor). Auf dem Sitz automatisch ausgerichtet
+    // + verkleinert; kein Dreh-Button solange eingerastet.
+    { id: "kissen_wald_a", name: "Kuschelkissen", category: "textilien", styles: ["wald"], price: 8, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.7, d: 0.7 }, modelScale: 1.35, placementType: "seatDecor", flatOnFloor: true, designs: [{ sprite: "images/schloss/moebel/kissen_wald_a.png", model: "images/schloss/models/kissen_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // Vorhang: wallDecor + coversOpening -> darf VOR dem Rückwand-Fenster
+    // hängen (rastet auf die Fenstermitte ein), Öffnungs-Meidung aus.
+    { id: "vorhang_wald_a", name: "Waldvorhang", category: "textilien", styles: ["wald"], price: 14, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.35, d: 0.12 }, placementType: "wallDecor", coversOpening: true, designs: [{ sprite: "images/schloss/moebel/vorhang_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "spiegel_wald_a", name: "Waldspiegel", category: "deko", styles: ["wald"], price: 20, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.6, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/spiegel_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // wandleuchte: im Code gebaut (design.builtin "wallSconce" ->
     // buildBuiltinFurniture in JS/schloss-3d.js), weil Generatoren fuer so
