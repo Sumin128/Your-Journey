@@ -30,21 +30,38 @@
 
 }
 
-/* Desktop: die 92px breite fixe Sidebar steht LINKS über dem Content.
-   Die ganze Schloss-Seite (Bühne UND Schublade) beginnt deshalb rechts
-   daneben - kein Tab, Möbelkärtchen oder Einklapp-Button liegt dahinter. */
+/* Desktop: die fixe Sidebar steht LINKS über dem Content. Die ganze
+   Schloss-Seite (Bühne UND Schublade) beginnt rechts daneben - und
+   verschiebt sich MIT, wenn die Sidebar auf-/zugeklappt wird
+   (#sidebar bekommt dann .open, Breite 92px -> 260px). Kein fester
+   Pixelwert, der bei anderem Zustand/Zoom wieder kollidiert:
+   body:has(#sidebar.open) liest den echten Zustand live. */
 @media (min-width: 961px) {
     .schloss-page {
         margin-left: 100px;
         padding-left: 10px;
+        transition: margin-left .4s var(--yj-ease-out, ease);
+    }
+    /* #sidebar steht als vorheriges Geschwister von <main.schloss-page>
+       im DOM -> der Geschwister-Kombinator reagiert zuverlässig auf das
+       .open-Umschalten (kein :has(), das hier je nach Browser die
+       Neuberechnung des Geschwisters verschluckt). 260px + 8px Luft. */
+    #sidebar.open ~ .schloss-page {
+        margin-left: 268px;
     }
 }
 
-/* Mobil: keine linke Sidebar, aber Platz für die fixe Topbar (56px). */
+/* Mobil: keine linke Sidebar-Spalte, aber Platz für die fixe Topbar
+   (56px). Die Sidebar ist hier ein Overlay mit Backdrop - der Content
+   verschiebt sich NICHT, aber die Schublade darf sich beim geöffneten
+   Overlay nicht mehr davor legen (Bug-Melder-z-index 1900 -> runter). */
 @media (max-width: 960px) {
     .schloss-page {
         margin-left: 0;
         padding-top: 72px;
+    }
+    #sidebar.open ~ .schloss-page .schloss-drawer {
+        z-index: 40;
     }
 }
 
@@ -321,7 +338,7 @@
     transform: rotate(-90deg);
 }
 
-/* --- Tabs (Inventar / Laden / Stil) --- */
+/* --- Tabs (Inventar / Raum gestalten) --- */
 
 .schloss-tabs {
 
@@ -354,28 +371,62 @@
 
 }
 
-/* "Neue Möbel bei Tamo" ist ein Link zur Werkstatt-Seite, kein
-   Umschalt-Tab - optisch als warmer Holz-Knopf abgesetzt, rechts. */
-.schloss-tab.schloss-tab--link {
+/* --- Möbel-Kategoriezeile (nur im Tab "Inventar", über den Karten) ---
+   Kompakte Pillen, horizontal scrollbar; auf Mobil größere Tap-Ziele. */
+.schloss-inv-cats {
 
-    margin-left: auto;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: #6b4423;
-    color: #ffe7b5;
-    border-color: #4a2f18;
+    display: flex;
+    gap: 6px;
 
-}
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 
-.schloss-tab.schloss-tab--link:hover {
+    padding: 2px 2px 6px;
+    margin-bottom: 2px;
 
-    background: #7d5330;
+    border-bottom: 1px solid var(--yj-color-border);
 
 }
 
-/* --- Stil-Auswahl (Themes) --- */
+.schloss-inv-cat {
+
+    flex: none;
+
+    padding: 5px 11px;
+
+    border: 1px solid var(--yj-color-border);
+    border-radius: var(--yj-radius-pill, 999px);
+    background: var(--yj-color-paper);
+
+    font-weight: 700;
+    font-size: 0.74rem;
+    color: var(--yj-color-ink-soft);
+    white-space: nowrap;
+
+    cursor: pointer;
+
+}
+
+.schloss-inv-cat.is-active {
+
+    background: var(--yj-color-accent, #e0a53c);
+    color: var(--yj-color-wood-dark);
+    border-color: var(--yj-color-accent, #e0a53c);
+
+}
+
+@media (max-width: 700px) {
+
+    .schloss-inv-cat {
+        padding: 8px 14px;
+        font-size: 0.82rem;
+    }
+
+}
+
+/* --- Stil-Auswahl / "Raum gestalten" (Themes) --- */
 
 .schloss-style {
 
@@ -383,6 +434,16 @@
     gap: 10px;
     flex-wrap: wrap;
     padding: 4px 2px 8px;
+
+}
+
+.schloss-style-hint {
+
+    flex-basis: 100%;
+    margin: 0 0 2px;
+
+    font-size: 0.78rem;
+    color: var(--yj-color-ink-soft);
 
 }
 

@@ -40,7 +40,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=20">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=5">
-    <link rel="stylesheet" href="CSS/schloss.css?v=16">
+    <link rel="stylesheet" href="CSS/schloss.css?v=17">
 
     <!-- Three.js als ES-Modul, fest auf 0.160.0 gepinnt (kein Build-
          Schritt in diesem Projekt). Vorerst über jsdelivr, sobald die
@@ -114,13 +114,13 @@
                 <div class="schloss-tabs" role="tablist">
                     <button type="button" id="schloss-drawer-toggle" class="schloss-drawer-toggle" aria-label="Schublade ein-/ausklappen" aria-expanded="true">▾</button>
                     <button type="button" class="schloss-tab is-active" data-schloss-tab="inventory">🪑 Inventar</button>
-                    <button type="button" class="schloss-tab" data-schloss-tab="style">🎨 Stil</button>
-                    <a href="tamo_werkstatt.html" class="schloss-tab schloss-tab--link">🪵 Neue Möbel bei Tamo</a>
+                    <button type="button" class="schloss-tab" data-schloss-tab="style">🖌️ Raum gestalten</button>
                 </div>
 
                 <div id="schloss-drawer-body" class="schloss-drawer-body">
+                    <div id="schloss-inv-cats" class="schloss-inv-cats" role="tablist" aria-label="Möbel-Kategorien"></div>
                     <div id="schloss-inventory" class="schloss-inventory" aria-label="Deine Möbel"></div>
-                    <div id="schloss-style" class="schloss-style" aria-label="Einrichtungs-Stil" hidden></div>
+                    <div id="schloss-style" class="schloss-style" aria-label="Raum gestalten" hidden></div>
                 </div>
 
             </div>
@@ -146,7 +146,7 @@
     <script src="JS/confetti.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/schloss-data.js?v=30"></script>
-    <script src="JS/schloss.js?v=7"></script>
+    <script src="JS/schloss.js?v=8"></script>
     <script src="JS/schloss-migration.js?v=1"></script>
     <script type="module" src="JS/schloss-3d.js?v=40"></script>
 

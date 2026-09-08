@@ -23,10 +23,61 @@
     const lockedText = document.getElementById("schloss-locked-text");
     const editorSection = document.getElementById("schloss-editor");
     const inventoryEl = document.getElementById("schloss-inventory");
+    const invCatsEl = document.getElementById("schloss-inv-cats");
     const styleEl = document.getElementById("schloss-style");
     const tabButtons = document.querySelectorAll(".schloss-tab");
     const drawer = document.getElementById("schloss-drawer");
     const drawerToggle = document.getElementById("schloss-drawer-toggle");
+
+
+    /* --- Inventar-Kategorien (nur Anzeige-Gruppierung, keine Katalog-
+       oder Platzierungslogik). "Alle" zeigt jedes besessene Möbel.
+       Zuordnung greift zuerst auf placementType (Wanddeko / Boden), dann
+       auf furniture.category zurück - deckt auch spätere Möbel ab. --- */
+
+    const INV_CATS = [
+        { id: "alle", label: "Alle" },
+        { id: "sitzmoebel", label: "Sitzmöbel" },
+        { id: "tische", label: "Tische & Ablagen" },
+        { id: "aufbewahrung", label: "Aufbewahrung" },
+        { id: "boden", label: "Teppiche & Bodendeko" },
+        { id: "pflanzen", label: "Pflanzen & Deko" },
+        { id: "licht", label: "Licht & Feuer" },
+        { id: "wanddeko", label: "Wanddeko" }
+    ];
+
+    let activeInvCat = "alle";
+
+    function invCategoryOf(furniture) {
+
+        if (!furniture) {
+            return "pflanzen";
+        }
+
+        // Wanddeko: alles was an der Wand hängt (Bild/Rahmen/Spiegel/Uhr/
+        // Vorhang/Wandbehang/Wandleuchte).
+        if (furniture.placementType === "wallDecor") {
+            return "wanddeko";
+        }
+
+        // Boden: Teppiche, Kuschelkissen (seatDecor) und flache Bodendeko.
+        if ((furniture.id || "").indexOf("teppich") === 0 ||
+            furniture.placementType === "seatDecor" ||
+            furniture.placementType === "floorDecor") {
+            return "boden";
+        }
+
+        switch (furniture.category) {
+            case "sitzmoebel": return "sitzmoebel";
+            case "tische": return "tische";
+            case "regale":
+            case "aufbewahrung": return "aufbewahrung";
+            case "licht": return "licht";
+            case "pflanzen": return "pflanzen";
+            default: return "pflanzen"; // freie, nicht an die Wand gehängte Deko
+        }
+
+    }
 
     if (!lockedSection || !editorSection) {
         return;
@@ -49,6 +100,51 @@
        im Raum sind bewusst getrennt (einmal kaufen/verdienen, beliebig
        oft platzieren). --- */
 
+    // Kategoriezeile einmal aufbauen; der Wechsel filtert nur die
+    // Kartenliste neu (wählt/verschiebt/speichert NICHTS).
+    function renderInvCats() {
+
+        if (!invCatsEl) {
+            return;
+        }
+
+        invCatsEl.innerHTML = "";
+
+        // Immer alle Gruppen zeigen (auch leere - dann kommt beim Wechsel
+        // eine freundliche Meldung). Die Zeile ist so auch eine Übersicht,
+        // welche Möbelarten es überhaupt gibt.
+        INV_CATS.forEach(function (cat) {
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "schloss-inv-cat" +
+                (cat.id === activeInvCat ? " is-active" : "");
+            button.textContent = cat.label;
+            button.setAttribute("aria-pressed", String(cat.id === activeInvCat));
+
+            button.addEventListener("click", function () {
+                if (activeInvCat === cat.id) {
+                    return;
+                }
+                activeInvCat = cat.id;
+                renderInvCats();
+                renderInventory();
+            });
+
+            invCatsEl.appendChild(button);
+
+        });
+
+        // Aktive Kategorie in den sichtbaren Bereich scrollen (Mobil:
+        // die Zeile ist schmaler als alle Pillen). block:"nearest"
+        // verhindert ein ungewolltes vertikales Scrollen der Seite.
+        const activeBtn = invCatsEl.querySelector(".schloss-inv-cat.is-active");
+        if (activeBtn && activeBtn.scrollIntoView) {
+            activeBtn.scrollIntoView({ inline: "center", block: "nearest" });
+        }
+
+    }
+
     function renderInventory() {
 
         inventoryEl.innerHTML = "";
@@ -63,13 +159,23 @@
             return;
         }
 
-        owned.forEach(function (furnitureId) {
+        const shown = owned.filter(function (furnitureId) {
+            const furniture = getSchlossFurniture(furnitureId);
+            if (!furniture) { return false; }
+            return activeInvCat === "alle" || invCategoryOf(furniture) === activeInvCat;
+        });
+
+        if (!shown.length) {
+            const empty = document.createElement("p");
+            empty.className = "schloss-inventory-empty";
+            empty.textContent = "In dieser Gruppe hast du noch nichts – wähle „Alle“ oder eine andere Gruppe.";
+            inventoryEl.appendChild(empty);
+            return;
+        }
+
+        shown.forEach(function (furnitureId) {
 
             const furniture = getSchlossFurniture(furnitureId);
-
-            if (!furniture) {
-                return;
-            }
 
             const button = document.createElement("button");
             button.type = "button";
@@ -92,26 +198,22 @@
 
 
     /* --- Möbel KAUFEN läuft nicht mehr hier: der Laden ist eine eigene
-       Seite (tamo_werkstatt.html / JS/tamo.js), die dieselbe
-       purchase_schloss_furniture-Logik nutzt. Im Schloss bleiben nur
-       Inventar + Stil; ein Klick auf "Neue Möbel bei Tamo" ist ein
-       normaler Link. --- */
+       Seite (tamo_werkstatt.html / JS/tamo.js). Erreichbar bleibt sie
+       über die Sidebar ("Läden") - KEIN Button in dieser Leiste. Im
+       Schloss bleiben nur "Inventar" + "Raum gestalten". --- */
 
     tabButtons.forEach(function (button) {
 
         button.addEventListener("click", function () {
-
-            // Reine Link-Tabs (zu Tamo) navigieren normal, kein Tab-Wechsel.
-            if (button.classList.contains("schloss-tab--link")) {
-                return;
-            }
 
             tabButtons.forEach(function (other) {
                 other.classList.toggle("is-active", other === button);
             });
 
             const tab = button.dataset.schlossTab;
-            inventoryEl.hidden = tab !== "inventory";
+            const isInventory = tab === "inventory";
+            inventoryEl.hidden = !isInventory;
+            if (invCatsEl) { invCatsEl.hidden = !isInventory; }
             if (styleEl) { styleEl.hidden = tab !== "style"; }
 
             // Beim Tab-Wechsel die Schublade automatisch aufklappen.
@@ -144,6 +246,11 @@
         const activeStyle = (player.schloss && player.schloss.style) || "wald";
 
         styleEl.innerHTML = "";
+
+        const hint = document.createElement("p");
+        hint.className = "schloss-style-hint";
+        hint.textContent = "Hier gestaltest du den Raum selbst: Schlossstil jetzt – Boden und Wände kommen bald.";
+        styleEl.appendChild(hint);
 
         SCHLOSS_THEMES.forEach(function (themeEntry) {
 
@@ -205,6 +312,7 @@
         lockedSection.hidden = true;
         editorSection.hidden = false;
 
+        renderInvCats();
         renderInventory();
         renderStyleTab();
 
