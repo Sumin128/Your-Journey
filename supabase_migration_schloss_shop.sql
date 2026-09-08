@@ -72,7 +72,14 @@ insert into public.schloss_furniture (id, price) values
     ('kerze_wald_a', 6),
     ('truhe_wald_a', 28),
     ('blumenkasten_wald_a', 12),
-    ('teppich_rund_wald_a', 16)
+    ('teppich_rund_wald_a', 16),
+    -- 2026-09-08 nachgetragen: die neueren Katalog-Möbel (unlockedBy null)
+    -- fehlten hier -> im Shop sichtbar, aber Kauf schlug serverseitig fehl.
+    ('stehleuchter_wald_a', 16),
+    ('wandleuchte_wald_a', 14),
+    ('gemaelde_wald_a', 22),
+    ('gemaelde_nacht_a', 22),
+    ('banner_wald_a', 20)
 on conflict (id) do update set price = excluded.price;
 
 
