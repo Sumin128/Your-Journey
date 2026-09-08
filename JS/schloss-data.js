@@ -164,7 +164,12 @@ const SCHLOSS_FURNITURE = [
     // Boden-Pivot konvertiert, Basecolor waermer nachgetoent (Honig-Eiche
     // naeher am Waldstuhl). ID/footprint unveraendert -> Platzierungen bleiben.
     { id: "hocker_wald_a", name: "Waldhocker", category: "sitzmoebel", styles: ["wald"], price: 10, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.5 }, designs: [{ sprite: "images/schloss/moebel/hocker_wald_a.png", model: "images/schloss/models/hocker_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "baenkchen_wald_a", name: "Waldsessel", category: "sitzmoebel", styles: ["wald"], price: 22, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.9 }, designs: [{ sprite: "images/schloss/moebel/baenkchen_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // baenkchen (Waldsessel): jetzt echtes GLB (Tripo image_to_3d aus dem
+    // Sprite, 8k faces, 1024 + Boden-Pivot, Basecolor waermer). ID/footprint/
+    // Preis unveraendert -> gespeicherte Platzierungen bleiben. seatSlots:
+    // eine begrenzte Sitzflaeche -> Kuschelkissen rastet auch hier ein
+    // (JS/schloss-3d.js dragSeatDecor), max. 1 Kissen.
+    { id: "baenkchen_wald_a", name: "Waldsessel", category: "sitzmoebel", styles: ["wald"], price: 22, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.9 }, modelScale: 1.12, seatSlots: [{ x: 0, y: 0.32, z: -0.02 }], designs: [{ sprite: "images/schloss/moebel/baenkchen_wald_a.png", model: "images/schloss/models/baenkchen_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "beistelltisch_wald_a", name: "Beistelltisch", category: "tische", styles: ["wald"], price: 16, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.65, d: 0.65 }, surface: { shape: "circle", inset: 0.06 }, designs: [{ sprite: "images/schloss/moebel/beistelltisch_wald_a.png", model: "images/schloss/models/beistelltisch_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // kissen: leicht-3D GLB (Tripo, Basecolor waermer + Blattgruen kraeftiger
     // nachbearbeitet). Bleibt reines Bodenobjekt (kein surfaceDecor -> rastet
@@ -193,6 +198,10 @@ const SCHLOSS_FURNITURE = [
     { id: "uhr_wald_a", name: "Wanduhr", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/uhr_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "gemaelde_wald_a", name: "Waldgemälde", category: "deko", styles: ["wald"], price: 22, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.62, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/gemaelde_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "gemaelde_nacht_a", name: "Mondwald-Bild", category: "deko", styles: ["wald"], price: 22, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.6, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/gemaelde_nacht_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // Wandbehang: gemaltes Stoff-Banner mit Mirelon-Baumwappen (Gemini,
+    // Alpha-Kante direkt aus dem PNG, kein Chroma-Key). Wie die Bilder:
+    // wallDecor, nur verschiebbar, kein Dreh-Button, Auto-Ausrichtung.
+    { id: "banner_wald_a", name: "Wandbehang", category: "deko", styles: ["wald"], price: 20, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.55, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/banner_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Kerze: surfaceDecor - steht auf Tisch/Beistelltisch/Regal/Truhe
     // (deren surface-Zone), sonst Boden. flame + light -> An/Aus-Schalter,
     // flackerndes Punktlicht im gemeinsamen Licht-Budget.
