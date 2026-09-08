@@ -23,3 +23,6 @@
 *.otf  binary
 *.eot  binary
 *.pdf  binary
+
+# 3D-Modelle (Schloss-Moebel): immer binaer, nie EOL-/Text-Normalisierung
+*.glb  binary
