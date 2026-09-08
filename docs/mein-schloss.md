@@ -317,6 +317,37 @@ umgestellt werden.
 - **Vorhang** (`coversOpening: true`): `clampToWall` überspringt die
   Öffnungs-Meidung; `dragWallDecor` rastet ihn auf die Rückwand-
   Fenstermitte + Fensterhöhe ein → hängt VOR dem Fenster statt daneben.
+
+### Nutzbare Wandflächen + strenge Vorhang-Anker (2026-09-08, Commit folgt)
+
+- **Wanddeko viel freier** (`clampToWall`): `WALL_MARGIN 0.15` →
+  `WALL_EDGE_MARGIN 0.04` (Bilder bis nahe an die seitliche Wandkante /
+  Ecke). `WALL_H_MIN 0.9 → 0.45`, `WALL_H_MAX 3.4 → 3.7` (deutlich höher
+  und tiefer). Die große, gepolsterte `WALL_OPENINGS.back`-Fensterzone
+  (`-1.75..1.75, 0.8..3.7`) auf die echte Glasfläche
+  (`-1.66..1.66, 0.9..3.55`) geschrumpft; Kaminzone auf Öffnung + Mantel
+  (`1.84..3.96, 0..1.95`) präzisiert; Tür minimal enger. Keine zusätzliche
+  unsichtbare Zone. `OPENING_HPAD 0.03` / `OPENING_VPAD 0.12` als kleine
+  Sicherheitsmarge zu den Öffnungen. Steckt ein Bild an der Wandkante fest
+  und immer noch in einer Öffnung, wird es über die Öffnung gehoben
+  (z. B. Bild über den Kamin).
+- **Wanddeko-Kollision** (`avoidWallDecor`): frei platzierte Wanddeko
+  (nicht Vorhänge) weicht anderer Wanddeko derselben Wand aus (Überlappung
+  entlang der Wand + grob gleiche Höhe → zur Seite; an der Wandkante
+  festgedrückt → andere Seite). Spawn-Startplätze liegen jetzt auf echter
+  freier Wandfläche (Rückwand-links + beide Seitenwände), nie in
+  Fenster/Tür/Kamin.
+- **Vorhänge = feste Anker** statt frei verschiebbarer Wanddeko:
+  `WINDOW_ANCHORS = [-1.12, 0, 1.12]` (die drei Fenster-Bay-Mitten),
+  `CURTAIN_Y 2.35`. `dragWallDecor` schickt `coversOpening`-Objekte
+  ausschließlich auf den nächsten FREIEN Anker (nie Kamin/Tür/Seitenwand),
+  `freeCurtainAnchors` überspringt belegte (max. 1 Vorhang je Fenster).
+  Platzieren aus dem Inventar: erster freier Anker, sind alle drei belegt
+  → nicht platziert (`showMirelonToast`). `migrateCurtains()` läuft VOR
+  dem Laden: Alt-Vorhänge an Kamin/Seitenwand/frei wandern auf den
+  nächsten freien Anker, ist keiner frei → zurück ins Inventar (Instanz
+  aus `placedItems`). Ergebnis in `window.__schlossCurtainMigration`
+  (`{migrated, toInventory, affected}`).
 - **Kissen auf Sitzmöbeln** (`placementType: "seatDecor"`): echte,
   begrenzte `seatSlots` im Katalog (lokale Offsets zur Möbelgruppe) auf
   `stuhl_wald_a` (1) und `sofa_wald_a` (2). `dragSeatDecor` projiziert den

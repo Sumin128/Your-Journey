@@ -61,7 +61,6 @@ function initSchloss3D(canvas) {
     const ROOM_WIDTH = 8;
     const ROOM_DEPTH = 6;
     const ROOM_HEIGHT = 4.5;
-    const WALL_MARGIN = 0.15; // Sicherheitsabstand zur Wand, damit Möbel nicht "einwächst"
 
     // Bewegungsgrenze getrennt von der Raumtiefe: hinten + seitlich sind
     // es echte Wände (ROOM_DEPTH/ROOM_WIDTH), VORNE gibt es keine Wand -
@@ -75,7 +74,7 @@ function initSchloss3D(canvas) {
     // Bewegungsgrenze für Bodenmöbel: nur die ECHTE (ggf. gedrehte)
     // Grundfläche plus eine sehr kleine Marge. Die Fußleiste ragt ~0.05 m
     // in den Raum; FLOOR_EDGE_MARGIN stellt die Möbelkante genau davor.
-    // Bewusst getrennt von WALL_MARGIN (Wanddeko-Abstand).
+    // Bewusst getrennt von WALL_EDGE_MARGIN (Wanddeko-Abstand).
     const FLOOR_EDGE_MARGIN = 0.05;
 
     // seatDecor (Kissen auf Sitzmöbeln) - Konstanten oben, weil
@@ -133,55 +132,126 @@ function initSchloss3D(canvas) {
     const HALF_W = ROOM_WIDTH / 2;      // Seitenwände x = ±HALF_W
     const BACK_Z = -ROOM_DEPTH / 2;     // Rückwand z = BACK_Z
     const WALL_OFFSET = 0.05;           // Wanddeko steht so weit vor der Wand
-    const WALL_H_MIN = 0.9;             // erlaubter Höhenbereich für Wanddeko
-    const WALL_H_MAX = 3.4;
+    // Nutzbarer Höhenbereich für Wanddeko: knapp über der Fußleiste
+    // (SKIRT_H 0.16) bis knapp unter Decke/Deckenbalken.
+    const WALL_H_MIN = 0.45;
+    const WALL_H_MAX = 3.7;
+    // Sehr kleiner Abstand zur seitlichen Wandkante (früher WALL_MARGIN
+    // 0.15 - hielt Bilder unnötig weit aus den Ecken). Nur Kanten-Schutz.
+    const WALL_EDGE_MARGIN = 0.04;
+    // Winzige Sicherheitsmarge zu den Öffnungen (Tür/Fenster/Kamin).
+    const OPENING_HPAD = 0.03;
+    const OPENING_VPAD = 0.12;
 
     // Öffnungen in den Wänden - MUSS mit buildProceduralShell (WIN / FP /
     // Türblatt) übereinstimmen. Rechtecke in Wand-lokalen Koordinaten:
-    // Rückwand: [x, y], Seitenwände: [z, y].
+    // Rückwand: [x, y], Seitenwände: [z, y]. KEINE zusätzliche große
+    // Sperrzone - nur die echten Öffnungen plus Kaminmantel.
     const WALL_OPENINGS = {
         back: [
-            { a1: -1.75, a2: 1.75, y1: 0.8, y2: 3.7 },   // Dreifachfenster
-            { a1: 2.05, a2: 3.75, y1: 0.0, y2: 1.9 }     // Kaminöffnung + Sturz
+            // Fenstergruppe als eine Hüllfläche (WIN x1..x2 = -1.6..1.6,
+            // y 0.95..3.5). Die 0.16 m schmalen Steinpfeiler zwischen den
+            // drei Bögen sind für Bilder ohnehin zu schmal.
+            { a1: -1.66, a2: 1.66, y1: 0.9, y2: 3.55 },
+            // Kaminöffnung + Holzmantel ("Kaminbereich": fMantel ist
+            // FP.w+0.64 breit um fpCx=2.9, Oberkante ~1.83).
+            { a1: 1.84, a2: 3.96, y1: 0.0, y2: 1.95 }
         ],
         left: [
-            { a1: -1.5, a2: 0.05, y1: 0.0, y2: 2.9 }      // Holztür
+            { a1: -1.44, a2: 0.04, y1: 0.0, y2: 2.78 }    // Holztür
         ],
         right: []
     };
 
-    // Liegt (a, y) in einer Wandöffnung? a = x (Rückwand) bzw. z (Seiten).
+    // Vorhang-Anker: die drei Fenster-Bay-Mitten der Rückwand. Vorhänge
+    // dürfen AUSSCHLIESSLICH hier einrasten (nie Kamin/Tür/Seitenwand/
+    // frei). Bay-Mitte = WIN.x1 + b*(BAYW+COLW) + BAYW/2 -> -1.12 / 0 / 1.12.
+    const WINDOW_ANCHORS = [-1.12, 0, 1.12];
+    const CURTAIN_Y = 2.35;
+
+    function nearestAnchorIndex(a) {
+        let bi = 0, bd = Infinity;
+        for (let i = 0; i < WINDOW_ANCHORS.length; i++) {
+            const d = Math.abs((a || 0) - WINDOW_ANCHORS[i]);
+            if (d < bd) { bd = d; bi = i; }
+        }
+        return bi;
+    }
+
+    // Liegt (a, y) - mit kleiner Marge - in einer Wandöffnung?
     function inWallOpening(wall, a, y) {
         const list = WALL_OPENINGS[wall] || [];
         for (let i = 0; i < list.length; i++) {
             const o = list[i];
-            if (a > o.a1 && a < o.a2 && y > o.y1 && y < o.y2) { return o; }
+            if (a > o.a1 - OPENING_HPAD && a < o.a2 + OPENING_HPAD &&
+                y > o.y1 - OPENING_VPAD && y < o.y2 + OPENING_VPAD) { return o; }
         }
         return null;
     }
 
     // Wand-lokale Position (Entlang-Koordinate a + Höhe y) auf die gültige
     // Wandfläche begrenzen: im Raum bleiben, Öffnungen meiden, Höhe im
-    // sinnvollen Bereich. half = halbe Breite/Höhe des Objekts.
+    // sinnvollen Bereich. half = halbe Breite des Objekts.
     function clampToWall(wall, a, y, half, coversOpening) {
         const hw = half || 0.3;
-        const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - hw - WALL_MARGIN;
+        const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - hw - WALL_EDGE_MARGIN;
         a = Math.max(-limA, Math.min(limA, a));
         y = Math.max(WALL_H_MIN + hw * 0.4, Math.min(WALL_H_MAX, y));
 
-        // Vorhang o. Ä. darf VOR einer Öffnung hängen - Öffnungs-Meidung
-        // überspringen.
+        // Vorhänge laufen nicht hier durch (eigene Anker-Logik), aber der
+        // Schutz bleibt für Alt-Aufrufe stehen.
         if (coversOpening) { return { a: a, y: y }; }
 
-        // Öffnung? -> Entlang-Koordinate an die nähere Öffnungskante schieben
-        const o = inWallOpening(wall, a, y);
+        // Öffnung meiden: an die nähere Kante schieben. Steckt das Objekt
+        // danach noch (schmale Lücke zwischen zwei Öffnungen), in dieselbe
+        // Richtung weiter; an der Wandkante festgedrückt -> über die
+        // Öffnung heben (Bild über Kamin).
+        let o = inWallOpening(wall, a, y);
         if (o) {
-            const distLeft = Math.abs(a - (o.a1 - hw));
-            const distRight = Math.abs((o.a2 + hw) - a);
-            a = distLeft < distRight ? (o.a1 - hw) : (o.a2 + hw);
-            a = Math.max(-limA, Math.min(limA, a));
+            const dir = Math.abs(a - o.a1) < Math.abs(a - o.a2) ? -1 : 1;
+            for (let i = 0; i < 4 && o; i++) {
+                let na = dir < 0 ? (o.a1 - hw - OPENING_HPAD) : (o.a2 + hw + OPENING_HPAD);
+                if (na < -limA || na > limA) {
+                    a = Math.max(-limA, Math.min(limA, na));
+                    y = Math.min(WALL_H_MAX, Math.max(y, o.y2 + hw * 0.5));
+                    o = inWallOpening(wall, a, y);
+                    break;
+                }
+                a = na;
+                o = inWallOpening(wall, a, y);
+            }
         }
         return { a: a, y: y };
+    }
+
+    // Wanddeko gegen andere Wanddeko DERSELBEN Wand schieben (nicht
+    // Vorhänge - die haben feste Anker). Überlappt entlang der Wand und
+    // grob in der Höhe -> zur Seite weg vom Nachbarn.
+    function avoidWallDecor(dragGroup, wall, a, y, half) {
+        const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - half - WALL_EDGE_MARGIN;
+        for (let pass = 0; pass < 5; pass++) {
+            let hit = null;
+            for (let i = 0; i < placedGroups.length; i++) {
+                const g = placedGroups[i];
+                if (g === dragGroup || g.userData.placementType !== "wallDecor") { continue; }
+                if (g.userData.wall !== wall) { continue; }
+                if (g.userData.furniture && g.userData.furniture.coversOpening) { continue; }
+                const ofp = g.userData.footprint || { w: 0.5, d: 0.5 };
+                const oHalf = Math.max(ofp.w, ofp.d) / 2;
+                if (Math.abs(a - g.userData.wallA) < half + oHalf &&
+                    Math.abs(y - g.position.y) < 0.7) {
+                    hit = { oa: g.userData.wallA, oHalf: oHalf };
+                    break;
+                }
+            }
+            if (!hit) { break; }
+            const gap = hit.oHalf + half + 0.02;
+            let na = hit.oa + (a >= hit.oa ? 1 : -1) * gap;
+            // gegen die Wandkante gedrückt -> auf die andere Seite ausweichen
+            if (na > limA || na < -limA) { na = hit.oa - (a >= hit.oa ? 1 : -1) * gap; }
+            a = na;
+        }
+        return clampToWall(wall, a, y, half, false);
     }
 
     // Weltposition + Ausrichtung aus (wall, a, y).
@@ -534,7 +604,17 @@ function initSchloss3D(canvas) {
         group.userData.furniture = furniture;
         group.userData.placementType = ptype;
 
-        if (ptype === "wallDecor") {
+        if (ptype === "wallDecor" && furniture.coversOpening) {
+            // Vorhang: strikt auf einen der drei Fenster-Anker.
+            // migrateCurtains() hat instance.a beim Laden schon normalisiert.
+            const idx = nearestAnchorIndex(typeof instance.a === "number" ? instance.a : instance.x);
+            const w = wallToWorld("back", WINDOW_ANCHORS[idx], CURTAIN_Y);
+            group.position.set(w.x, w.y, w.z);
+            group.rotation.y = w.rot;
+            group.userData.wall = "back";
+            group.userData.wallA = WINDOW_ANCHORS[idx];
+            group.userData.windowIndex = idx;
+        } else if (ptype === "wallDecor") {
             // Wanddeko-Instanz: {wall, a (Entlang-Koord), y (Höhe)}.
             // Ältere/fehlende Werte tolerant aus x/z ableiten.
             const half = (furniture.footprint ? Math.max(furniture.footprint.w, furniture.footprint.d) : 0.5) / 2;
@@ -545,7 +625,7 @@ function initSchloss3D(canvas) {
                 wall = g.wall;
                 a = (typeof a === "number") ? a : g.a;
             }
-            const cl = clampToWall(wall, a || 0, (typeof instance.y === "number" ? instance.y : 1.8), half, Boolean(furniture.coversOpening));
+            const cl = clampToWall(wall, a || 0, (typeof instance.y === "number" ? instance.y : 1.8), half, false);
             const w = wallToWorld(wall, cl.a, cl.y);
             group.position.set(w.x, w.y, w.z);
             group.rotation.y = w.rot;
@@ -754,6 +834,55 @@ function initSchloss3D(canvas) {
         });
     }
 
+    // Vorhänge dürfen nur an den drei Fenster-Ankern hängen. Alte
+    // Platzierungen (Kamin/Seitenwand/frei) beim Laden auf den nächsten
+    // FREIEN Anker ziehen; ist keiner frei -> zurück ins Inventar
+    // (Instanz aus placedItems entfernen, Besitz bleibt erhalten).
+    function migrateCurtains() {
+        const items = room.placedItems || [];
+        const taken = {};
+        let migrated = 0, toInventory = 0;
+        const drop = [];
+
+        items.forEach(function (it) {
+            const f = getSchlossFurniture(it.furnitureId);
+            if (!f || !f.coversOpening) { return; }
+
+            const want = nearestAnchorIndex(
+                typeof it.a === "number" ? it.a
+                    : (typeof it.x === "number" ? it.x : 0));
+            const alreadyValid = it.wall === "back" &&
+                typeof it.a === "number" &&
+                Math.abs(it.a - WINDOW_ANCHORS[want]) < 0.2 &&
+                !taken[want];
+
+            let idx = alreadyValid ? want : -1;
+            for (let k = 0; k < WINDOW_ANCHORS.length && idx === -1; k++) {
+                const cand = (want + k) % WINDOW_ANCHORS.length;
+                if (!taken[cand]) { idx = cand; }
+            }
+            if (idx === -1) { toInventory++; drop.push(it); return; }
+
+            taken[idx] = true;
+            it.wall = "back";
+            it.a = WINDOW_ANCHORS[idx];
+            it.y = CURTAIN_Y;
+            const w = wallToWorld("back", it.a, CURTAIN_Y);
+            it.x = w.x; it.z = w.z; it.rotationY = w.rot;
+            if (!alreadyValid) { migrated++; }
+        });
+
+        if (drop.length) {
+            room.placedItems = items.filter(function (it) { return drop.indexOf(it) === -1; });
+        }
+        const affected = migrated + toInventory;
+        if (affected > 0) { saveSchloss(); }
+        window.__schlossCurtainMigration = { migrated: migrated, toInventory: toInventory, affected: affected };
+        return affected;
+    }
+
+    migrateCurtains();
+
     room.placedItems.forEach(addFurnitureGroup);
 
     // Nach dem initialen Laden: Kissen auf ihre gespeicherten Sitz-Slots
@@ -790,14 +919,41 @@ function initSchloss3D(canvas) {
             lightOn: true
         };
 
-        if (ptype === "wallDecor") {
-            // An die Rückwand, gestaffelt an einer freien Stelle, Augenhöhe.
-            // clampToWall hält den Startplatz aus Fenster/Kamin heraus.
-            const spots = [-2.9, 3.55, -3.5, 0, -1.0, 1.85];
+        if (ptype === "wallDecor" && furniture.coversOpening) {
+            // Vorhang: an den ersten freien Fenster-Anker. Sind alle drei
+            // belegt -> nicht platzieren (bleibt im Inventar).
+            const used = {};
+            placedGroups.forEach(function (g) {
+                if (g.userData.furniture && g.userData.furniture.coversOpening &&
+                    typeof g.userData.windowIndex === "number") { used[g.userData.windowIndex] = true; }
+            });
+            let idx = -1;
+            for (let i = 0; i < WINDOW_ANCHORS.length && idx === -1; i++) { if (!used[i]) { idx = i; } }
+            if (idx === -1) {
+                if (typeof showMirelonToast === "function") {
+                    showMirelonToast("An jedem Fenster hängt schon ein Vorhang.", "info");
+                }
+                return;
+            }
+            const w = wallToWorld("back", WINDOW_ANCHORS[idx], CURTAIN_Y);
+            instance.wall = "back"; instance.a = WINDOW_ANCHORS[idx]; instance.y = CURTAIN_Y;
+            instance.x = w.x; instance.z = w.z; instance.rotationY = w.rot;
+        } else if (ptype === "wallDecor") {
+            // Gestaffelt auf FREIER Wandfläche starten (nie in Fenster/Tür/
+            // Kamin - sonst würden alle in dieselbe Ecke geschoben).
+            const spots = [
+                { wall: "back", a: -2.6, y: 1.7 },
+                { wall: "right", a: -1.4, y: 1.75 },
+                { wall: "back", a: -3.4, y: 2.4 },
+                { wall: "left", a: 1.7, y: 1.7 },
+                { wall: "back", a: -2.0, y: 2.65 },
+                { wall: "right", a: 1.3, y: 2.2 }
+            ];
+            const sp = spots[index % spots.length];
             const half = (furniture.footprint ? Math.max(furniture.footprint.w, furniture.footprint.d) : 0.5) / 2;
-            const cl = clampToWall("back", spots[index % spots.length], 1.85, half);
-            const w = wallToWorld("back", cl.a, cl.y);
-            instance.wall = "back"; instance.a = cl.a; instance.y = cl.y;
+            const cl = clampToWall(sp.wall, sp.a, sp.y, half);
+            const w = wallToWorld(sp.wall, cl.a, cl.y);
+            instance.wall = sp.wall; instance.a = cl.a; instance.y = cl.y;
             instance.x = w.x; instance.z = w.z; instance.rotationY = w.rot;
         } else if (ptype === "surfaceDecor") {
             // Start gut sichtbar auf dem Boden vor der Mitte - das Kind
@@ -1360,11 +1516,50 @@ function initSchloss3D(canvas) {
         { name: "right", plane: new THREE.Plane(new THREE.Vector3(-1, 0, 0), ROOM_WIDTH / 2) }
     ];
 
+    function curtainGroups() {
+        return placedGroups.filter(function (g) {
+            return g.userData.furniture && g.userData.furniture.coversOpening;
+        });
+    }
+
+    // Freie Fenster-Anker (0..2), self ausgenommen.
+    function freeCurtainAnchors(exceptGroup) {
+        const used = {};
+        curtainGroups().forEach(function (g) {
+            if (g === exceptGroup) { return; }
+            if (typeof g.userData.windowIndex === "number") { used[g.userData.windowIndex] = true; }
+        });
+        return [0, 1, 2].filter(function (i) { return !used[i]; });
+    }
+
     function dragWallDecor() {
 
         const fp = selected.userData.footprint || { w: 0.5, d: 0.5 };
         const half = Math.max(fp.w, fp.d) / 2;
         const covers = Boolean(selected.userData.furniture && selected.userData.furniture.coversOpening);
+
+        // --- Vorhang: strikt auf einen der drei freien Fenster-Anker der
+        // Rückwand (nie Kamin/Tür/Seitenwand/frei). Belegter Anker wird
+        // übersprungen; sind alle belegt, bleibt der Vorhang stehen. ---
+        if (covers) {
+            if (!raycaster.ray.intersectPlane(_wallPlanes[0].plane, _p)) { return; }
+            const free = freeCurtainAnchors(selected);
+            if (!free.length) { return; }
+            let bi = free[0], bd = Infinity;
+            free.forEach(function (idx) {
+                const d = Math.abs(_p.x - WINDOW_ANCHORS[idx]);
+                if (d < bd) { bd = d; bi = idx; }
+            });
+            const w = wallToWorld("back", WINDOW_ANCHORS[bi], CURTAIN_Y);
+            selected.position.set(w.x, w.y, w.z);
+            selected.rotation.y = w.rot;
+            selected.userData.wall = "back";
+            selected.userData.wallA = WINDOW_ANCHORS[bi];
+            selected.userData.windowIndex = bi;
+            selectionRing.position.set(w.x, 0.02, w.z);
+            return;
+        }
+
         let best = null;
 
         for (let i = 0; i < _wallPlanes.length; i++) {
@@ -1380,20 +1575,14 @@ function initSchloss3D(canvas) {
 
         if (!best) { return; }
 
-        // Vorhang: nah am Rückwand-Fenster -> auf die Fenstermitte einrasten
-        // und auf Fensterhöhe hängen (davor, nicht daneben).
-        if (covers && best.wall === "back" && Math.abs(best.a) < 2.4) {
-            const win = WALL_OPENINGS.back[0];
-            best.a = (win.a1 + win.a2) / 2;
-            best.y = Math.max(win.y1 + (win.y2 - win.y1) * 0.55, Math.min(win.y2 + 0.2, best.y));
-        }
-
-        const cl = clampToWall(best.wall, best.a, best.y, half, covers);
+        let cl = clampToWall(best.wall, best.a, best.y, half, false);
+        cl = avoidWallDecor(selected, best.wall, cl.a, cl.y, half);
         const world = wallToWorld(best.wall, cl.a, cl.y);
         selected.position.set(world.x, world.y, world.z);
         selected.rotation.y = world.rot;
         selected.userData.wall = best.wall;
         selected.userData.wallA = cl.a;
+        selected.userData.windowIndex = null;
         selectionRing.position.set(world.x, 0.02, world.z);
     }
 
