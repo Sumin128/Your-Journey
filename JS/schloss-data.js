@@ -170,6 +170,14 @@ const SCHLOSS_FURNITURE = [
     { id: "kissen_wald_a", name: "Kuschelkissen", category: "textilien", styles: ["wald"], price: 8, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.7, d: 0.7 }, modelScale: 1.35, flatOnFloor: true, designs: [{ sprite: "images/schloss/moebel/kissen_wald_a.png", model: "images/schloss/models/kissen_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "vorhang_wald_a", name: "Waldvorhang", category: "textilien", styles: ["wald"], price: 14, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/vorhang_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "spiegel_wald_a", name: "Waldspiegel", category: "deko", styles: ["wald"], price: 20, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.6, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/spiegel_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // wandleuchte: im Code gebaut (design.builtin "wallSconce" ->
+    // buildBuiltinFurniture in JS/schloss-3d.js), weil Generatoren fuer so
+    // eine kleine Wandarmatur keine saubere Form liefern. wallDecor + light
+    // (KEINE flame): die Engine haengt sie an Rueck-/links-/rechts-Wand,
+    // richtet sie automatisch aus (kein Dreh-Button), Fenster/Tuer/Kamin
+    // werden ausgespart, Punktlicht + Leuchtkern + 💡/🌙-Schalter; lightOn
+    // wird gespeichert. light.forward/height sitzen auf der Glaskugel.
+    { id: "wandleuchte_wald_a", name: "Wandleuchte", category: "licht", styles: ["wald"], price: 14, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.3, d: 0.28 }, placementType: "wallDecor", light: { color: "#ffdca6", intensity: 2.8, distance: 3.2, height: -0.03, forward: 0.19 }, designs: [{ sprite: "images/schloss/moebel/wandleuchte_wald_a.png", builtin: "wallSconce" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "uhr_wald_a", name: "Waldkuckucksuhr", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.55, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/uhr_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Kerze: surfaceDecor - steht auf Tisch/Beistelltisch/Regal/Truhe
     // (deren surface-Zone), sonst Boden. flame + light -> An/Aus-Schalter,

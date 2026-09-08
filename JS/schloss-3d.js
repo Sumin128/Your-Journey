@@ -525,9 +525,12 @@ function initSchloss3D(canvas) {
             group.rotation.y = instance.rotationY || 0;
         }
 
-        // Echtes 3D-Modell, wenn design.model gesetzt ist - sonst (und
-        // als Fallback bei Ladefehler) der gemalte 2D-Cutout.
-        if (design.model) {
+        // design.builtin = im Code gebautes Mini-Modell (z. B. Wandleuchte);
+        // design.model = echtes .glb (mit Cutout-Fallback bei Ladefehler);
+        // sonst der gemalte 2D-Cutout.
+        if (design.builtin) {
+            buildBuiltinFurniture(group, design.builtin, furniture);
+        } else if (design.model) {
             loadFurnitureModel(group, furniture, design, function onModelFail() {
                 populateWithCutout(group, furniture, design, instance.color);
             });
@@ -1491,6 +1494,54 @@ function initSchloss3D(canvas) {
 
     }
 
+    // Im Code gebaute Mini-Modelle (design.builtin). Bewusst nur einfache
+    // Primitive - dafür volle Kontrolle über Form, Tiefe und Licht, ohne
+    // Generator-Ratespiel. Authoring in METERN im Gruppen-lokalen Frame:
+    // bei wallDecor sitzt der Ursprung WALL_OFFSET vor der Wand, +Z zeigt
+    // in den Raum, Y = 0 ist die Aufhängehöhe.
+    function buildBuiltinFurniture(group, name, furniture) {
+
+        if (name === "wallSconce") {
+            const wood = new THREE.MeshStandardMaterial({ color: 0xa9733f, roughness: 0.78, metalness: 0.02 });
+            const woodDark = new THREE.MeshStandardMaterial({ color: 0x7c5230, roughness: 0.8 });
+
+            // Rückplatte: flach an der Wand (z ~ 0), leicht hochkant.
+            const plate = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 0.035), wood);
+            plate.geometry.translate(0, 0, 0.018);
+            plate.castShadow = !isMobile;
+            plate.receiveShadow = true;
+            group.add(plate);
+
+            // kurzer Arm nach vorn
+            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.028, 0.16, 10), wood);
+            arm.rotation.x = Math.PI / 2;
+            arm.position.set(0, 0.02, 0.11);
+            arm.castShadow = !isMobile;
+            group.add(arm);
+
+            // Aufhängung + Kappe
+            const cap = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.06, 12), woodDark);
+            cap.position.set(0, 0.03, 0.19);
+            group.add(cap);
+
+            // Glaskugel: leuchtet mit dem Licht mit (emissiveIntensity in
+            // setLightState geschaltet).
+            const glass = new THREE.Mesh(
+                new THREE.SphereGeometry(0.075, 18, 14),
+                new THREE.MeshStandardMaterial({
+                    color: 0xffe4ad, emissive: new THREE.Color(0xffb44a),
+                    emissiveIntensity: 0.9, roughness: 0.25, metalness: 0.0,
+                    transparent: true, opacity: 0.92
+                })
+            );
+            glass.position.set(0, -0.03, 0.19);
+            group.add(glass);
+            group.userData.lampGlass = glass;
+            return;
+        }
+
+    }
+
     // Echtes .glb-Modell in eine bestehende Möbelgruppe laden. Maßstab
     // wird an den footprint angepasst (Generatoren liefern beliebige
     // Größen), X/Z zentriert, Unterkante auf den Boden. Bei Ladefehler
@@ -1540,14 +1591,23 @@ function initSchloss3D(canvas) {
                     model.rotation.y += furniture.modelRotationY;
                 }
 
-                // Nach dem Skalieren: X/Z zentrieren und Unterkante auf
-                // den Boden (unabhängig davon, wo der Pivot lag).
+                // Nach dem Skalieren einpassen:
+                //  - Bodenmöbel: X/Z zentriert, Unterkante auf y = 0.
+                //  - Wanddeko (wallDecor): X zentriert, Mittelpunkt auf den
+                //    Aufhänge-Punkt (group.position.y), Rückseite (min z)
+                //    bündig an die Wand (lokal z = 0) - der Gruppen-Ursprung
+                //    sitzt schon WALL_OFFSET vor der Wand.
                 box = new THREE.Box3().setFromObject(model);
                 const center = box.getCenter(new THREE.Vector3());
                 model.position.x -= center.x;
-                model.position.z -= center.z;
-                if (isFinite(box.min.y)) {
-                    model.position.y -= box.min.y;
+                if (placementType(furniture) === "wallDecor") {
+                    model.position.y -= center.y;
+                    model.position.z -= box.min.z;
+                } else {
+                    model.position.z -= center.z;
+                    if (isFinite(box.min.y)) {
+                        model.position.y -= box.min.y;
+                    }
                 }
 
                 group.add(model);
@@ -2479,7 +2539,10 @@ function initSchloss3D(canvas) {
 
         const color = new THREE.Color(lightSpec.color || "#ffdca6");
         const lamp = new THREE.PointLight(color, lightSpec.intensity || 6.5, lightSpec.distance || 3.8, 2);
-        lamp.position.set(0, lightSpec.height || 1.35, 0);
+        // forward = lokaler +Z-Versatz: bei einer Wandleuchte sitzt der
+        // Leuchtkörper vor der Wandplatte, das Licht soll dort brennen,
+        // nicht im Gruppen-Ursprung (= an der Wand).
+        lamp.position.set(0, lightSpec.height || 1.35, lightSpec.forward || 0);
         group.add(lamp);
         group.userData.light = lamp;
 
@@ -2547,6 +2610,10 @@ function initSchloss3D(canvas) {
         if (group.userData.light) { group.userData.light.visible = on; }
         if (group.userData.core) { group.userData.core.visible = on; }
         if (group.userData.flame) { group.userData.flame.visible = on; }
+        // gebaute Glaskugel (Wandleuchte): aus = nur mattes Glas.
+        if (group.userData.lampGlass) {
+            group.userData.lampGlass.material.emissiveIntensity = on ? 0.9 : 0.06;
+        }
     }
 
     function updateLightBudget(camPos) {
