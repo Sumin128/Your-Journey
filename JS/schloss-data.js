@@ -124,7 +124,10 @@ const SCHLOSS_FURNITURE = [
         // Cutouts - auf einem GLB-Mesh würde es nicht greifen. Der
         // flach liegende Teppich-Cutout sieht ohnehin gut aus; erst
         // wenn das GLB-Tinting steht, hier auf den Pfad umstellen.
-        designs: [{ sprite: "images/schloss/moebel/teppich_wald_a.png", model: null }],
+        // Sprite v2: echt rechteckig (gerade Kanten, 90°-Ecken, Aufsicht) -
+        // die alte Version war perspektivisch gemalt und "kippte" flach
+        // auf dem Boden. ?v=2 bricht den HTTP-Cache der ersetzten Datei.
+        designs: [{ sprite: "images/schloss/moebel/teppich_wald_a.png?v=3", model: null }],
         // Einfärbbar: konturerhaltendes Canvas-Tinting, in der 3D-Szene
         // angeschlossen (Farbkreise beim Auswählen, siehe JS/schloss-3d.js).
         colorable: true, colors: ["#c8a06a", "#8fae6b", "#e0a53c", "#cf6b52"],
@@ -146,7 +149,15 @@ const SCHLOSS_FURNITURE = [
         unlockedBy: null
     },
 
-    { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.5 }, modelScale: 1.15, surface: { shape: "rect", inset: 0.08 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // regal: GLB 2026-09-08 komplett neu generiert (Tripo image_to_3d aus
+    // dem Sprite, 9k faces, 1024/WEBP, Boden-Pivot, Basecolor waermer) -
+    // die alte GLB rendete als merkmalsloser blasser Klotz. Jetzt sichtbare
+    // Boeden + Buecher + Eicheln. ID/footprint/Preis unveraendert.
+    // footprint 0.9x0.5 -> 1.1x0.9: die neue GLB ist raeumlich fuelliger als
+    // der alte flache Cutout; grössere Grundfläche = Kollision/Wandabstand
+    // passen zur sichtbaren Form (sonst ragt das Regal in die Wand). Ein
+    // an die Wand geschobenes Alt-Regal rueckt beim Laden minimal nach vorn.
+    { id: "regal_wald_a", name: "Waldregal", category: "regale", styles: ["wald"], price: 25, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.1, d: 0.9 }, modelScale: 1.05, surface: { shape: "rect", inset: 0.1 }, designs: [{ sprite: "images/schloss/moebel/regal_wald_a.png", model: "images/schloss/models/regal_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "sofa_wald_a", name: "Waldsofa", category: "sitzmoebel", styles: ["wald"], price: 35, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.8, d: 0.9 }, modelRotationY: -1.5708, seatSlots: [{ x: -0.4, y: 0.34, z: 0.2 }, { x: 0.4, y: 0.34, z: 0.2 }], designs: [{ sprite: "images/schloss/moebel/sofa_wald_a.png", model: "images/schloss/models/sofa_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Waldlampe: echtes GLB (Tripo image_to_3d aus bereinigtem Sprite -
     // der gemalte Glueh-Kranz wurde vor der Generation entfernt, sonst
