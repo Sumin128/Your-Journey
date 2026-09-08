@@ -175,6 +175,12 @@ const SCHLOSS_FURNITURE = [
     // (deren surface-Zone), sonst Boden. flame + light -> An/Aus-Schalter,
     // flackerndes Punktlicht im gemeinsamen Licht-Budget.
     { id: "kerze_wald_a", name: "Kerzenständer", category: "licht", styles: ["wald"], price: 6, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.16, d: 0.16 }, placementType: "surfaceDecor", flame: true, light: { color: "#ffcf8a", intensity: 2.0, distance: 2.4, height: 0.34 }, designs: [{ sprite: "images/schloss/moebel/kerze_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // stehleuchter: NEUES Bodenmoebel (kein Ersatz). GLB aus Tripo
+    // (Gemini-Konzept, gedrechselter Holz-Standleuchter mit dicker Kerze;
+    // OHNE Flamme im Modell). flame + light -> die Engine setzt Flamme +
+    // Leuchtkern + 🕯️/🌙-Schalter oben drauf; lightOn wird in der Instanz
+    // gespeichert und liegt im gemeinsamen Licht-Budget wie die Waldlampe.
+    { id: "stehleuchter_wald_a", name: "Stehleuchter", category: "licht", styles: ["wald"], price: 16, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.28, d: 0.28 }, flame: true, light: { color: "#ffcf8a", intensity: 3.2, distance: 3.6, height: 0.9 }, designs: [{ sprite: "images/schloss/moebel/stehleuchter_wald_a.png", model: "images/schloss/models/stehleuchter_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "truhe_wald_a", name: "Holztruhe", category: "aufbewahrung", styles: ["wald"], price: 28, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.6 }, surface: { shape: "rect", inset: 0.1, drop: 0.04 }, designs: [{ sprite: "images/schloss/moebel/truhe_wald_a.png", model: "images/schloss/models/truhe_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // GLB: Tripo image_to_3d aus dem freigegebenen Sprite (detaillierte
     // Geometrie), Textur auf 1024 + Pivot auf Boden-Mitte konvertiert.
