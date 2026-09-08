@@ -25,7 +25,29 @@
         { id: "ente", name: "Ente", img: "images/faro/schatten/ente.png" },
         { id: "maus", name: "Maus", img: "images/faro/schatten/maus.png" },
         { id: "frosch", name: "Frosch", img: "images/faro/schatten/frosch.png" },
-        { id: "waschbaer", name: "Waschbär", img: "images/faro/schatten/waschbaer.png" }
+        { id: "waschbaer", name: "Waschbär", img: "images/faro/schatten/waschbaer.png" },
+        // 2026-09-08: 20 weitere Tiere (Gemini, gleicher Pixel-Stil,
+        // freigestellt). Pro Runde ziehen ROUNDS zufällige Ziele daraus.
+        { id: "hirsch", name: "Hirsch", img: "images/faro/schatten/hirsch.png" },
+        { id: "wildschwein", name: "Wildschwein", img: "images/faro/schatten/wildschwein.png" },
+        { id: "dachs", name: "Dachs", img: "images/faro/schatten/dachs.png" },
+        { id: "luchs", name: "Luchs", img: "images/faro/schatten/luchs.png" },
+        { id: "fledermaus", name: "Fledermaus", img: "images/faro/schatten/fledermaus.png" },
+        { id: "biber", name: "Biber", img: "images/faro/schatten/biber.png" },
+        { id: "maulwurf", name: "Maulwurf", img: "images/faro/schatten/maulwurf.png" },
+        { id: "schnecke", name: "Schnecke", img: "images/faro/schatten/schnecke.png" },
+        { id: "schmetterling", name: "Schmetterling", img: "images/faro/schatten/schmetterling.png" },
+        { id: "libelle", name: "Libelle", img: "images/faro/schatten/libelle.png" },
+        { id: "biene", name: "Biene", img: "images/faro/schatten/biene.png" },
+        { id: "marienkaefer", name: "Marienkäfer", img: "images/faro/schatten/marienkaefer.png" },
+        { id: "spinne", name: "Spinne", img: "images/faro/schatten/spinne.png" },
+        { id: "schildkroete", name: "Schildkröte", img: "images/faro/schatten/schildkroete.png" },
+        { id: "schwan", name: "Schwan", img: "images/faro/schatten/schwan.png" },
+        { id: "storch", name: "Storch", img: "images/faro/schatten/storch.png" },
+        { id: "specht", name: "Specht", img: "images/faro/schatten/specht.png" },
+        { id: "rabe", name: "Rabe", img: "images/faro/schatten/rabe.png" },
+        { id: "steinbock", name: "Steinbock", img: "images/faro/schatten/steinbock.png" },
+        { id: "salamander", name: "Salamander", img: "images/faro/schatten/salamander.png" }
     ];
 
     const ROUNDS = 8;
