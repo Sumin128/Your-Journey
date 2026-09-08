@@ -169,7 +169,11 @@ const SCHLOSS_FURNITURE = [
     // flackerndes Punktlicht im gemeinsamen Licht-Budget.
     { id: "kerze_wald_a", name: "Kerzenständer", category: "licht", styles: ["wald"], price: 6, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.16, d: 0.16 }, placementType: "surfaceDecor", flame: true, light: { color: "#ffcf8a", intensity: 2.0, distance: 2.4, height: 0.34 }, designs: [{ sprite: "images/schloss/moebel/kerze_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     { id: "truhe_wald_a", name: "Holztruhe", category: "aufbewahrung", styles: ["wald"], price: 28, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 0.9, d: 0.6 }, surface: { shape: "rect", inset: 0.1, drop: 0.04 }, designs: [{ sprite: "images/schloss/moebel/truhe_wald_a.png", model: "images/schloss/models/truhe_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "blumenkasten_wald_a", name: "Blumenkasten", category: "pflanzen", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.4 }, designs: [{ sprite: "images/schloss/moebel/blumenkasten_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null }
+    // GLB: Tripo image_to_3d aus dem freigegebenen Sprite (detaillierte
+    // Geometrie), Textur auf 1024 + Pivot auf Boden-Mitte konvertiert.
+    // ID/footprint/Preis/placement unveraendert -> gespeicherte
+    // Platzierungen bleiben; Sprite bleibt als Ladefehler-Fallback.
+    { id: "blumenkasten_wald_a", name: "Blumenkasten", category: "pflanzen", styles: ["wald"], price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.4 }, designs: [{ sprite: "images/schloss/moebel/blumenkasten_wald_a.png", model: "images/schloss/models/blumenkasten_wald_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null }
 
 ];
 
