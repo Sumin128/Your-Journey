@@ -238,8 +238,30 @@ Möbel werden aktuell als aufrechte 2D-Bild-Cutouts gerendert. Pro Möbel kann i
 Möbelgruppe; schlägt das Laden fehl, fällt es automatisch auf den Cutout zurück. So kann
 Möbel für Möbel umgestellt werden.
 
-**Erste fünf Modelle:** `stuhl_wald_a`, `tisch_wald_a`, `teppich_wald_a`, `lampe_wald_a`,
-`regal_wald_a` (die `model`-Felder sind schon als `null` angelegt).
+**Modell-Stand (2026-09-08):** Als echtes GLB laufen: `stuhl_wald_a`,
+`tisch_wald_a`, `regal_wald_a`, `sofa_wald_a`, `beistelltisch_wald_a`,
+`truhe_wald_a`, `lampe_wald_a`, `pflanze_wald_a`, `blumenkasten_wald_a`,
+`hocker_wald_a`, `kissen_wald_a`, `stehleuchter_wald_a` (neu, Boden-Kerzenhalter
+mit `flame`+`light`). `teppich_wald_a.glb` liegt bereit, bleibt aber
+`model:null` (Canvas-Farbtinting braucht den Sprite). GLB-Pipeline:
+Gemini-/Sprite-Vorlage → Tripo `image_to_3d` → `convert_model` auf
+1024er-Texturen + Boden-Pivot → Basecolor bei Bedarf wärmer nachgetönt
+(`tools/gemini-mcp/warmtex`-Muster, `baseColorFactor` oder Textur-Repack).
+
+**`design.builtin`** (neuer dritter Render-Pfad neben `model` und Cutout):
+im Code gebautes Mini-Modell aus Primitiven, wenn Generatoren keine saubere
+Form liefern. Bisher: `"wallSconce"` (Wandleuchte).
+
+**wallDecor + 3D:** `loadFurnitureModel` zentriert wallDecor-GLBs am
+Aufhänge-Punkt und setzt die Rückseite bündig an die Wand. `addLampLight`
+kennt `light.forward` (+Z-Versatz), damit das Licht einer Wandleuchte vor
+der Wandplatte brennt. `setLightState` schaltet auch die
+`emissiveIntensity` einer gebauten Glaskugel.
+
+**Bewusst 2D (flache Wandobjekte, kein GLB):** `rahmen_wald_a`,
+`spiegel_wald_a`, `vorhang_wald_a`, `uhr_wald_a` (Wanduhr), `gemaelde_wald_a`,
+`gemaelde_nacht_a` sowie die flach liegenden Teppiche
+(`teppich_wald_a`, `teppich_rund_wald_a`).
 
 **Anforderungen an die `.glb`-Dateien** (für den 3D-Generator):
 
