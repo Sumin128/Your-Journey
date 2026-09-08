@@ -178,7 +178,13 @@ const SCHLOSS_FURNITURE = [
     // werden ausgespart, Punktlicht + Leuchtkern + 💡/🌙-Schalter; lightOn
     // wird gespeichert. light.forward/height sitzen auf der Glaskugel.
     { id: "wandleuchte_wald_a", name: "Wandleuchte", category: "licht", styles: ["wald"], price: 14, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.3, d: 0.28 }, placementType: "wallDecor", light: { color: "#ffdca6", intensity: 2.8, distance: 3.2, height: -0.03, forward: 0.19 }, designs: [{ sprite: "images/schloss/moebel/wandleuchte_wald_a.png", builtin: "wallSconce" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "uhr_wald_a", name: "Waldkuckucksuhr", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.55, d: 0.12 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/uhr_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    // Wanddeko-Bilder: hochwertige gemalte 2D-Kunst (bewusst KEIN GLB -
+    // flache Wandobjekte). wallDecor: nur verschiebbar, kein Dreh-Button,
+    // Auto-Ausrichtung zur Wand, Fenster/Tuer/Kamin ausgespart, Hoehe
+    // frei; die duenne dunkle Rueckplatte (populateWithCutout) gibt Tiefe.
+    { id: "uhr_wald_a", name: "Wanduhr", category: "deko", styles: ["wald"], price: 18, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.5, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/uhr_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "gemaelde_wald_a", name: "Waldgemälde", category: "deko", styles: ["wald"], price: 22, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.62, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/gemaelde_wald_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "gemaelde_nacht_a", name: "Mondwald-Bild", category: "deko", styles: ["wald"], price: 22, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.6, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/gemaelde_nacht_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Kerze: surfaceDecor - steht auf Tisch/Beistelltisch/Regal/Truhe
     // (deren surface-Zone), sonst Boden. flame + light -> An/Aus-Schalter,
     // flackerndes Punktlicht im gemeinsamen Licht-Budget.
