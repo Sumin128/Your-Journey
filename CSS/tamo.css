@@ -136,20 +136,21 @@
     user-select: none;
 }
 
-/* --- Schlossstil-Reiter --- */
+/* --- Kollektions-Reiter (Shop-Sortierung) --- */
 
-.tamo-style-tabs {
+.tamo-collection-tabs {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
 }
 
-.tamo-style-tabs:empty {
+.tamo-collection-tabs:empty {
     display: none;
 }
 
-.tamo-style-tab {
+.tamo-collection-tab {
+    flex: none;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -161,14 +162,15 @@
     font-weight: 900;
     font-size: clamp(13px, 1.6vw, 16px);
     cursor: pointer;
+    white-space: nowrap;
     transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 
-.tamo-style-tab:hover {
+.tamo-collection-tab:hover {
     transform: translateY(-2px);
 }
 
-.tamo-style-tab.is-active {
+.tamo-collection-tab.is-active {
     background: #2c1c10;
     color: #ffe7b5;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
@@ -333,5 +335,23 @@
 
     .tamo-grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    /* Kollektions-Reiter: eine horizontal wischbare Zeile statt Umbruch. */
+    .tamo-collection-tabs {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+
+    .tamo-collection-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tamo-collection-tab {
+        padding: 8px 15px;
     }
 }

@@ -22,7 +22,7 @@
     }
 
     const shelfEl = document.getElementById("tamo-shelf");
-    const styleTabsEl = document.getElementById("tamo-style-tabs");
+    const collectionTabsEl = document.getElementById("tamo-collection-tabs");
     const coinCountEl = document.getElementById("tamo-coin-count");
     const lockedEl = document.getElementById("tamo-locked");
 
@@ -45,30 +45,43 @@
     const openSections = [
         document.querySelector(".tamo-intro"),
         document.querySelector(".tamo-workbench"),
-        styleTabsEl,
+        collectionTabsEl,
         shelfEl,
         document.querySelector(".tamo-hint")
     ];
 
-    /* Schlossstil-Reiter oben: ein Reiter je Stil, den der Spieler
-       einrichten kann - öffentlich freigegebene Stile (SCHLOSS_STYLES
-       publicAvailable) plus die, die er schon besitzt. Noch nicht
-       freigegebene Stile (z. B. Wüste vor der Freigabe) tauchen hier
-       NICHT auf. Der gewählte Reiter filtert das Möbelregal nach
-       furniture.styles. Wächst automatisch mit weiteren Stilen. */
-    function availableStyles() {
-        const ownedStyles = (player.schloss && Array.isArray(player.schloss.ownedStyles))
-            ? player.schloss.ownedStyles : [];
-        if (typeof SCHLOSS_STYLES === "undefined" || !Array.isArray(SCHLOSS_STYLES)) {
-            return [{ key: "wald", name: "Waldschloss", icon: "🌲" }];
-        }
-        const list = SCHLOSS_STYLES.filter(function (s) {
-            return s.publicAvailable || ownedStyles.indexOf(s.key) !== -1;
-        }).slice().sort(function (a, b) { return (a.sort || 0) - (b.sort || 0); });
-        return list.length ? list : [{ key: "wald", name: "Waldschloss", icon: "🌲" }];
+    const ALL_KEY = "__all__";
+
+    function activeForSale() {
+        return SCHLOSS_FURNITURE.filter(function (f) {
+            return f.unlockedBy === null && schlossFurnitureActive(f);
+        });
     }
 
-    let activeStyleKey = null;
+    /* Kollektions-Reiter oben in der Werkstatt: "Alle" + ein Reiter je
+       Kollektion (SCHLOSS_COLLECTIONS), die mindestens ein AKTIVES
+       kaufbares Möbel hat. Reine Shop-Sortierung - KEINE Auswirkung auf
+       Besitz, Platzierung oder das aktive Raumdesign. Wächst automatisch
+       mit weiteren Kollektionen (rosa, eis, ...). */
+    function shopCollections() {
+        const present = {};
+        activeForSale().forEach(function (f) {
+            present[f.collection || "wald"] = true;
+        });
+        const meta = (typeof SCHLOSS_COLLECTIONS !== "undefined" && Array.isArray(SCHLOSS_COLLECTIONS))
+            ? SCHLOSS_COLLECTIONS : [{ key: "wald", name: "Wald", sort: 10 }];
+        const cols = meta.filter(function (c) { return present[c.key]; })
+            .slice().sort(function (a, b) { return (a.sort || 0) - (b.sort || 0); });
+        // Kollektionen ohne Meta-Eintrag trotzdem zeigen (Notnagel).
+        Object.keys(present).forEach(function (k) {
+            if (!cols.some(function (c) { return c.key === k; })) {
+                cols.push({ key: k, name: k.charAt(0).toUpperCase() + k.slice(1), sort: 999 });
+            }
+        });
+        return [{ key: ALL_KEY, name: "Alle", sort: -1 }].concat(cols);
+    }
+
+    let activeCollection = ALL_KEY;
 
     /* Tamos Kategorien in Anzeige-Reihenfolge. tamoCategory() ordnet
        jedes Katalog-Möbel einem dieser Fächer zu (Katalog-`category`
@@ -183,26 +196,28 @@
 
     /* ---- Rendern ---- */
 
-    function renderStyleTabs(styles) {
+    function renderCollectionTabs(cols) {
 
-        if (!styleTabsEl) { return; }
+        if (!collectionTabsEl) { return; }
 
-        styleTabsEl.innerHTML = "";
+        collectionTabsEl.innerHTML = "";
 
-        styles.forEach(function (s) {
+        // Nur ein Reiter ("Alle") -> Leiste einklappen, kein toter Zustand.
+        if (cols.length <= 1) { return; }
+
+        cols.forEach(function (c) {
             const tab = document.createElement("button");
             tab.type = "button";
-            tab.className = "tamo-style-tab" + (s.key === activeStyleKey ? " is-active" : "");
+            tab.className = "tamo-collection-tab" + (c.key === activeCollection ? " is-active" : "");
             tab.setAttribute("role", "tab");
-            tab.setAttribute("aria-selected", s.key === activeStyleKey ? "true" : "false");
-            tab.innerHTML =
-                (s.icon ? '<span aria-hidden="true">' + s.icon + "</span> " : "") + s.name;
+            tab.setAttribute("aria-selected", c.key === activeCollection ? "true" : "false");
+            tab.textContent = c.name;
             tab.addEventListener("click", function () {
-                if (activeStyleKey === s.key) { return; }
-                activeStyleKey = s.key;
+                if (activeCollection === c.key) { return; }
+                activeCollection = c.key;
                 render();
             });
-            styleTabsEl.appendChild(tab);
+            collectionTabsEl.appendChild(tab);
         });
     }
 
@@ -227,23 +242,20 @@
             coinCountEl.textContent = coins();
         }
 
-        // Stil-Reiter: verfügbare Stile bestimmen, aktiven Stil sichern.
-        const styles = availableStyles();
-        if (!activeStyleKey || !styles.some(function (s) { return s.key === activeStyleKey; })) {
-            const preferred = player.schloss && player.schloss.style;
-            activeStyleKey = (preferred && styles.some(function (s) { return s.key === preferred; }))
-                ? preferred
-                : styles[0].key;
+        // Kollektions-Reiter: "Alle" + je Kollektion mit aktiven Möbeln.
+        const cols = shopCollections();
+        if (!cols.some(function (c) { return c.key === activeCollection; })) {
+            activeCollection = ALL_KEY;
         }
-        renderStyleTabs(styles);
+        renderCollectionTabs(cols);
 
         const ownedList = owned();
 
-        const forSale = SCHLOSS_FURNITURE.filter(function (f) {
-            // Nur frei kaufbare Möbel des gewählten Stils. Fehlt die
-            // styles-Angabe, gilt das Möbel als stil-übergreifend.
-            return f.unlockedBy === null &&
-                (!Array.isArray(f.styles) || f.styles.indexOf(activeStyleKey) !== -1);
+        // Regal: alle aktiven, frei kaufbaren Möbel; "Alle" zeigt alles,
+        // ein Kollektions-Reiter filtert NUR die Anzeige (kein Einfluss auf
+        // Besitz/Platzierung).
+        const forSale = activeForSale().filter(function (f) {
+            return activeCollection === ALL_KEY || (f.collection || "wald") === activeCollection;
         });
 
         shelfEl.innerHTML = "";
@@ -311,9 +323,9 @@
         if (!shelfEl.children.length) {
             const empty = document.createElement("p");
             empty.className = "tamo-loading";
-            const styleName = (styles.find(function (s) { return s.key === activeStyleKey; }) || {}).name;
-            empty.textContent = styleName
-                ? "Für " + styleName + " schnitzt Tamo noch – schau bald wieder rein! 🪚"
+            const colName = (cols.find(function (c) { return c.key === activeCollection; }) || {}).name;
+            empty.textContent = (colName && activeCollection !== ALL_KEY)
+                ? "Für " + colName + " schnitzt Tamo noch – schau bald wieder rein! 🪚"
                 : "Tamo hat gerade alles verkauft – schau später wieder vorbei! 🎉";
             shelfEl.appendChild(empty);
         }

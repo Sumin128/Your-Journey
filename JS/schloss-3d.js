@@ -833,6 +833,52 @@ function initSchloss3D(canvas) {
         return surfaceDebugOn;
     };
 
+    // Nur für lokale Tests (Rotation/Folgeobjekte): Momentaufnahme der
+    // Szene-Gruppen + deterministisches Auswählen/Drehen. NUR auf
+    // localhost/127.0.0.1 - kein Produktions-Feature.
+    if (_devHost) {
+    window.__schlossDebugState = function () {
+        return placedGroups.map(function (g) {
+            return {
+                id: g.userData.instanceId,
+                furnitureId: g.userData.furniture && g.userData.furniture.id,
+                ptype: g.userData.placementType || "floor",
+                x: +g.position.x.toFixed(3), z: +g.position.z.toFixed(3),
+                rotY: +g.rotation.y.toFixed(4),
+                ringVisible: g === selected ? rotateRing.visible : undefined,
+                onSurface: g.userData.onSurface ? g.userData.onSurface.userData.instanceId : null,
+                onSeat: g.userData.seat ? g.userData.seat.hostId : null,
+                selected: g === selected
+            };
+        });
+    };
+    window.__schlossDebugSelect = function (id) {
+        const g = placedGroups.find(function (x) { return x.userData.instanceId === id; });
+        selectGroup(g || null);
+        return g ? { selected: id, ringVisible: rotateRing.visible,
+            btnHidden: rotateLeftBtn ? rotateLeftBtn.hidden : null } : null;
+    };
+    // Setzt onSurface hart (simuliert "auf Tisch abgestellt").
+    window.__schlossDebugPutOnSurface = function (decoId, hostId) {
+        const d = placedGroups.find(function (x) { return x.userData.instanceId === decoId; });
+        const h = placedGroups.find(function (x) { return x.userData.instanceId === hostId; });
+        if (!d || !h) { return null; }
+        d.userData.onSurface = h;
+        const inst = findInstance(d);
+        if (inst) { inst.onSurface = hostId; }
+        return true;
+    };
+    // Freie Drehung ohne Pointer: exakt auf absoluten Winkel (Grad).
+    // rotateSelected() macht Klemmen + Folgeobjekte + Speichern selbst.
+    window.__schlossDebugRotateTo = function (id, deg) {
+        const g = placedGroups.find(function (x) { return x.userData.instanceId === id; });
+        if (!g || !isFreelyRotatable(g)) { return null; }
+        selectGroup(g);
+        rotateSelected(normAngle(deg * Math.PI / 180) - g.rotation.y);
+        return +g.rotation.y.toFixed(5);
+    };
+    }
+
     function updateSurfaceDebug() {
         if (typeof window.__schlossSurfaceDebug === "boolean" &&
             window.__schlossSurfaceDebug !== surfaceDebugOn) {
@@ -929,6 +975,30 @@ function initSchloss3D(canvas) {
     // gekommen sein, deshalb ein eigener Pass).
     room.placedItems.forEach(function (inst) {
         if (inst.onSeat) { reseatKissen(inst); }
+    });
+
+    // Oberflächen-Deko: die Verknüpfung zum Trägermöbel (onSurface)
+    // wiederherstellen, damit sie einer späteren Möbeldrehung folgt.
+    // Primär aus dem gespeicherten instance.onSurface, sonst aus der
+    // aktuellen Lage (Deko sitzt auf einer gültigen Oberseite).
+    room.placedItems.forEach(function (inst) {
+        const furniture = getSchlossFurniture(inst.furnitureId);
+        if (!furniture || placementType(furniture) !== "surfaceDecor") { return; }
+        const g = placedGroups.find(function (x) { return x.userData.instanceId === inst.instanceId; });
+        if (!g) { return; }
+        g.userData.onSurface = null;
+        if (inst.onSurface) {
+            const host = placedGroups.find(function (x) { return x.userData.instanceId === inst.onSurface; });
+            if (host) { g.userData.onSurface = host; return; }
+        }
+        const sList = getSupportSurfaces(g);
+        for (let si = 0; si < sList.length; si++) {
+            if (Math.abs(sList[si].top - g.position.y) < 0.03 &&
+                pointOnSurface(sList[si], g.position.x, g.position.z, 0)) {
+                g.userData.onSurface = sList[si].group;
+                break;
+            }
+        }
     });
 
 
@@ -1039,6 +1109,8 @@ function initSchloss3D(canvas) {
                         break;
                     }
                 }
+                instance.onSurface = (group.userData.onSurface &&
+                    group.userData.onSurface.userData.instanceId) || null;
             }
         }
 
@@ -1072,16 +1144,147 @@ function initSchloss3D(canvas) {
     scene.add(surfaceHighlight);
 
 
+    /* --- Freie 360°-Drehung: Drehring um das ausgewählte Bodenmöbel ---
+       Der sichtbare Ring + Knauf zeigen die Blickrichtung; die
+       unsichtbare, dickere Trefferfläche (_rotHit) ist der Ziehbereich
+       (großzügig für Touch). Ersetzt für frei drehbare Bodenmöbel den
+       einfachen Auswahlring. Alles in Weltmetern; Geometrie fix, nur
+       rotateRing.scale passt sich an die Möbelgröße an (keine neuen
+       Geometrien pro Auswahl/Frame). */
+    const RING_BASE_R = 0.62;
+    const rotateRing = new THREE.Group();
+    rotateRing.visible = false;
+    const _rotBandMat = new THREE.MeshBasicMaterial({ color: 0x53c7e6, transparent: true, opacity: 0.92, side: THREE.DoubleSide, depthWrite: false });
+    const _rotBand = new THREE.Mesh(new THREE.RingGeometry(RING_BASE_R - 0.055, RING_BASE_R + 0.055, 48), _rotBandMat);
+    _rotBand.rotation.x = -Math.PI / 2;
+    _rotBand.renderOrder = 3;
+    const _rotKnob = new THREE.Mesh(
+        new THREE.SphereGeometry(0.085, 18, 12),
+        new THREE.MeshBasicMaterial({ color: 0x1f93b3 })
+    );
+    _rotKnob.renderOrder = 4;
+    // Unsichtbare, großzügige Trefferfläche (Donut - Loch = Möbelkörper).
+    const _rotHit = new THREE.Mesh(
+        new THREE.TorusGeometry(RING_BASE_R, 0.26, 6, 28),
+        new THREE.MeshBasicMaterial({ visible: false })
+    );
+    _rotHit.rotation.x = -Math.PI / 2;
+    rotateRing.add(_rotBand, _rotHit, _rotKnob);
+    scene.add(rotateRing);
+
+    // Optionale 15°-Einrast-Hilfe (Standard: freie Drehung).
+    let rotSnap15 = false;
+
+
     /* --- Auswahl + Ziehen + Drehen + Entfernen --- */
 
     const rotateControls = document.getElementById("schloss-rotate-controls");
     const rotateLeftBtn = document.getElementById("schloss-rotate-left");
     const rotateRightBtn = document.getElementById("schloss-rotate-right");
+    const rotateSnapBtn = document.getElementById("schloss-rotate-snap");
     const removeBtn = document.getElementById("schloss-rotate-remove");
     const colorSwatchesEl = document.getElementById("schloss-color-swatches");
     const lightToggleBtn = document.getElementById("schloss-light-toggle");
 
     let selected = null;
+
+    // Frei um 360° drehbar: nur echte Bodenmöbel + Bodendeko (Teppich),
+    // NICHT Wanddeko (wandparallel), NICHT auf einen Sitz eingerastete
+    // Kissen (folgen dem Sitzmöbel). Auf Oberflächen eingerastete
+    // Kleindeko folgt der Drehung ihres Trägermöbels (repositionFollowers).
+    function isFreelyRotatable(group) {
+        if (!group) { return false; }
+        const pt = group.userData.placementType || "floor";
+        return (pt === "floor" || pt === "floorDecor") && !group.userData.seat;
+    }
+
+    function knobLocal(rot) {
+        // atan2(x, z)-Konvention wie clampToFloor / Sitz-Slots.
+        _rotKnob.position.set(Math.sin(rot) * RING_BASE_R, 0.03, Math.cos(rot) * RING_BASE_R);
+    }
+
+    function updateRotateRing() {
+        if (!selected || !isFreelyRotatable(selected)) {
+            rotateRing.visible = false;
+            return;
+        }
+        const fp = selected.userData.footprint || { w: 0.6, d: 0.6 };
+        const r = Math.max(0.72, Math.min(1.5, Math.max(fp.w, fp.d) * 0.5 + 0.34));
+        rotateRing.scale.setScalar(r / RING_BASE_R);
+        rotateRing.position.set(selected.position.x, 0.03, selected.position.z);
+        knobLocal(selected.rotation.y);
+        rotateRing.visible = true;
+    }
+
+    /* Folgeobjekte einer Möbeldrehung mit-positionieren:
+       - Kissen auf einem Sitz-Slot dieses Möbels: exakt auf den (jetzt
+         gedrehten) Slot setzen, Drehung übernehmen.
+       - Kleindeko auf der Oberfläche dieses Möbels: relative Lage zum
+         Möbelmittelpunkt beibehalten, um die Y-Achse mitdrehen.
+       persist=true schreibt die Folgeobjekt-Instanzen mit (nur beim
+       Loslassen / Knopfdruck, nicht pro Pointer-Move). */
+    function repositionFollowers(host, persist) {
+        const hostId = host.userData.instanceId;
+        const hf = host.userData.furniture;
+        const hr = host.rotation.y;
+        const cs = Math.cos(hr), sn = Math.sin(hr);
+        for (let i = 0; i < placedGroups.length; i++) {
+            const g = placedGroups[i];
+            if (g === host) { continue; }
+
+            if (g.userData.seat && g.userData.seat.hostId === hostId) {
+                const sl = hf && hf.seatSlots && hf.seatSlots[g.userData.seat.slot || 0];
+                if (sl) {
+                    g.position.set(
+                        host.position.x + sl.x * cs - sl.z * sn,
+                        sl.y,
+                        host.position.z + sl.x * sn + sl.z * cs);
+                    g.rotation.y = hr;
+                    if (persist) {
+                        const gi = findInstance(g);
+                        if (gi) { gi.x = g.position.x; gi.z = g.position.z; gi.rotationY = hr; }
+                    }
+                }
+                continue;
+            }
+
+            if (g.userData.onSurface === host && g.userData._rotRel) {
+                const rel = g.userData._rotRel;
+                const d = hr - rel.baseRot;
+                const dc = Math.cos(d), ds = Math.sin(d);
+                g.position.x = host.position.x + rel.x * dc - rel.z * ds;
+                g.position.z = host.position.z + rel.x * ds + rel.z * dc;
+                g.rotation.y = rel.rot + d;
+                if (persist) {
+                    const gi = findInstance(g);
+                    if (gi) {
+                        gi.x = g.position.x; gi.z = g.position.z;
+                        gi.rotationY = g.rotation.y;
+                    }
+                }
+            }
+        }
+    }
+
+    // Beim Rotationsstart die relative Lage aller Oberflächen-Folgeobjekte
+    // einfrieren (Basis für repositionFollowers während des Ziehens).
+    function freezeSurfaceFollowers(host) {
+        for (let i = 0; i < placedGroups.length; i++) {
+            const g = placedGroups[i];
+            if (g === host || g.userData.onSurface !== host) { continue; }
+            g.userData._rotRel = {
+                x: g.position.x - host.position.x,
+                z: g.position.z - host.position.z,
+                rot: g.rotation.y,
+                baseRot: host.rotation.y
+            };
+        }
+    }
+    function clearSurfaceFollowers(host) {
+        for (let i = 0; i < placedGroups.length; i++) {
+            if (placedGroups[i].userData._rotRel) { placedGroups[i].userData._rotRel = null; }
+        }
+    }
 
     // Hat das Möbel einen schaltbaren Lichtzustand (Lampe ODER Kerze)?
     function hasSwitchableLight(group) {
@@ -1111,24 +1314,29 @@ function initSchloss3D(canvas) {
         selected = group;
 
         if (group) {
-            selectionRing.visible = true;
+            const freeRot = isFreelyRotatable(group);
+            // Frei drehbare Bodenmöbel: der Drehring (mit Knauf) IST der
+            // Auswahl-Hinweis. Alles andere: einfacher Auswahlring.
+            selectionRing.visible = !freeRot;
             selectionRing.position.x = group.position.x;
             selectionRing.position.z = group.position.z;
             // eingerastetes Kissen: Ring auf Sitzhöhe statt am Boden
             selectionRing.position.y = group.userData.seat ? group.position.y + 0.02 : 0.02;
+            updateRotateRing();
             if (rotateControls) { rotateControls.hidden = false; }
-            // Wanddeko ist automatisch zur Wand ausgerichtet - Drehen
-            // ergibt keinen Sinn, die Dreh-Knöpfe werden ausgeblendet.
-            // Wanddeko + eingerastetes Kissen richten sich automatisch aus
-            // -> keine Dreh-Knöpfe.
-            const noRotate = group.userData.placementType === "wallDecor" ||
-                Boolean(group.userData.seat);
+            // Nur frei drehbare Bodenmöbel bekommen die Dreh-Bedienelemente:
+            // die 15°-Schritt-Knöpfe (barrierefreie Alternative zum Drehring)
+            // + die 15°-Einrast-Hilfe. Wanddeko / eingerastetes Kissen /
+            // Oberflächen-Deko richten sich automatisch aus.
+            const noRotate = !isFreelyRotatable(group);
             if (rotateLeftBtn) { rotateLeftBtn.hidden = noRotate; }
             if (rotateRightBtn) { rotateRightBtn.hidden = noRotate; }
+            if (rotateSnapBtn) { rotateSnapBtn.hidden = noRotate; }
             renderColorSwatches(group);
             updateLightToggle(group);
         } else {
             selectionRing.visible = false;
+            rotateRing.visible = false;
             surfaceHighlight.visible = false;
             if (rotateControls) { rotateControls.hidden = true; }
             if (lightToggleBtn) { lightToggleBtn.hidden = true; }
@@ -1228,18 +1436,24 @@ function initSchloss3D(canvas) {
 
     }
 
+    // Winkel sauber auf [0, 2π) normalisieren.
+    function normAngle(a) {
+        const t = a % (Math.PI * 2);
+        return t < 0 ? t + Math.PI * 2 : t;
+    }
+
     function rotateSelected(delta) {
 
-        if (!selected) {
+        if (!selected || !isFreelyRotatable(selected)) {
+            // Wanddeko (wandparallel) + auf einen Sitz eingerastetes Kissen
+            // (folgt dem Sitzmöbel) sind nicht frei drehbar.
             return;
         }
 
-        // Wanddeko bleibt zur Wand ausgerichtet - nicht drehbar.
-        if (selected.userData.placementType === "wallDecor") {
-            return;
-        }
+        // Relative Lage der Oberflächen-Deko VOR der Drehung einfrieren.
+        freezeSurfaceFollowers(selected);
 
-        selected.rotation.y += delta;
+        selected.rotation.y = normAngle(selected.rotation.y + delta);
 
         // Nach dem Drehen ändert sich die Achsen-Ausdehnung der Grundfläche
         // -> Bodenmöbel neu in den Raum klemmen (sonst ragt ein an der Wand
@@ -1253,6 +1467,10 @@ function initSchloss3D(canvas) {
             selectionRing.position.set(c.x, 0.02, c.z);
         }
 
+        repositionFollowers(selected, true);
+        clearSurfaceFollowers(selected);
+        updateRotateRing();
+
         const instance = findInstance(selected);
 
         if (instance) {
@@ -1264,12 +1482,28 @@ function initSchloss3D(canvas) {
 
     }
 
+    // Barrierefreie Alternative zum freien Drehring: kleine 15°-Schritte.
+    const ROT_STEP = Math.PI / 12;
+
     if (rotateLeftBtn) {
-        rotateLeftBtn.addEventListener("click", function () { rotateSelected(Math.PI / 8); });
+        rotateLeftBtn.addEventListener("click", function () { rotateSelected(ROT_STEP); });
     }
 
     if (rotateRightBtn) {
-        rotateRightBtn.addEventListener("click", function () { rotateSelected(-Math.PI / 8); });
+        rotateRightBtn.addEventListener("click", function () { rotateSelected(-ROT_STEP); });
+    }
+
+    if (rotateSnapBtn) {
+        rotateSnapBtn.addEventListener("click", function () {
+            rotSnap15 = !rotSnap15;
+            rotateSnapBtn.classList.toggle("is-on", rotSnap15);
+            rotateSnapBtn.setAttribute("aria-pressed", String(rotSnap15));
+            // Bei aktivierter Hilfe die aktuelle Ausrichtung einrasten.
+            if (rotSnap15 && selected && isFreelyRotatable(selected)) {
+                const snapped = Math.round(selected.rotation.y / ROT_STEP) * ROT_STEP;
+                rotateSelected(normAngle(snapped) - selected.rotation.y);
+            }
+        });
     }
 
     if (removeBtn) {
@@ -1299,9 +1533,28 @@ function initSchloss3D(canvas) {
     const raycaster = new THREE.Raycaster();
     const pointerNDC = new THREE.Vector2();
     const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const _p = new THREE.Vector3();
     let dragging = false;
     let dragPointerId = null;
     let dragMoved = false;
+    // Freie Drehung am Drehring - eigener, mit dragging exklusiver Zustand.
+    let rotating = false;
+    let rotMoved = false;
+    let rotGrabAngle = 0;
+    let rotStartY = 0;
+    let _saveTimer = null;
+
+    // Während des Ziehens/Drehens NICHT bei jedem Pointer-Move speichern:
+    // lokal flüssig rendern, erst nach kurzer Ruhe (bzw. beim Loslassen)
+    // persistieren.
+    function saveSchlossDebounced() {
+        if (_saveTimer) { clearTimeout(_saveTimer); }
+        _saveTimer = setTimeout(function () { _saveTimer = null; saveSchloss(); }, 260);
+    }
+    function saveSchlossNow() {
+        if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+        saveSchloss();
+    }
 
     function updatePointerNDC(event) {
         const bounds = canvas.getBoundingClientRect();
@@ -1332,6 +1585,25 @@ function initSchloss3D(canvas) {
 
         const hits = raycaster.intersectObjects(placedGroups, true);
 
+        // Drehring des bereits ausgewählten Möbels: gewinnt nur, wenn er
+        // NÄHER getroffen wird als das Möbel selbst (sonst zieht ein Klick
+        // auf die vordere Möbelkante fälschlich am Ring).
+        if (rotateRing.visible && selected) {
+            const rHits = raycaster.intersectObject(_rotHit, false);
+            const furnDist = hits.length ? hits[0].distance : Infinity;
+            if (rHits.length && rHits[0].distance < furnDist) {
+                if (!raycaster.ray.intersectPlane(floorPlane, _p)) { return; }
+                rotating = true;
+                rotMoved = false;
+                dragPointerId = event.pointerId;
+                rotGrabAngle = Math.atan2(_p.x - selected.position.x, _p.z - selected.position.z);
+                rotStartY = selected.rotation.y;
+                freezeSurfaceFollowers(selected);
+                try { canvas.setPointerCapture(event.pointerId); } catch (e) { /* ignorieren */ }
+                return;
+            }
+        }
+
         if (hits.length) {
 
             const group = findGroupFromIntersection(hits[0].object);
@@ -1360,9 +1632,30 @@ function initSchloss3D(canvas) {
 
     });
 
-    const _p = new THREE.Vector3();
-
     canvas.addEventListener("pointermove", function (event) {
+
+        // --- Freie Drehung am Drehring (exklusiv, vor allem anderen) ---
+        if (rotating && selected && event.pointerId === dragPointerId) {
+            updatePointerNDC(event);
+            raycaster.setFromCamera(pointerNDC, camera);
+            if (!raycaster.ray.intersectPlane(floorPlane, _p)) { return; }
+            rotMoved = true;
+            const cur = Math.atan2(_p.x - selected.position.x, _p.z - selected.position.z);
+            let ny = rotStartY + (cur - rotGrabAngle);
+            if (rotSnap15) { ny = Math.round(ny / (Math.PI / 12)) * (Math.PI / 12); }
+            selected.rotation.y = ny;
+            // Gedrehte Grundfläche neu klemmen (jeder Winkel, siehe clampToFloor).
+            const c = clampToFloor(selected.position.x, selected.position.z,
+                selected.userData.footprint, ny);
+            selected.position.x = c.x;
+            selected.position.z = c.z;
+            selectionRing.position.set(c.x, 0.02, c.z);
+            repositionFollowers(selected, false);
+            rotateRing.position.set(c.x, 0.03, c.z);
+            knobLocal(ny);
+            saveSchlossDebounced();
+            return;
+        }
 
         if (!dragging || !selected || event.pointerId !== dragPointerId) {
             return;
@@ -1760,6 +2053,33 @@ function initSchloss3D(canvas) {
             return;
         }
 
+        // --- Ende einer freien Drehung ---
+        if (rotating) {
+            rotating = false;
+            dragPointerId = null;
+            if (rotMoved && selected) {
+                const a = normAngle(selected.rotation.y);
+                selected.rotation.y = a;
+                const c = clampToFloor(selected.position.x, selected.position.z,
+                    selected.userData.footprint, a);
+                selected.position.x = c.x;
+                selected.position.z = c.z;
+                repositionFollowers(selected, true);
+                updateRotateRing();
+                selectionRing.position.set(c.x, 0.02, c.z);
+                const inst = findInstance(selected);
+                if (inst) {
+                    inst.rotationY = a;
+                    inst.x = c.x;
+                    inst.z = c.z;
+                }
+                saveSchlossNow();
+            }
+            clearSurfaceFollowers(selected);
+            rotMoved = false;
+            return;
+        }
+
         dragging = false;
         dragPointerId = null;
         surfaceHighlight.visible = false;
@@ -1805,6 +2125,10 @@ function initSchloss3D(canvas) {
                     instance.x = selected.position.x;
                     instance.z = selected.position.z;
                     instance.y = Math.round(finalY * 1000) / 1000;
+                    // Trägermöbel merken -> Deko folgt dessen Drehung.
+                    if (ud.placementType === "surfaceDecor") {
+                        instance.onSurface = (ud.onSurface && ud.onSurface.userData.instanceId) || null;
+                    }
                 }
                 if (surfaceDebugOn && ud.placementType === "surfaceDecor") {
                     console.log("[schloss surfaceDecor] finale Kerzenposition",
