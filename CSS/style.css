@@ -4371,6 +4371,16 @@ justify-content:center;
 
 }
 
+/* Längen-Auswahl (Kurz / Mittel / Lang): die Boxen mittig im Panel,
+   Beschriftung zentriert. */
+#text-quiz-lengths {
+    justify-content: center;
+}
+#text-quiz-lengths .quiz-choice {
+    align-items: center;
+    text-align: center;
+}
+
 .quiz-choice {
 
     display: flex;
