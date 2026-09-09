@@ -4433,6 +4433,23 @@ justify-content:center;
     font-size: .9rem;
 }
 
+/* Zwei-Schritt-Auswahl (erst Thema, dann Länge): weiches Einblenden
+   des jeweiligen Schritts, respektiert prefers-reduced-motion. */
+.tq-step {
+    animation: tq-step-in 180ms var(--yj-ease-out, ease);
+}
+@keyframes tq-step-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tq-step { animation: none; }
+}
+#tq-chosen-category {
+    color: var(--yj-color-accent, #e08a3f);
+    font-weight: 800;
+}
+
 #text-quiz-start {
     margin-top: 18px;
 }

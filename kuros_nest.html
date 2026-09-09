@@ -34,7 +34,7 @@
 
     <link
         rel="stylesheet"
-        href="CSS/style.css?v=56">
+        href="CSS/style.css?v=57">
 
     <link
         rel="stylesheet"
@@ -127,7 +127,7 @@
 
             </div>
 
-            <!-- Text-Quiz-Auswahl: Länge + Thema -->
+            <!-- Text-Quiz-Auswahl: Schritt 1 Thema, dann Schritt 2 Länge -->
             <div id="text-quiz-setup" hidden>
 
                 <button type="button" id="text-quiz-back"
@@ -137,20 +137,22 @@
 
                 <h2>🪶 Kuros Text-Quiz</h2>
 
-                <h3 id="tq-length-label">Wie lange möchtest du knobeln?</h3>
-                <div id="text-quiz-lengths" class="quiz-choice-grid"
-                    role="group" aria-labelledby="tq-length-label"></div>
+                <!-- Schritt 1: Thema wählen -->
+                <div id="tq-step-category" class="tq-step">
+                    <h3 id="tq-category-label">Worüber möchtest du rätseln?</h3>
+                    <div id="text-quiz-categories" class="quiz-choice-grid"
+                        role="group" aria-labelledby="tq-category-label"></div>
+                </div>
 
-                <h3 id="tq-category-label">Worüber möchtest du rätseln?</h3>
-                <div id="text-quiz-categories" class="quiz-choice-grid"
-                    role="group" aria-labelledby="tq-category-label"></div>
-
-                <p id="text-quiz-hint" class="text-quiz-hint" hidden></p>
-
-                <button type="button" id="text-quiz-start"
-                    class="yj-button yj-button--wide" disabled>
-                    Quiz starten
-                </button>
+                <!-- Schritt 2: Länge wählen (startet die Runde) -->
+                <div id="tq-step-length" class="tq-step" hidden>
+                    <h3 id="tq-length-label">
+                        <span id="tq-chosen-category"></span>Wie viele Fragen möchtest du?
+                    </h3>
+                    <div id="text-quiz-lengths" class="quiz-choice-grid"
+                        role="group" aria-labelledby="tq-length-label"></div>
+                    <p id="text-quiz-hint" class="text-quiz-hint" hidden></p>
+                </div>
 
             </div>
 
@@ -228,8 +230,8 @@
 
     <script src="JS/sounds.js?v=1"></script>
 
-    <script src="JS/quiz-catalog.js?v=3"></script>
-    <script src="JS/quiz.js?v=7"></script>
+    <script src="JS/quiz-catalog.js?v=4"></script>
+    <script src="JS/quiz.js?v=8"></script>
 
     <script>
         const kuroWelcomeMessage = document.getElementById("welcome-message");

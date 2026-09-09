@@ -67,16 +67,27 @@ function showGameScreen() {
 
     if (toText) {
         toText.addEventListener("click", function () {
-            renderTextQuizSetup();
-            showSelectScreen("text");
+            enterTextQuizSetup();
         });
     }
     if (toGeraeusche) {
         toGeraeusche.addEventListener("click", openGeraeuscheQuiz);
     }
 
+    // Zurück: aus Schritt 2 (Länge) zurück zu Schritt 1 (Thema),
+    // aus Schritt 1 zurück zur Quizart-Auswahl.
     const textBack = document.getElementById("text-quiz-back");
-    if (textBack) { textBack.addEventListener("click", function () { showSelectScreen("landing"); }); }
+    if (textBack) {
+        textBack.addEventListener("click", function () {
+            if (tqStep === "length") {
+                tqStep = "category";
+                tqSelectedLength = null;
+                renderTextQuizSetup();
+            } else {
+                showSelectScreen("landing");
+            }
+        });
+    }
 
     const gBack = document.getElementById("geraeusche-back");
     if (gBack) { gBack.addEventListener("click", function () { showSelectScreen("landing"); }); }
@@ -84,65 +95,56 @@ function showGameScreen() {
 
 
 /* =====================================================
-   TEXT-QUIZ: AUSWAHL (Laenge + Thema)
+   TEXT-QUIZ: AUSWAHL IN ZWEI SCHRITTEN
+   1. Thema (Gemischt / Tiere / ...)  ->  2. Länge (5 / 10 / 15)
+   Die Längen-Auswahl startet die Runde direkt.
    ===================================================== */
 
-let tqSelectedLength = null;   // "kurz" | "mittel" | "gross"
+let tqSelectedLength = null;       // "kurz" | "mittel" | "gross"
 let tqSelectedCategory = "gemischt";
+let tqStep = "category";           // "category" | "length"
+
+function tqCatAvailability(catId) {
+    return (typeof textQuizCategoryAvailability === "function")
+        ? textQuizCategoryAvailability(catId)
+        : { lengths: { kurz: true, mittel: true, gross: true } };
+}
+
+function tqCategoryDef(catId) {
+    return TEXT_QUIZ_CATEGORIES.find(function (c) { return c.id === catId; }) || null;
+}
+
+// Von der Landing-Seite (und "Noch eine Runde") aufgerufen: immer bei
+// Schritt 1 (Thema) beginnen.
+function enterTextQuizSetup() {
+    tqStep = "category";
+    tqSelectedLength = null;
+    if (tqSelectedCategory == null) { tqSelectedCategory = "gemischt"; }
+    renderTextQuizSetup();
+    showSelectScreen("text");
+}
 
 function renderTextQuizSetup() {
 
+    const stepCat = document.getElementById("tq-step-category");
+    const stepLen = document.getElementById("tq-step-length");
     const lengthsEl = document.getElementById("text-quiz-lengths");
     const catsEl = document.getElementById("text-quiz-categories");
-    const startBtn = document.getElementById("text-quiz-start");
+    const chosenEl = document.getElementById("tq-chosen-category");
     const hintEl = document.getElementById("text-quiz-hint");
 
     if (!lengthsEl || !catsEl || typeof TEXT_QUIZ_LENGTHS === "undefined") {
         return;
     }
 
-    // Beim ersten Oeffnen: Gemischt vorausgewaehlt, keine Laenge.
-    if (tqSelectedCategory == null) { tqSelectedCategory = "gemischt"; }
+    if (stepCat) { stepCat.hidden = tqStep !== "category"; }
+    if (stepLen) { stepLen.hidden = tqStep !== "length"; }
 
-    function catAvailability(catId) {
-        return (typeof textQuizCategoryAvailability === "function")
-            ? textQuizCategoryAvailability(catId)
-            : { lengths: { kurz: true, mittel: true, gross: true } };
-    }
-
-    // --- Rundenlaengen ---
-    lengthsEl.innerHTML = "";
-    TEXT_QUIZ_LENGTHS.forEach(function (len) {
-
-        const canFill = catAvailability(tqSelectedCategory).lengths[len.id];
-
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "quiz-choice quiz-choice--length";
-        btn.dataset.length = len.id;
-        btn.disabled = !canFill;
-        btn.setAttribute("aria-pressed", String(tqSelectedLength === len.id && canFill));
-        btn.classList.toggle("is-selected", tqSelectedLength === len.id && canFill);
-        btn.innerHTML =
-            '<span class="quiz-choice-title">' + len.label + "</span>" +
-            '<span class="quiz-choice-note">' + len.note + "</span>";
-
-        btn.addEventListener("click", function () {
-            if (btn.disabled) { return; }
-            tqSelectedLength = len.id;
-            renderTextQuizSetup();
-        });
-
-        lengthsEl.appendChild(btn);
-    });
-
-    // --- Themen ---
+    // --- Schritt 1: Themen ---
     catsEl.innerHTML = "";
     TEXT_QUIZ_CATEGORIES.forEach(function (cat) {
 
-        const avail = catAvailability(cat.id);
-        // Ein Thema ist waehlbar, wenn es mindestens die kuerzeste
-        // Runde fuellen kann.
+        const avail = tqCatAvailability(cat.id);
         const anyLength = avail.lengths.kurz || avail.lengths.mittel || avail.lengths.gross;
 
         const btn = document.createElement("button");
@@ -150,56 +152,68 @@ function renderTextQuizSetup() {
         btn.className = "quiz-choice quiz-choice--category";
         btn.dataset.category = cat.id;
         btn.disabled = !anyLength;
-        btn.setAttribute("aria-pressed", String(tqSelectedCategory === cat.id));
-        btn.classList.toggle("is-selected", tqSelectedCategory === cat.id);
+        btn.setAttribute("aria-pressed", String(tqSelectedCategory === cat.id && tqStep === "length"));
         btn.textContent = cat.icon + " " + cat.label;
 
         btn.addEventListener("click", function () {
             if (btn.disabled) { return; }
             tqSelectedCategory = cat.id;
-            // Falls die gewaehlte Laenge dieses Thema nicht fuellen kann,
-            // Auswahl zuruecksetzen.
-            if (tqSelectedLength &&
-                !catAvailability(cat.id).lengths[tqSelectedLength]) {
-                tqSelectedLength = null;
-            }
+            tqSelectedLength = null;
+            tqStep = "length";
             renderTextQuizSetup();
         });
 
         catsEl.appendChild(btn);
     });
 
-    // --- Hinweis, wenn eine Groesse fuers Thema fehlt ---
+    if (tqStep !== "length") { return; }
+
+    // --- Schritt 2: Länge (klick startet die Runde) ---
+    const catDef = tqCategoryDef(tqSelectedCategory);
+    if (chosenEl) {
+        chosenEl.textContent = catDef ? (catDef.icon + " " + catDef.label + " · ") : "";
+    }
+
+    const avail = tqCatAvailability(tqSelectedCategory);
+
+    lengthsEl.innerHTML = "";
+    TEXT_QUIZ_LENGTHS.forEach(function (len) {
+
+        const canFill = avail.lengths[len.id];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "quiz-choice quiz-choice--length";
+        btn.dataset.length = len.id;
+        btn.disabled = !canFill;
+        btn.innerHTML =
+            '<span class="quiz-choice-title">' + len.label + "</span>" +
+            '<span class="quiz-choice-note">' + len.note + "</span>";
+
+        btn.addEventListener("click", function () {
+            if (btn.disabled) { return; }
+            tqSelectedLength = len.id;
+            startTextQuizRound(len.id, tqSelectedCategory);
+        });
+
+        lengthsEl.appendChild(btn);
+    });
+
+    // --- Hinweis, wenn eine Länge für dieses Thema (noch) nicht reicht ---
     if (hintEl) {
-        const avail = catAvailability(tqSelectedCategory);
         const missing = TEXT_QUIZ_LENGTHS
             .filter(function (l) { return !avail.lengths[l.id]; })
-            .map(function (l) { return l.label; });
+            .map(function (l) { return l.label + " (" + l.count + ")"; });
         if (missing.length && tqSelectedCategory !== "gemischt") {
             hintEl.hidden = false;
             hintEl.textContent =
-                "„" + missing.join("“ und „") + "“ gibt es hier noch nicht - " +
-                "Kuro sammelt noch mehr Fragen zu diesem Thema.";
+                "„" + missing.join("“ und „") + "“ gibt es zu diesem Thema noch nicht - " +
+                "Kuro sammelt noch mehr Fragen.";
         } else {
             hintEl.hidden = true;
         }
     }
-
-    // --- Startknopf erst aktiv, wenn eine Laenge gewaehlt ist ---
-    if (startBtn) {
-        startBtn.disabled = !tqSelectedLength;
-    }
 }
-
-(function () {
-    const startBtn = document.getElementById("text-quiz-start");
-    if (startBtn) {
-        startBtn.addEventListener("click", function () {
-            if (!tqSelectedLength) { return; }
-            startTextQuizRound(tqSelectedLength, tqSelectedCategory);
-        });
-    }
-})();
 
 
 /* =====================================================
@@ -410,8 +424,7 @@ function showTextResults() {
     againBtn.className = "yj-button yj-button--compact";
     againBtn.textContent = "Noch eine Runde";
     againBtn.addEventListener("click", function () {
-        renderTextQuizSetup();
-        showSelectScreen("text");
+        enterTextQuizSetup();
     });
     container.appendChild(againBtn);
 

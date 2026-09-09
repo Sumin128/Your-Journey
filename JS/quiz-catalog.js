@@ -50,7 +50,8 @@ const TEXT_QUIZ_CATEGORIES = [
 const TEXT_QUIZ_LENGTHS = [
     { id: "kurz",   label: "Kurz",   count: 5,  difficulty: "leicht", note: "5 Fragen" },
     { id: "mittel", label: "Mittel", count: 10, difficulty: "normal", note: "10 Fragen" },
-    { id: "gross",  label: "Groß",   count: 15, difficulty: "schwer", note: "15 Fragen" }
+    // id bleibt "gross" (Teil der roundId / XP-Wiederholungsschutz) - nur das Label heisst "Lang".
+    { id: "gross",  label: "Lang",   count: 15, difficulty: "schwer", note: "15 Fragen" }
 ];
 
 const TEXT_QUIZ_QUESTIONS = [
@@ -788,7 +789,7 @@ const TEXT_QUIZ_QUESTIONS = [
       explanation: "Eine Hand hat fünf Finger, beide Hände zusammen zehn." },
     { id: "koerper-zaehne-putzen", category: "koerper", difficulty: "leicht",
       question: "Wie oft am Tag solltest du deine Zähne putzen?",
-      answers: ["Zweimal", "Nie", "Einmal in der Woche", "Zehnmal"], correctIndex: 0,
+      answers: ["Zwei bis drei Mal", "Nie", "Einmal in der Woche", "Zehnmal"], correctIndex: 0,
       explanation: "Morgens und abends Zähneputzen hält die Zähne gesund." },
     { id: "koerper-herz-schlaegt", category: "koerper", difficulty: "normal",
       question: "Was macht dein Herz die ganze Zeit?",
