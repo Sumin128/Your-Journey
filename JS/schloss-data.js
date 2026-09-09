@@ -62,7 +62,25 @@ const SCHLOSS_THEMES = [
             windowSky: ["#fdeaba", "#ffd08a", "#e9a566"]
         }
     },
-    { id: "wueste", name: "Wüstenschloss", icon: "🏜️", available: false, shell: null },
+    {
+        id: "wueste", name: "Wüstenschloss", icon: "🏜️",
+        // Raumhülle als eigener Builder in JS/schloss-3d.js
+        // (SHELL_BUILDERS.wueste = buildDesertShell). Öffentlich erst mit
+        // dem Wüsten-Release (SCHLOSS_STYLES.wueste.publicAvailable), bis
+        // dahin nur über ?style=wueste lokal prüfbar.
+        available: true,
+        shell: {
+            // Von JS/schloss-3d.js gelesen: fogColor, ambient, windowLight,
+            // fireLight, floor. (background/windowSky sind Doku, ungenutzt.)
+            background: 0x3a2c1d,
+            fogColor: 0xf1ddbe,
+            ambient: { color: 0xffe9c6, intensity: 0.78 },
+            windowLight: { color: 0xffe4bd, intensity: 1.4 },
+            fireLight: { color: 0xff9a44, intensity: 1.35 },
+            windowSky: ["#f4dcae", "#e7b57e", "#c98a54"],
+            floor: { tex: "wuestenschloss-boden-terracotta.png", divX: 1.9, divY: 1.9, roughness: 0.82 }
+        }
+    },
     { id: "rosa", name: "Rosa-Zauber", icon: "🌸", available: false, shell: null },
     { id: "feuer", name: "Feuerschloss", icon: "🔥", available: false, shell: null }
 ];
@@ -95,8 +113,13 @@ const SCHLOSS_STYLES = [
         preview: "images/schloss/stil/wald_vorschau.jpg"
     },
     {
+        // Freischaltung ab Stufe 8, Kaufpreis 250 Münzen (Spiegel von
+        // public.schloss_styles – siehe supabase_migration_schloss_wueste_release.sql).
+        // publicAvailable bleibt false bis buildDesertShell + Texturen +
+        // Stilwechsel + Speicherung + Tests wirklich fertig und lokal
+        // abgenommen sind; erst dann DB public_available=true + hier true.
         key: "wueste", name: "Wüstenschloss", icon: "🏜️",
-        requiredLevel: 3, coinPrice: null,
+        requiredLevel: 8, coinPrice: 250,
         starterEligible: true, publicAvailable: false, sort: 20,
         preview: "images/schloss/stil/wueste_vorschau.jpg"
     }

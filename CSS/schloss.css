@@ -475,74 +475,130 @@
 /* --- Stil-Auswahl / "Raum gestalten" (Themes) --- */
 
 .schloss-style {
-
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
     padding: 4px 2px 8px;
-
 }
 
 .schloss-style-hint {
-
-    flex-basis: 100%;
-    margin: 0 0 2px;
-
-    font-size: 0.78rem;
+    margin: 0 0 10px;
+    font-size: 0.8rem;
+    line-height: 1.4;
     color: var(--yj-color-ink-soft);
+}
 
+.schloss-style-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
 }
 
 .schloss-style-card {
-
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
-
-    width: 96px;
-    padding: 12px 6px;
+    overflow: hidden;
 
     border: 2px solid var(--yj-color-border);
     border-radius: var(--yj-radius-md, 12px);
     background: var(--yj-color-paper);
+}
 
-    font-size: 0.8rem;
-    font-weight: 700;
+.schloss-style-card-preview {
+    display: block;
+    width: 100%;
+    height: 108px;
+
+    background-color: var(--yj-color-cream, #fff8ea);
+    background-size: cover;
+    background-position: center;
+    border-bottom: 1px solid var(--yj-color-border);
+}
+
+.schloss-style-card-preview--icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.6rem;
+}
+
+.schloss-style-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 11px 11px;
+}
+
+.schloss-style-card-name {
+    font-size: 0.92rem;
+    font-weight: 800;
     color: var(--yj-color-wood-dark);
-
-    cursor: pointer;
-
 }
 
-.schloss-style-card-icon {
-    font-size: 1.8rem;
-    line-height: 1;
+.schloss-style-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: baseline;
+    min-height: 1.1em;
 }
 
-.schloss-style-card.is-active {
-    border-color: var(--yj-color-accent, #e0a53c);
-    background: var(--yj-color-cream, #fff8ea);
-}
-
-.schloss-style-card.is-locked {
-    opacity: 0.55;
-    cursor: default;
-}
-
-.schloss-style-card-badge {
-    font-size: 0.68rem;
+.schloss-style-card-status {
+    font-size: 0.74rem;
     font-weight: 700;
     color: var(--yj-color-ink-soft);
 }
 
-/* Katalog-Stil (noch nicht besessen): dezent abgesetzt, KEIN Schloss-Icon */
-.schloss-style-card.is-catalog {
-    border-style: dashed;
+.schloss-style-card-price {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: var(--yj-color-wood-dark);
 }
-.schloss-style-card.is-busy {
-    opacity: 0.6;
-    pointer-events: none;
+
+.schloss-style-card-action {
+    margin-top: 4px;
+    padding: 8px 10px;
+
+    border: 2px solid var(--yj-color-wood-dark, #5b3a1c);
+    border-radius: 9px;
+    background: var(--yj-color-accent, #e0a53c);
+
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--yj-color-wood-dark, #3c2a16);
+
+    cursor: pointer;
+}
+
+.schloss-style-card-action:hover:not(:disabled) {
+    filter: brightness(1.05);
+}
+
+.schloss-style-card-action:disabled {
+    cursor: default;
+}
+
+/* aktives Design: Karte hervorgehoben, Aktion nur noch Status */
+.schloss-style-card.is-active {
+    border-color: var(--yj-color-accent, #e0a53c);
+    box-shadow: 0 0 0 2px var(--yj-color-accent, #e0a53c) inset;
+}
+.schloss-style-card-action--active {
+    background: var(--yj-color-cream, #fff8ea);
+    color: var(--yj-color-ink-soft);
+}
+
+/* besessen, nicht aktiv: ruhiger "Verwenden"-Knopf */
+.schloss-style-card-action--use {
+    background: var(--yj-color-cream, #fff8ea);
+}
+
+/* Level noch nicht erreicht: gedämpft, Aktion gesperrt */
+.schloss-style-card.is-locked .schloss-style-card-preview {
+    filter: grayscale(0.5) brightness(0.92);
+}
+.schloss-style-card-action--locked {
+    background: var(--yj-color-paper);
+    border-style: dashed;
+    color: var(--yj-color-ink-soft);
 }
 
 

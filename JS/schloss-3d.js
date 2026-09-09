@@ -132,13 +132,35 @@ function initSchloss3D(canvas) {
     const HALF_W = ROOM_WIDTH / 2;      // Seitenwände x = ±HALF_W
     const BACK_Z = -ROOM_DEPTH / 2;     // Rückwand z = BACK_Z
     const WALL_OFFSET = 0.05;           // Wanddeko steht so weit vor der Wand
-    // Nutzbarer Höhenbereich für Wanddeko: knapp über der Fußleiste
-    // (SKIRT_H 0.16) bis knapp unter Decke/Deckenbalken.
+    // Nutzbarer Höhenbereich für Wanddeko: sicher über der Fußleiste
+    // (SKIRT_H 0.15-0.16) bis knapp unter Decke/Deckenbalken (CEILING_Y 4.05).
     const WALL_H_MIN = 0.45;
-    const WALL_H_MAX = 3.7;
+    const WALL_H_MAX = 3.82;
     // Sehr kleiner Abstand zur seitlichen Wandkante (früher WALL_MARGIN
     // 0.15 - hielt Bilder unnötig weit aus den Ecken). Nur Kanten-Schutz.
     const WALL_EDGE_MARGIN = 0.04;
+    // Vordere nutzbare Kante der SEITENWÄNDE. Die Seitenwände laufen
+    // visuell von der Rückwand-Ecke (BACK_Z = -3) bis fast an die offene
+    // Front (Boden ist bis FLOOR_FRONT_LIMIT = 4.7 sichtbar). Wanddeko war
+    // bisher fälschlich symmetrisch auf |z| <= ROOM_DEPTH/2 (3) geklemmt -
+    // dadurch blieb die ganze vordere Hälfte jeder Seitenwand ungenutzt.
+    // Jetzt: hinten die echte Ecke, vorne knapp vor der sichtbaren Kante.
+    const SIDE_WALL_FRONT = 4.5;
+
+    // Erlaubter Entlang-Wand-Bereich [loA, hiA] für ein Objekt der halben
+    // Breite hw. Rückwand: symmetrisch über die Raumbreite. Seitenwände:
+    // ASYMMETRISCH von der hinteren Ecke bis SIDE_WALL_FRONT.
+    function wallRange(wall, hw) {
+        const h = hw || 0;
+        if (wall === "back") {
+            const hiA = HALF_W - h - WALL_EDGE_MARGIN;
+            return { loA: -hiA, hiA: hiA };
+        }
+        return {
+            loA: BACK_Z + h + WALL_EDGE_MARGIN,
+            hiA: SIDE_WALL_FRONT - h - WALL_EDGE_MARGIN
+        };
+    }
     // Winzige Sicherheitsmarge zu den Öffnungen (Tür/Fenster/Kamin).
     const OPENING_HPAD = 0.03;
     const OPENING_VPAD = 0.12;
@@ -194,8 +216,8 @@ function initSchloss3D(canvas) {
     // sinnvollen Bereich. half = halbe Breite des Objekts.
     function clampToWall(wall, a, y, half, coversOpening) {
         const hw = half || 0.3;
-        const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - hw - WALL_EDGE_MARGIN;
-        a = Math.max(-limA, Math.min(limA, a));
+        const r = wallRange(wall, hw);
+        a = Math.max(r.loA, Math.min(r.hiA, a));
         y = Math.max(WALL_H_MIN + hw * 0.4, Math.min(WALL_H_MAX, y));
 
         // Vorhänge laufen nicht hier durch (eigene Anker-Logik), aber der
@@ -211,8 +233,8 @@ function initSchloss3D(canvas) {
             const dir = Math.abs(a - o.a1) < Math.abs(a - o.a2) ? -1 : 1;
             for (let i = 0; i < 4 && o; i++) {
                 let na = dir < 0 ? (o.a1 - hw - OPENING_HPAD) : (o.a2 + hw + OPENING_HPAD);
-                if (na < -limA || na > limA) {
-                    a = Math.max(-limA, Math.min(limA, na));
+                if (na < r.loA || na > r.hiA) {
+                    a = Math.max(r.loA, Math.min(r.hiA, na));
                     y = Math.min(WALL_H_MAX, Math.max(y, o.y2 + hw * 0.5));
                     o = inWallOpening(wall, a, y);
                     break;
@@ -228,7 +250,7 @@ function initSchloss3D(canvas) {
     // Vorhänge - die haben feste Anker). Überlappt entlang der Wand und
     // grob in der Höhe -> zur Seite weg vom Nachbarn.
     function avoidWallDecor(dragGroup, wall, a, y, half) {
-        const limA = (wall === "back" ? HALF_W : ROOM_DEPTH / 2) - half - WALL_EDGE_MARGIN;
+        const r = wallRange(wall, half);
         for (let pass = 0; pass < 5; pass++) {
             let hit = null;
             for (let i = 0; i < placedGroups.length; i++) {
@@ -248,7 +270,7 @@ function initSchloss3D(canvas) {
             const gap = hit.oHalf + half + 0.02;
             let na = hit.oa + (a >= hit.oa ? 1 : -1) * gap;
             // gegen die Wandkante gedrückt -> auf die andere Seite ausweichen
-            if (na > limA || na < -limA) { na = hit.oa - (a >= hit.oa ? 1 : -1) * gap; }
+            if (na > r.hiA || na < r.loA) { na = hit.oa - (a >= hit.oa ? 1 : -1) * gap; }
             a = na;
         }
         return clampToWall(wall, a, y, half, false);
@@ -355,8 +377,8 @@ function initSchloss3D(canvas) {
     // dahin fällt jeder Stil ohne eigenen Builder sauber auf "wald"
     // zurück, damit die Szene nie "kaputt" aussieht.
     const SHELL_BUILDERS = {
-        wald: function (group, dustAnchor) { return buildProceduralShell(group, dustAnchor); }
-        // wueste: buildDesertShell  <-- Integration nach Freigabe
+        wald: function (group, dustAnchor) { return buildProceduralShell(group, dustAnchor); },
+        wueste: function (group, dustAnchor) { return buildDesertShell(group, dustAnchor); }
     };
     const buildShellForStyle = SHELL_BUILDERS[activeStyleKey] || SHELL_BUILDERS.wald;
     if (!SHELL_BUILDERS[activeStyleKey]) {
@@ -502,11 +524,13 @@ function initSchloss3D(canvas) {
     // durchscheint. Bleibt die verlässliche Standfläche; wird nur
     // ausgeblendet, wenn die GLB-Hülle ihren eigenen Boden mitbringt.
     const floorW = ROOM_WIDTH + 14, floorD = ROOM_DEPTH + 24;
+    // Bodentextur kommt aus dem Stil (shell.floor). Default: Waldholz.
+    const floorCfg = shell.floor || { tex: "wald-holzboden-storybook.png", divX: 4.2, divY: 3.0, roughness: 0.85 };
     const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(floorW, floorD),
         new THREE.MeshStandardMaterial({
-            map: roomTex("wald-holzboden-storybook.png", floorW / 4.2, floorD / 3.0),
-            roughness: 0.85
+            map: roomTex(floorCfg.tex, floorW / floorCfg.divX, floorD / floorCfg.divY),
+            roughness: floorCfg.roughness || 0.85
         })
     );
     floor.rotation.x = -Math.PI / 2;
@@ -588,8 +612,25 @@ function initSchloss3D(canvas) {
         const r = activeRoom();
         return !r || r.fireOn !== false;
     }
+    // Kamin an/aus: es verschwinden AUSSCHLIESSLICH Flammen, Glut,
+    // animiertes Glühen, Kamin-Punktlicht und Flackern. Immer sichtbar
+    // bleiben Holzscheite, Feuerstelle, Kaminnische und -architektur
+    // (letztere gehören zur Raumhülle, nicht zu fireMesh). Wald- und
+    // Wüstenstil verhalten sich identisch (fireMesh/fireLight sind
+    // stilunabhängig). fireOn wird über schloss.rooms.*.fireOn ganz
+    // normal synchronisiert und übersteht Reload + Cloud-Sync.
     function applyFireState(on) {
-        fireMesh.visible = on;
+        // fireMesh-Gruppe bleibt sichtbar (trägt jetzt auch die Scheite).
+        fireMesh.visible = true;
+        const flames = fireMesh.userData.flames || [];
+        for (let i = 0; i < flames.length; i++) { flames[i].visible = on; }
+        if (fireMesh.userData.embers) { fireMesh.userData.embers.visible = on; }
+        if (fireMesh.userData.logMat) {
+            const m = fireMesh.userData.logMat;
+            m.emissiveIntensity = on ? 0.5 : 0;
+            m.color.setHex(on ? 0x4a2f1c : 0x33241a);
+            m.needsUpdate = true;
+        }
         fireLight.visible = on;
         if (!on) { fireLight.intensity = 0; }
     }
@@ -876,6 +917,44 @@ function initSchloss3D(canvas) {
         selectGroup(g);
         rotateSelected(normAngle(deg * Math.PI / 180) - g.rotation.y);
         return +g.rotation.y.toFixed(5);
+    };
+    // Kaminzustand prüfen: was ist bei aus wirklich noch sichtbar?
+    window.__schlossDebugFireState = function () {
+        const m = fireMesh.userData.logMat;
+        return {
+            fireOn: _fireOn,
+            fireMeshVisible: fireMesh.visible,
+            logsVisible: (fireMesh.children || []).some(function (c) { return c.geometry && c.geometry.type === "CylinderGeometry" && c.visible; }),
+            logEmissiveIntensity: m ? m.emissiveIntensity : null,
+            logColor: m ? "#" + m.color.getHexString() : null,
+            flamesVisible: (fireMesh.userData.flames || []).map(function (f) { return f.visible; }),
+            embersVisible: fireMesh.userData.embers ? fireMesh.userData.embers.visible : null,
+            fireLightVisible: fireLight.visible
+        };
+    };
+    // Kamera für Nah-Screenshots umsetzen.
+    window.__schlossDebugCam = function (px, py, pz, lx, ly, lz) {
+        camera.position.set(px, py, pz);
+        camera.lookAt(lx || 0, ly || 1, lz || -3);
+        return true;
+    };
+    // Wanddeko deterministisch platzieren + auf die Wandfläche klemmen
+    // (simuliert einen Zieh-Endpunkt an einem Randbereich).
+    window.__schlossDebugWall = function (id, wall, a, y) {
+        const g = placedGroups.find(function (x) { return x.userData.instanceId === id; });
+        if (!g || g.userData.placementType !== "wallDecor") { return null; }
+        const fp = g.userData.footprint || { w: 0.5, d: 0.5 };
+        const half = Math.max(fp.w, fp.d) / 2;
+        const cl = clampToWall(wall, a, y, half, Boolean(g.userData.furniture && g.userData.furniture.coversOpening));
+        const w = wallToWorld(wall, cl.a, cl.y);
+        g.position.set(w.x, w.y, w.z);
+        g.rotation.y = w.rot;
+        g.userData.wall = wall;
+        g.userData.wallA = cl.a;
+        const inst = findInstance(g);
+        if (inst) { inst.wall = wall; inst.a = cl.a; inst.y = cl.y; delete inst.x; delete inst.z; }
+        return { requestedA: a, requestedY: y, clampedA: +cl.a.toFixed(3), clampedY: +cl.y.toFixed(3),
+            world: { x: +w.x.toFixed(2), y: +w.y.toFixed(2), z: +w.z.toFixed(2) } };
     };
     }
 
@@ -1909,10 +1988,14 @@ function initSchloss3D(canvas) {
         for (let i = 0; i < _wallPlanes.length; i++) {
             const w = _wallPlanes[i];
             if (!raycaster.ray.intersectPlane(w.plane, _p)) { continue; }
+            // a = Position entlang DIESER Wand (Rückwand: x, Seitenwand: z).
             const a = w.name === "back" ? _p.x : _p.z;
             const y = _p.y;
-            const lim = (w.name === "back" ? HALF_W : ROOM_DEPTH / 2) + 0.4;
-            if (Math.abs(a) > lim || y < 0.2 || y > WALL_H_MAX + 0.6) { continue; }
+            // Treffer nur akzeptieren, wenn er wirklich auf der sichtbaren
+            // Fläche dieser Wand liegt (mit kleiner Toleranz) - so springt
+            // die Deko nicht um die Ecke auf die falsche Wand.
+            const rr = wallRange(w.name, 0);
+            if (a < rr.loA - 0.5 || a > rr.hiA + 0.5 || y < 0.2 || y > WALL_H_MAX + 0.6) { continue; }
             const dist = raycaster.ray.origin.distanceTo(_p);
             if (!best || dist < best.dist) { best = { wall: w.name, a: a, y: y, dist: dist }; }
         }
@@ -3107,6 +3190,314 @@ function initSchloss3D(canvas) {
 
     }
 
+    /* =====================================================
+       WÜSTENSCHLOSS-RAUMHÜLLE (Stil "wueste")
+       Eigene Architektur: Sandstein-Wände, Terracotta-Boden (über
+       shell.floor), Lehmputz-Decke + Akazienbalken + Stern-Medaillon,
+       3-Bogen-Sandstein-Fensterarkade mit Wüstenpanorama, Akazien-
+       Rundbogentür, breite eingelassene Sandstein-Kaminnische.
+
+       WICHTIG: Fenster / Tür / Kaminöffnung sitzen auf EXAKT denselben
+       Koordinaten wie im Waldstil (WIN / FP-Bereich / Tür z=-0.7), damit
+       WALL_OPENINGS, Vorhang-Anker, clampToWall und clampToFloor
+       unverändert greifen. Das Kaminfeuer selbst (fireMesh + fireLight +
+       applyFireState) ist stilunabhängig und wird NICHT hier gebaut -
+       diese Hülle liefert nur die statische Nische + Architektur.
+       Portiert aus _preview/wuestenschloss/preview.mjs (visuell abgenommen).
+       ===================================================== */
+    function buildDesertShell(group, dustAnchor) {
+
+        const HW = ROOM_WIDTH / 2;
+        const WALL_Z = -ROOM_DEPTH / 2;
+        const CEILING_Y = 4.05;
+        const DOOR_Z = -0.7;
+
+        // dieselben Fenster-/Kaminöffnungs-Maße wie buildProceduralShell
+        const WIN = { x1: -1.6, x2: 1.6, y1: 0.95, yTop: 3.5 };
+        const COLW = 0.16;
+        const BAYW = (WIN.x2 - WIN.x1 - 2 * COLW) / 3;
+        const BAY_SPRING = WIN.yTop - BAYW / 2;
+        // Wüsten-Kaminöffnung: breiter + niedriger (gemütliche Nische),
+        // bleibt komplett in HEARTH x 1.95..3.85 + unter WALL_OPENINGS.back
+        // y2 1.95 -> Platzierungs-/Kollisionslogik unverändert.
+        const FP = { x1: 2.0, w: 1.7, y1: 0.05, yTop: 1.4 };
+        const FP_R = FP.w / 2, FP_SPRING = FP.yTop - FP_R, fpCx = FP.x1 + FP_R;
+
+        const sandBack = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", ROOM_WIDTH / 3.0, ROOM_HEIGHT / 3.0), roughness: 0.96 });
+        const sandTrim = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", 0.6, 0.7), roughness: 0.95 });
+        const sandReveal = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", 0.55, 0.9), roughness: 1 });
+        const akazie = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.png", 1.1, 0.5), roughness: 0.72, metalness: 0.04 });
+        const akazieBeam = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.png", 2.6, 0.4), roughness: 0.78 });
+        const _fkTex = roomTex("kamin-innenstein-storybook.png", 1.0, 1.0);
+        const fireBrick = new THREE.MeshStandardMaterial({
+            map: _fkTex, color: 0x9a6f4c, roughness: 1, side: THREE.DoubleSide,
+            emissiveMap: _fkTex, emissive: new THREE.Color(0x6b2f10), emissiveIntensity: 0.3
+        });
+
+        // === Rückwand: Sandsteinfläche mit denselben Ausschnitten ===
+        const bw = new THREE.Shape();
+        bw.moveTo(-HW, 0); bw.lineTo(HW, 0); bw.lineTo(HW, ROOM_HEIGHT); bw.lineTo(-HW, ROOM_HEIGHT); bw.lineTo(-HW, 0);
+        for (let b = 0; b < 3; b++) {
+            const bx = WIN.x1 + b * (BAYW + COLW), cx = bx + BAYW / 2;
+            const h = new THREE.Path();
+            h.moveTo(bx, WIN.y1); h.lineTo(bx, BAY_SPRING);
+            h.absarc(cx, BAY_SPRING, BAYW / 2, Math.PI, 0, true);
+            h.lineTo(bx + BAYW, WIN.y1); h.lineTo(bx, WIN.y1);
+            bw.holes.push(h);
+        }
+        const fh = new THREE.Path();
+        fh.moveTo(FP.x1, FP.y1); fh.lineTo(FP.x1, FP_SPRING);
+        fh.absarc(fpCx, FP_SPRING, FP_R, Math.PI, 0, true);
+        fh.lineTo(FP.x1 + FP.w, FP.y1); fh.lineTo(FP.x1, FP.y1);
+        bw.holes.push(fh);
+
+        const bwGeo = new THREE.ShapeGeometry(bw, 16);
+        bwGeo.computeBoundingBox();
+        const bb = bwGeo.boundingBox, uv = bwGeo.attributes.uv, ps = bwGeo.attributes.position;
+        for (let i = 0; i < uv.count; i++) {
+            uv.setXY(i, (ps.getX(i) - bb.min.x) / (bb.max.x - bb.min.x), (ps.getY(i) - bb.min.y) / (bb.max.y - bb.min.y));
+        }
+        const backWall = new THREE.Mesh(bwGeo, sandBack);
+        backWall.position.z = WALL_Z;
+        backWall.receiveShadow = true;
+        group.add(backWall);
+
+        // === Seitenwände (weit über die Raumtiefe hinaus, wie Waldstil) ===
+        const SIDE_D = 20, SIDE_H = 8;
+        [-1, 1].forEach(function (s) {
+            const m = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", SIDE_D / 3.2, SIDE_H / 3.0), roughness: 0.96 });
+            const w = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_D, SIDE_H), m);
+            w.rotation.y = -s * Math.PI / 2;
+            w.position.set(s * HW, SIDE_H / 2, WALL_Z + SIDE_D / 2 - 0.4);
+            w.receiveShadow = true;
+            group.add(w);
+        });
+
+        // === Decke: heller Lehmputz + zwei Akazienbalken + Stern-Medaillon ===
+        const ceil = new THREE.Mesh(
+            new THREE.PlaneGeometry(ROOM_WIDTH + 22, ROOM_DEPTH + 34),
+            new THREE.MeshBasicMaterial({ map: roomTex("wuestenschloss-decke-lehmputz.png", 3.6, 4.6), color: 0xf1e2c4 })
+        );
+        ceil.rotation.x = Math.PI / 2;
+        ceil.position.set(0, CEILING_Y, 6);
+        group.add(ceil);
+
+        const beamFront = camera.position.z + 2, beamLen = beamFront - WALL_Z + 0.1;
+        [-2.4, 2.4].forEach(function (x) {
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.07, beamLen), akazieBeam);
+            beam.position.set(x, CEILING_Y - 0.05 + 0.035, WALL_Z + beamLen / 2 - 0.05);
+            group.add(beam);
+        });
+        const star = new THREE.Group();
+        for (let i = 0; i < 8; i++) {
+            const bar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.03, 0.05), akazieBeam);
+            bar.rotation.y = i * Math.PI / 8;
+            star.add(bar);
+        }
+        const sring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.028, 6, 32), akazieBeam);
+        sring.rotation.x = Math.PI / 2;
+        star.add(sring);
+        star.position.set(0, CEILING_Y - 0.04, -1.2);
+        group.add(star);
+
+        // === Akazien-Fußleiste – um Tür + Kamin herum ===
+        const SKIRT_H = 0.15, SKIRT_T = 0.05, sy = SKIRT_H / 2;
+        function skirt(a, b, z, along) {
+            const len = Math.abs(b - a);
+            if (len < 0.02) { return; }
+            const g = along === "x" ? new THREE.BoxGeometry(len, SKIRT_H, SKIRT_T) : new THREE.BoxGeometry(SKIRT_T, SKIRT_H, len);
+            const m = new THREE.Mesh(g, akazie);
+            if (along === "x") { m.position.set((a + b) / 2, sy, z); } else { m.position.set(z, sy, (a + b) / 2); }
+            m.receiveShadow = true;
+            group.add(m);
+        }
+        skirt(-HW + 0.02, FP.x1 - 0.04, WALL_Z + SKIRT_T / 2 + 0.01, "x");
+        skirt(FP.x1 + FP.w + 0.04, HW - 0.02, WALL_Z + SKIRT_T / 2 + 0.01, "x");
+        skirt(WALL_Z + 0.02, 6.0, HW - SKIRT_T / 2 - 0.01, "z");
+        skirt(WALL_Z + 0.02, DOOR_Z - 0.72, -HW + SKIRT_T / 2 + 0.01, "z");
+        skirt(DOOR_Z + 0.72, 6.0, -HW + SKIRT_T / 2 + 0.01, "z");
+
+        // === Fenster: 3-Bogen-Sandstein-Arkade + Wüstenpanorama ===
+        const winCx = (WIN.x1 + WIN.x2) / 2, winMidY = (WIN.y1 + WIN.yTop) / 2, winW = WIN.x2 - WIN.x1;
+        const PANO_ASP = 941 / 1672;
+
+        const viewFar = new THREE.Mesh(
+            new THREE.PlaneGeometry(winW + 6.0, (winW + 6.0) * PANO_ASP),
+            new THREE.MeshBasicMaterial({ map: roomTex("wuestenpanorama-storybook.png", 1, 1, true) })
+        );
+        viewFar.position.set(winCx, winMidY + 0.7, WALL_Z - 2.7);
+        group.add(viewFar);
+        const viewNear = new THREE.Mesh(
+            new THREE.PlaneGeometry(winW + 2.4, (winW + 2.4) * PANO_ASP),
+            new THREE.MeshBasicMaterial({ map: roomTex("wuestenpanorama-storybook.png", 1, 1, true), transparent: true, opacity: 0.5, color: 0xf3ddba })
+        );
+        viewNear.position.set(winCx, winMidY - 0.4, WALL_Z - 1.15);
+        group.add(viewNear);
+
+        const oRev = 0.75, revH = WIN.yTop - WIN.y1 + 0.1;
+        [
+            { g: [winW + 0.1, 0.06, oRev], p: [winCx, WIN.y1 - 0.02, WALL_Z - oRev / 2] },
+            { g: [0.06, revH, oRev], p: [WIN.x1, WIN.y1 + revH / 2 - 0.05, WALL_Z - oRev / 2] },
+            { g: [0.06, revH, oRev], p: [WIN.x2, WIN.y1 + revH / 2 - 0.05, WALL_Z - oRev / 2] }
+        ].forEach(function (c) {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(c.g[0], c.g[1], c.g[2]), sandReveal);
+            m.position.set(c.p[0], c.p[1], c.p[2]);
+            group.add(m);
+        });
+
+        const impTop = BAY_SPRING + 0.01, impBot = BAY_SPRING - 0.09;
+        const pierYc = (WIN.y1 + impBot) / 2, pierH = impBot - WIN.y1;
+        [
+            { x: WIN.x1, w: 0.12 },
+            { x: WIN.x1 + BAYW + 0.5 * COLW, w: COLW + 0.06 },
+            { x: WIN.x1 + 2 * BAYW + 1.5 * COLW, w: COLW + 0.06 },
+            { x: WIN.x2, w: 0.12 }
+        ].forEach(function (p) {
+            const col = new THREE.Mesh(new THREE.BoxGeometry(p.w, pierH, 0.16), sandTrim);
+            col.position.set(p.x, pierYc, WALL_Z + 0.05);
+            group.add(col);
+            const base = new THREE.Mesh(new THREE.BoxGeometry(p.w + 0.12, 0.1, 0.19), sandTrim);
+            base.position.set(p.x, WIN.y1 + 0.03, WALL_Z + 0.06);
+            group.add(base);
+        });
+
+        const impost = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.34, impTop - impBot, 0.2), sandTrim);
+        impost.position.set(winCx, (impTop + impBot) / 2, WALL_Z + 0.055);
+        group.add(impost);
+
+        for (let b = 0; b < 3; b++) {
+            const cx = WIN.x1 + b * (BAYW + COLW) + BAYW / 2;
+            const band = new THREE.Mesh(new THREE.TorusGeometry(BAYW / 2 + 0.04, 0.07, 8, 32, Math.PI), sandTrim);
+            band.position.set(cx, impTop, WALL_Z + 0.05);
+            group.add(band);
+            const key = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.2, 0.14), sandTrim);
+            key.position.set(cx, impTop + BAYW / 2 + 0.02, WALL_Z + 0.06);
+            group.add(key);
+        }
+
+        const sill = new THREE.Mesh(new THREE.BoxGeometry(winW + 0.5, 0.1, 0.16), sandTrim);
+        sill.position.set(winCx, WIN.y1 - 0.04, WALL_Z + 0.03);
+        group.add(sill);
+
+        // === Tür (linke Wand, z=-0.7): freigestelltes Sprite im Sandsteinbogen ===
+        const doorGroup = new THREE.Group();
+        const DR = 0.66, DSPR = 1.9;
+        const doorTexAsp = 1024 / 1536;
+        const doorContentBottom = 0.0358, doorContentH = 0.9355;
+        const visBottom = 0.08, visTop = 2.42;
+        const planeH = (visTop - visBottom) / doorContentH;
+        const planeW = planeH * doorTexAsp;
+        const planeCy = visBottom - doorContentBottom * planeH + planeH / 2;
+
+        const doorMat = new THREE.MeshStandardMaterial({
+            map: roomTex("wuestenschloss-tuer-akazie.png", 1, 1, true),
+            transparent: true, alphaTest: 0.5, depthWrite: true,
+            side: THREE.FrontSide, roughness: 0.62, metalness: 0.06
+        });
+        const doorSprite = new THREE.Mesh(new THREE.PlaneGeometry(planeW, planeH), doorMat);
+        doorSprite.position.set(0, planeCy, 0.04);
+        doorSprite.castShadow = !isMobile;
+        doorGroup.add(doorSprite);
+
+        [-1, 1].forEach(function (s) {
+            const post = new THREE.Mesh(new THREE.BoxGeometry(0.14, DSPR + 0.05, 0.18), sandTrim);
+            post.position.set(s * (DR + 0.09), (DSPR + 0.05) / 2, 0.0);
+            doorGroup.add(post);
+        });
+        const darch = new THREE.Mesh(new THREE.TorusGeometry(DR + 0.09, 0.08, 8, 30, Math.PI), sandTrim);
+        darch.position.set(0, DSPR, 0.0);
+        doorGroup.add(darch);
+        const dThr = new THREE.Mesh(new THREE.BoxGeometry(DR * 2 + 0.5, 0.07, 0.22), sandTrim);
+        dThr.position.set(0, 0.035, 0.0);
+        dThr.receiveShadow = true;
+        doorGroup.add(dThr);
+
+        doorGroup.rotation.y = Math.PI / 2;
+        doorGroup.position.set(-HW + 0.04, 0, DOOR_Z);
+        group.add(doorGroup);
+
+        const doorGlow = new THREE.PointLight(0xffdca0, 1.1, 2.8, 2);
+        doorGlow.position.set(-HW + 0.8, 1.5, DOOR_Z);
+        group.add(doorGlow);
+
+        // === Kamin: breite eingelassene Sandstein-Nische (nur Architektur -
+        //     Flamme/Glut/Scheite kommen vom stilunabhängigen fireMesh). ===
+        const CAV = 1.0, cavH = FP.yTop - FP.y1, cavPanelH = cavH + 0.22, cavCy = FP.y1 + cavH / 2 + 0.05;
+        const cavBack = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.24, cavPanelH), fireBrick);
+        cavBack.position.set(fpCx, cavCy, WALL_Z - CAV);
+        group.add(cavBack);
+        [-1, 1].forEach(function (s) {
+            const side = new THREE.Mesh(new THREE.PlaneGeometry(CAV + 0.1, cavPanelH), fireBrick);
+            side.rotation.y = s * Math.PI / 2;
+            side.position.set(fpCx + s * (FP.w / 2 - 0.01), cavCy, WALL_Z - CAV / 2);
+            side.receiveShadow = true;
+            group.add(side);
+        });
+        const cavTop = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.16, CAV + 0.16), fireBrick);
+        cavTop.rotation.x = Math.PI / 2 + 0.14;
+        cavTop.position.set(fpCx, FP.yTop - 0.04, WALL_Z - CAV / 2);
+        group.add(cavTop);
+        const cavFloor = new THREE.Mesh(new THREE.PlaneGeometry(FP.w + 0.12, CAV + 0.06), fireBrick);
+        cavFloor.rotation.x = -Math.PI / 2;
+        cavFloor.position.set(fpCx, FP.y1 + 0.012, WALL_Z - CAV / 2 + 0.02);
+        cavFloor.receiveShadow = true;
+        group.add(cavFloor);
+
+        const kaminSand = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-kamin-sandstein.png", 0.8, 0.8), roughness: 0.94, color: 0xe6c79a });
+        const kaminSandDk = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-kamin-sandstein.png", 0.5, 0.5), roughness: 0.94, color: 0xd8b688 });
+        const archBand = new THREE.Mesh(new THREE.TorusGeometry(FP_R + 0.07, 0.11, 8, 46, Math.PI), kaminSand);
+        archBand.position.set(fpCx, FP_SPRING, WALL_Z + 0.03);
+        archBand.castShadow = !isMobile;
+        group.add(archBand);
+        [Math.PI / 6, Math.PI / 3, Math.PI / 2, 2 * Math.PI / 3, 5 * Math.PI / 6].forEach(function (ang) {
+            const isKey = Math.abs(ang - Math.PI / 2) < 0.01;
+            const v = new THREE.Mesh(new THREE.BoxGeometry(isKey ? 0.2 : 0.15, isKey ? 0.26 : 0.2, 0.09), kaminSandDk);
+            const rr = FP_R + 0.07;
+            v.position.set(fpCx + Math.cos(ang) * rr, FP_SPRING + Math.sin(ang) * rr, WALL_Z + 0.05);
+            v.rotation.z = ang - Math.PI / 2;
+            group.add(v);
+        });
+        [-1, 1].forEach(function (s) {
+            const imp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.14), kaminSand);
+            imp.position.set(fpCx + s * (FP_R + 0.05), FP_SPRING - 0.03, WALL_Z + 0.04);
+            group.add(imp);
+        });
+
+        const dhearth = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.38, 0.1, 0.44), kaminSandDk);
+        dhearth.position.set(fpCx, 0.05, WALL_Z + 0.2);
+        dhearth.castShadow = !isMobile;
+        dhearth.receiveShadow = true;
+        group.add(dhearth);
+        const hstep = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.08, 0.045, 0.12), kaminSandDk);
+        hstep.position.set(fpCx, 0.022, WALL_Z + 0.44);
+        hstep.receiveShadow = true;
+        group.add(hstep);
+
+        const dbeamMat = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.png", 2.0, 0.3), roughness: 0.68, metalness: 0.05 });
+        const beamH = 0.16, beamBot = FP.yTop + 0.12, beamTop = beamBot + beamH;
+        const mantelBeam = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.36, beamH, 0.2), dbeamMat);
+        mantelBeam.position.set(fpCx, beamBot + beamH / 2, WALL_Z + 0.1);
+        mantelBeam.castShadow = !isMobile;
+        mantelBeam.receiveShadow = true;
+        group.add(mantelBeam);
+
+        const breastMat = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", 1.7, 0.3), roughness: 0.96 });
+        let bry = beamTop;
+        [
+            { w: FP.w + 0.14, h: 0.16, z: 0.05 },
+            { w: FP.w - 0.02, h: 0.16, z: 0.03 },
+            { w: FP.w - 0.24, h: 0.18, z: 0.015 }
+        ].forEach(function (c) {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(c.w, c.h, 0.04), breastMat);
+            m.position.set(fpCx, bry + c.h / 2, WALL_Z + c.z);
+            group.add(m);
+            bry += c.h;
+        });
+
+        dustAnchor.set(winCx, winMidY, WALL_Z + 0.6);
+
+    }
+
     // Vordere, grösstenteils transparente Baumkronen-Ebene: eine weiche,
     // lumpige Silhouette am UNTEREN Rand (Blick über die Wipfel ins Tal),
     // oben transparent. Zusammen mit makeForestWindowTexture ergibt das
@@ -3180,11 +3571,16 @@ function initSchloss3D(canvas) {
         group.add(embers);
         group.userData.embers = embers;
 
-        // Drei gekreuzte, glimmende Holzscheite
+        // Drei gekreuzte, glimmende Holzscheite. Sie bleiben IMMER sichtbar
+        // (auch bei ausgeschaltetem Kamin) - applyFireState() schaltet nur
+        // Glut/Emission um. LOG_MAT_ON/OFF sind die beiden Farb-/Emissions-
+        // zustände (an: warm glimmend, aus: unbeleuchtet, leicht dunkel,
+        // aber klar erkennbar).
         const logMat = new THREE.MeshStandardMaterial({
             color: 0x4a2f1c, roughness: 1,
             emissive: new THREE.Color(0x3a1600), emissiveIntensity: 0.5
         });
+        group.userData.logMat = logMat;
         const logGeo = new THREE.CylinderGeometry(0.075, 0.085, 0.9, 8);
         [
             { ry: 0.32, p: [0, 0.075, 0.04] },
