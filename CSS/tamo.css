@@ -136,6 +136,44 @@
     user-select: none;
 }
 
+/* --- Schlossstil-Reiter --- */
+
+.tamo-style-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tamo-style-tabs:empty {
+    display: none;
+}
+
+.tamo-style-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 2px solid #6b4423;
+    background: linear-gradient(180deg, #f3e2c1 0%, #e2c496 100%);
+    color: var(--yj-color-wood-dark, #5b3a1c);
+    font-weight: 900;
+    font-size: clamp(13px, 1.6vw, 16px);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.tamo-style-tab:hover {
+    transform: translateY(-2px);
+}
+
+.tamo-style-tab.is-active {
+    background: #2c1c10;
+    color: #ffe7b5;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
 /* --- Regal / Kategorien --- */
 
 .tamo-shelf {

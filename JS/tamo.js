@@ -22,6 +22,7 @@
     }
 
     const shelfEl = document.getElementById("tamo-shelf");
+    const styleTabsEl = document.getElementById("tamo-style-tabs");
     const coinCountEl = document.getElementById("tamo-coin-count");
     const lockedEl = document.getElementById("tamo-locked");
 
@@ -44,9 +45,30 @@
     const openSections = [
         document.querySelector(".tamo-intro"),
         document.querySelector(".tamo-workbench"),
+        styleTabsEl,
         shelfEl,
         document.querySelector(".tamo-hint")
     ];
+
+    /* Schlossstil-Reiter oben: ein Reiter je Stil, den der Spieler
+       einrichten kann - öffentlich freigegebene Stile (SCHLOSS_STYLES
+       publicAvailable) plus die, die er schon besitzt. Noch nicht
+       freigegebene Stile (z. B. Wüste vor der Freigabe) tauchen hier
+       NICHT auf. Der gewählte Reiter filtert das Möbelregal nach
+       furniture.styles. Wächst automatisch mit weiteren Stilen. */
+    function availableStyles() {
+        const ownedStyles = (player.schloss && Array.isArray(player.schloss.ownedStyles))
+            ? player.schloss.ownedStyles : [];
+        if (typeof SCHLOSS_STYLES === "undefined" || !Array.isArray(SCHLOSS_STYLES)) {
+            return [{ key: "wald", name: "Waldschloss", icon: "🌲" }];
+        }
+        const list = SCHLOSS_STYLES.filter(function (s) {
+            return s.publicAvailable || ownedStyles.indexOf(s.key) !== -1;
+        }).slice().sort(function (a, b) { return (a.sort || 0) - (b.sort || 0); });
+        return list.length ? list : [{ key: "wald", name: "Waldschloss", icon: "🌲" }];
+    }
+
+    let activeStyleKey = null;
 
     /* Tamos Kategorien in Anzeige-Reihenfolge. tamoCategory() ordnet
        jedes Katalog-Möbel einem dieser Fächer zu (Katalog-`category`
@@ -161,6 +183,29 @@
 
     /* ---- Rendern ---- */
 
+    function renderStyleTabs(styles) {
+
+        if (!styleTabsEl) { return; }
+
+        styleTabsEl.innerHTML = "";
+
+        styles.forEach(function (s) {
+            const tab = document.createElement("button");
+            tab.type = "button";
+            tab.className = "tamo-style-tab" + (s.key === activeStyleKey ? " is-active" : "");
+            tab.setAttribute("role", "tab");
+            tab.setAttribute("aria-selected", s.key === activeStyleKey ? "true" : "false");
+            tab.innerHTML =
+                (s.icon ? '<span aria-hidden="true">' + s.icon + "</span> " : "") + s.name;
+            tab.addEventListener("click", function () {
+                if (activeStyleKey === s.key) { return; }
+                activeStyleKey = s.key;
+                render();
+            });
+            styleTabsEl.appendChild(tab);
+        });
+    }
+
     function render() {
 
         const locked = !castleUnlocked();
@@ -182,10 +227,23 @@
             coinCountEl.textContent = coins();
         }
 
+        // Stil-Reiter: verfügbare Stile bestimmen, aktiven Stil sichern.
+        const styles = availableStyles();
+        if (!activeStyleKey || !styles.some(function (s) { return s.key === activeStyleKey; })) {
+            const preferred = player.schloss && player.schloss.style;
+            activeStyleKey = (preferred && styles.some(function (s) { return s.key === preferred; }))
+                ? preferred
+                : styles[0].key;
+        }
+        renderStyleTabs(styles);
+
         const ownedList = owned();
 
         const forSale = SCHLOSS_FURNITURE.filter(function (f) {
-            return f.unlockedBy === null;
+            // Nur frei kaufbare Möbel des gewählten Stils. Fehlt die
+            // styles-Angabe, gilt das Möbel als stil-übergreifend.
+            return f.unlockedBy === null &&
+                (!Array.isArray(f.styles) || f.styles.indexOf(activeStyleKey) !== -1);
         });
 
         shelfEl.innerHTML = "";
@@ -253,7 +311,10 @@
         if (!shelfEl.children.length) {
             const empty = document.createElement("p");
             empty.className = "tamo-loading";
-            empty.textContent = "Tamo hat gerade alles verkauft – schau später wieder vorbei! 🎉";
+            const styleName = (styles.find(function (s) { return s.key === activeStyleKey; }) || {}).name;
+            empty.textContent = styleName
+                ? "Für " + styleName + " schnitzt Tamo noch – schau bald wieder rein! 🪚"
+                : "Tamo hat gerade alles verkauft – schau später wieder vorbei! 🎉";
             shelfEl.appendChild(empty);
         }
 

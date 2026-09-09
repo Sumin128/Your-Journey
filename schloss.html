@@ -40,7 +40,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=20">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=5">
-    <link rel="stylesheet" href="CSS/schloss.css?v=17">
+    <link rel="stylesheet" href="CSS/schloss.css?v=19">
 
     <!-- Three.js als ES-Modul, fest auf 0.160.0 gepinnt (kein Build-
          Schritt in diesem Projekt). Vorerst über jsdelivr, sobald die
@@ -84,6 +84,10 @@
 
         </section>
 
+        <!-- Einmaliger Einrichtungsstart (erster Schlossbesuch nach der
+             Freischaltung). Steuerung: JS/schloss-starter.js. -->
+        <section id="schloss-starter" class="schloss-starter yj-panel yj-panel--paper yj-enter" hidden></section>
+
         <section id="schloss-editor" class="schloss-editor" hidden>
 
             <div id="schloss-scene-wrap" class="schloss-scene-wrap">
@@ -91,6 +95,8 @@
                 <canvas id="schloss-canvas" aria-label="Dein Schlosszimmer, ein 3D-Raum zum Einrichten"></canvas>
 
                 <span class="schloss-scene-title" aria-hidden="true">🏰 Mein Schloss</span>
+
+                <button type="button" id="schloss-fire-toggle" class="schloss-fire-toggle" aria-label="Kaminfeuer an oder aus" aria-pressed="true" hidden>🔥</button>
 
                 <div id="schloss-rotate-controls" class="schloss-rotate-controls" hidden>
 
@@ -135,7 +141,7 @@
          ===================================================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-    <script src="JS/player.js?v=36"></script>
+    <script src="JS/player.js?v=37"></script>
     <script src="JS/level-data.js?v=2"></script>
     <script src="JS/level-up.js?v=3"></script>
     <script src="JS/auth.js?v=12"></script>
@@ -145,10 +151,11 @@
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/confetti.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
-    <script src="JS/schloss-data.js?v=30"></script>
-    <script src="JS/schloss.js?v=8"></script>
+    <script src="JS/schloss-data.js?v=31"></script>
+    <script src="JS/schloss-starter.js?v=1"></script>
+    <script src="JS/schloss.js?v=9"></script>
     <script src="JS/schloss-migration.js?v=1"></script>
-    <script type="module" src="JS/schloss-3d.js?v=40"></script>
+    <script type="module" src="JS/schloss-3d.js?v=42"></script>
 
 </body>
 </html>

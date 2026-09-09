@@ -337,11 +337,34 @@ function initSchloss3D(canvas) {
         return t;
     }
 
-    // Innenausstattungs-Stil ("Theme"). Aktuell hat nur "wald" eine
-    // shell; für alles andere (bewusst noch nicht fertige Themes)
-    // fällt es sauber auf die Wald-Hülle zurück, damit die Szene nie
-    // "kaputt" aussieht, während das Theme im UI als gesperrt gilt.
-    const theme = getSchlossTheme(player.schloss.style);
+    // Innenausstattungs-Stil ("Theme"). Datengetrieben: der aktive Stil
+    // kommt aus player.schloss.style. NUR lokal (localhost/127.0.0.1)
+    // erlaubt ?style=<key> einen Entwickler-Override zum Prüfen noch
+    // nicht öffentlicher Stile - das ist bewusst KEINE Spieler-Hintertür
+    // (auf der Produktionsdomain wird der Parameter ignoriert).
+    const _devHost = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    const _styleOverride = _devHost
+        ? new URLSearchParams(location.search).get("style")
+        : null;
+    const activeStyleKey = _styleOverride || (player.schloss && player.schloss.style) || "wald";
+
+    // Shell-Builder-Registry: jeder Stil bekommt seinen eigenen, sauber
+    // getrennten Aufbau. "wald" = buildProceduralShell (weiter unten).
+    // "wueste" wird nach der visuellen Freigabe der Wüsten-Vorschau hier
+    // eingehängt (buildDesertShell, aus _preview/wuestenschloss/); bis
+    // dahin fällt jeder Stil ohne eigenen Builder sauber auf "wald"
+    // zurück, damit die Szene nie "kaputt" aussieht.
+    const SHELL_BUILDERS = {
+        wald: function (group, dustAnchor) { return buildProceduralShell(group, dustAnchor); }
+        // wueste: buildDesertShell  <-- Integration nach Freigabe
+    };
+    const buildShellForStyle = SHELL_BUILDERS[activeStyleKey] || SHELL_BUILDERS.wald;
+    if (!SHELL_BUILDERS[activeStyleKey]) {
+        console.info("[Mein Schloss] Stil \"" + activeStyleKey +
+            "\" hat noch keine eigene Raumhülle – Waldstil als Fallback.");
+    }
+
+    const theme = getSchlossTheme(activeStyleKey);
     const shell = theme.shell || getSchlossTheme("wald").shell;
 
 
@@ -499,7 +522,7 @@ function initSchloss3D(canvas) {
     // einem Rutsch ausblenden, sobald die echte GLB-Hülle geladen ist.
     const proceduralShell = new THREE.Group();
     scene.add(proceduralShell);
-    buildProceduralShell(proceduralShell, dustAnchor);
+    buildShellForStyle(proceduralShell, dustAnchor);
 
     // Echte Raumhülle versuchen (nur wenn ein Pfad gesetzt ist):
     // Erfolg -> prozedurale Hülle + Boden weg. Fehler (Datei fehlt /
@@ -556,6 +579,22 @@ function initSchloss3D(canvas) {
     // Öffnungsebene auf dem Kammerboden.
     fireMesh.position.set(FIRE_ANCHOR.x, 0.075, -ROOM_DEPTH / 2 - 0.4);
     scene.add(fireMesh);
+
+    // Kaminfeuer an/aus - kosmetischer Zustand pro Raum
+    // (player.schloss.rooms[raum].fireOn). Fehlt der Wert -> an.
+    // Wird wie wallpaper/floor über den normalen savePlayer()-/
+    // sync_player_data-Weg synchronisiert (kein geschütztes Feld).
+    function fireStateOn() {
+        const r = activeRoom();
+        return !r || r.fireOn !== false;
+    }
+    function applyFireState(on) {
+        fireMesh.visible = on;
+        fireLight.visible = on;
+        if (!on) { fireLight.intensity = 0; }
+    }
+    let _fireOn = fireStateOn();
+    applyFireState(_fireOn);
 
     // Sanft schwebender Lichtstaub im Fensterlicht - passend zum
     // "verwunschenen Waldschloss"-Gefühl, rein dekorativ. Weniger
@@ -1113,6 +1152,32 @@ function initSchloss3D(canvas) {
             lightToggleBtn.setAttribute("aria-pressed", String(nextOn));
             saveSchloss();
 
+        });
+    }
+
+    /* --- Kaminfeuer an/aus (dauerhaft sichtbarer Knopf, unabhängig von
+       der Möbelauswahl - der Kamin gehört zur Raumhülle, nicht zum
+       Inventar). Zustand: activeRoom().fireOn, gespeichert wie jede
+       andere Layout-Änderung. --- */
+    const fireToggleBtn = document.getElementById("schloss-fire-toggle");
+    if (fireToggleBtn) {
+
+        const paintFireBtn = function () {
+            fireToggleBtn.hidden = false;
+            fireToggleBtn.classList.toggle("is-off", !_fireOn);
+            fireToggleBtn.setAttribute("aria-pressed", String(_fireOn));
+            fireToggleBtn.title = _fireOn ? "Kaminfeuer ausmachen" : "Kaminfeuer anzünden";
+        };
+
+        paintFireBtn();
+
+        fireToggleBtn.addEventListener("click", function () {
+            _fireOn = !_fireOn;
+            const r = activeRoom();
+            if (r) { r.fireOn = _fireOn; }
+            applyFireState(_fireOn);
+            paintFireBtn();
+            saveSchloss();
         });
     }
 
@@ -1783,22 +1848,26 @@ function initSchloss3D(canvas) {
         // Kaminfeuer: leicht flackerndes Punktlicht + ruhig wehende
         // Flammen-Ebenen + pulsende Glut. Rein zeitgesteuert (überlagerte
         // Sinus), kein Partikelsystem - das Feuer gehört nicht ins GLB.
-        const flick = 0.84 + Math.sin(t * 8.5) * 0.08 + Math.sin(t * 16.7) * 0.045;
-        fireLight.intensity = shell.fireLight.intensity * flick;
+        // Bei ausgeschaltetem Kamin (_fireOn === false) ruht die Animation
+        // ganz; applyFireState() hat fireMesh/fireLight bereits versteckt.
+        if (_fireOn) {
+            const flick = 0.84 + Math.sin(t * 8.5) * 0.08 + Math.sin(t * 16.7) * 0.045;
+            fireLight.intensity = shell.fireLight.intensity * flick;
 
-        const flames = fireMesh.userData.flames || [];
-        for (let i = 0; i < flames.length; i++) {
-            const fl = flames[i];
-            const ph = fl.userData.phase;
-            const wob = Math.sin(t * 3.2 + ph) * 0.6 + Math.sin(t * 6.8 + ph) * 0.3;
-            fl.position.x = fl.userData.baseX + wob * 0.05;
-            fl.rotation.z = wob * 0.13;
-            fl.scale.y = fl.userData.s0 * (0.86 + Math.sin(t * 5.5 + ph) * 0.16 + (flick - 0.84));
-            fl.scale.x = fl.userData.s0 * (0.98 + Math.sin(t * 4.1 + ph) * 0.06);
-            fl.material.opacity = 0.7 + Math.sin(t * 8.3 + ph) * 0.22;
-        }
-        if (fireMesh.userData.embers) {
-            fireMesh.userData.embers.material.opacity = 0.55 + Math.sin(t * 2.1) * 0.16 + Math.sin(t * 5.3) * 0.06;
+            const flames = fireMesh.userData.flames || [];
+            for (let i = 0; i < flames.length; i++) {
+                const fl = flames[i];
+                const ph = fl.userData.phase;
+                const wob = Math.sin(t * 3.2 + ph) * 0.6 + Math.sin(t * 6.8 + ph) * 0.3;
+                fl.position.x = fl.userData.baseX + wob * 0.05;
+                fl.rotation.z = wob * 0.13;
+                fl.scale.y = fl.userData.s0 * (0.86 + Math.sin(t * 5.5 + ph) * 0.16 + (flick - 0.84));
+                fl.scale.x = fl.userData.s0 * (0.98 + Math.sin(t * 4.1 + ph) * 0.06);
+                fl.material.opacity = 0.7 + Math.sin(t * 8.3 + ph) * 0.22;
+            }
+            if (fireMesh.userData.embers) {
+                fireMesh.userData.embers.material.opacity = 0.55 + Math.sin(t * 2.1) * 0.16 + Math.sin(t * 5.3) * 0.06;
+            }
         }
 
         // surfaceDecor sanft auf die Oberfläche absetzen (nach dem Loslassen).

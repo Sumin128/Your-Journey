@@ -232,56 +232,127 @@
     }
 
 
-    /* --- Stil-Auswahl (Themes). Nur "wald" ist in diesem Durchgang
-       vollständig - die anderen drei sind sichtbar, aber gesperrt und
-       dürfen nicht wirken, als wären sie fertig. Ein Klick darauf sagt
-       kurz Bescheid und wechselt NICHT. --- */
+    /* --- "Raum gestalten": Schlossstil.
+       - Besessene Stile (player.schloss.ownedStyles): frei wechselbar.
+       - Katalog-Stile (SCHLOSS_STYLES) mit publicAvailable:true, die man
+         noch nicht besitzt: freundlicher nächster Schritt
+         ("Ab Stufe X …" bzw. "Kaufen" ab Level + Preis).
+       - Nicht-öffentliche / noch nicht fertige Stile erscheinen NICHT.
+       - Keine Sperr-Icons. Der Stil-Wechsel greift beim nächsten Laden
+         der 3D-Szene (Raumhülle wird bei init gesetzt). --- */
 
-    function renderStyleTab() {
+    async function buySchlossStyle(styleKey, cardEl) {
 
-        if (!styleEl || typeof SCHLOSS_THEMES === "undefined") {
+        const cat = getSchlossStyle(styleKey);
+        if (!cat) { return; }
+
+        if (typeof isLoggedIn === "function" && isLoggedIn()) {
+            try {
+                if (cardEl) { cardEl.classList.add("is-busy"); }
+                const res = await supabaseClient.rpc("purchase_schloss_style", { p_style_key: styleKey });
+                if (res.error) { throw res.error; }
+                const d = res.data || {};
+                if (Array.isArray(d.ownedStyles)) { player.schloss.ownedStyles = d.ownedStyles; }
+                if (typeof d.coins === "number") { player.coins = d.coins; }
+                if (d.style) { player.schloss.style = d.style; }
+                saveSchloss();
+                showMirelonToast(cat.name + " gehört jetzt dir! 🎨", "info");
+                renderStyleTab();
+            } catch (e) {
+                showMirelonToast("Kauf fehlgeschlagen: " + (e && e.message ? e.message : e), "error");
+                if (cardEl) { cardEl.classList.remove("is-busy"); }
+            }
             return;
         }
 
+        // Gast: lokal (nur wenn Preis + Level passen).
+        if (cat.coinPrice == null) { return; }
+        if ((player.coins || 0) < cat.coinPrice) {
+            showMirelonToast("Dir fehlen noch " + (cat.coinPrice - (player.coins || 0)) + " Münzen.", "error");
+            return;
+        }
+        player.coins -= cat.coinPrice;
+        // Kein Auto-Wald: fehlt die Liste, aus dem aktiven Stil ableiten.
+        if (!Array.isArray(player.schloss.ownedStyles) || !player.schloss.ownedStyles.length) {
+            player.schloss.ownedStyles = [player.schloss.style || "wald"];
+        }
+        if (player.schloss.ownedStyles.indexOf(styleKey) === -1) { player.schloss.ownedStyles.push(styleKey); }
+        player.schloss.style = styleKey;
+        saveSchloss();
+        showMirelonToast(cat.name + " gehört jetzt dir! 🎨", "info");
+        renderStyleTab();
+    }
+
+    function playerLevel() {
+        return (player.progression && Number(player.progression.level)) || 1;
+    }
+
+    function renderStyleTab() {
+
+        if (!styleEl || typeof SCHLOSS_STYLES === "undefined") {
+            return;
+        }
+
+        const owned = (player.schloss && player.schloss.ownedStyles) || ["wald"];
         const activeStyle = (player.schloss && player.schloss.style) || "wald";
 
         styleEl.innerHTML = "";
 
         const hint = document.createElement("p");
         hint.className = "schloss-style-hint";
-        hint.textContent = "Hier gestaltest du den Raum selbst: Schlossstil jetzt – Boden und Wände kommen bald.";
+        hint.textContent = "Wähle den Stil deines Schlosses. Besessene Stile kannst du jederzeit kostenlos wechseln.";
         styleEl.appendChild(hint);
 
-        SCHLOSS_THEMES.forEach(function (themeEntry) {
+        SCHLOSS_STYLES.forEach(function (s) {
+
+            const isOwned = owned.indexOf(s.key) !== -1;
+
+            // Nicht besessene Stile nur zeigen, wenn öffentlich freigegeben.
+            if (!isOwned && !s.publicAvailable) { return; }
 
             const card = document.createElement("button");
             card.type = "button";
             card.className = "schloss-style-card" +
-                (themeEntry.id === activeStyle ? " is-active" : "") +
-                (themeEntry.available ? "" : " is-locked");
+                (s.key === activeStyle ? " is-active" : "") +
+                (isOwned ? "" : " is-catalog");
+
+            let footer = "";
+            if (isOwned) {
+                footer = s.key === activeStyle
+                    ? '<span class="schloss-style-card-badge">aktiv</span>'
+                    : '<span class="schloss-style-card-badge">wechseln</span>';
+            } else if (s.coinPrice == null) {
+                footer = '<span class="schloss-style-card-badge">Ab Stufe ' + s.requiredLevel + ' verfügbar</span>';
+            } else if (playerLevel() < s.requiredLevel) {
+                footer = '<span class="schloss-style-card-badge">Ab Stufe ' + s.requiredLevel + ' kaufbar</span>';
+            } else {
+                footer = '<span class="schloss-style-card-badge">Kaufen · ' + s.coinPrice + ' 🪙</span>';
+            }
 
             card.innerHTML =
-                '<span class="schloss-style-card-icon" aria-hidden="true">' + themeEntry.icon + '</span>' +
-                '<span>' + themeEntry.name + '</span>' +
-                (themeEntry.available ? "" : '<span class="schloss-style-card-badge">bald</span>');
+                '<span class="schloss-style-card-icon" aria-hidden="true">' + s.icon + '</span>' +
+                '<span>' + s.name + '</span>' + footer;
 
             card.addEventListener("click", function () {
 
-                if (!themeEntry.available) {
-                    showMirelonToast(themeEntry.name + " wird noch gebaut – bald! 🔨", "info");
+                if (isOwned) {
+                    if (s.key === activeStyle) { return; }
+                    player.schloss.style = s.key;
+                    saveSchloss();
+                    renderStyleTab();
+                    showMirelonToast("Stil gewechselt zu " + s.name + " – lädt beim nächsten Öffnen.", "info");
                     return;
                 }
 
-                if (themeEntry.id === ((player.schloss && player.schloss.style) || "wald")) {
+                if (s.coinPrice == null) {
+                    showMirelonToast(s.name + " kommt bald – ab Stufe " + s.requiredLevel + ". ✨", "info");
                     return;
                 }
-
-                player.schloss.style = themeEntry.id;
-                saveSchloss();
-                renderStyleTab();
-                // Die 3D-Szene übernimmt den neuen Stil beim nächsten
-                // Laden der Seite (Raumhülle wird bei init gesetzt).
-                showMirelonToast("Stil gewechselt zu " + themeEntry.name + ".", "info");
+                if (playerLevel() < s.requiredLevel) {
+                    showMirelonToast("Ab Stufe " + s.requiredLevel + " kannst du " + s.name + " kaufen.", "info");
+                    return;
+                }
+                buySchlossStyle(s.key, card);
 
             });
 
@@ -293,6 +364,10 @@
 
 
     /* --- Einstieg --- */
+
+    function starterPending() {
+        return Boolean(player.schloss) && player.schloss.starterSetupCompleted !== true;
+    }
 
     function render() {
 
@@ -310,6 +385,14 @@
         }
 
         lockedSection.hidden = true;
+
+        // Erster Schlossbesuch: der Einrichtungsstart (JS/schloss-starter.js)
+        // übernimmt die Anzeige, bis er abgeschlossen ist.
+        if (starterPending()) {
+            editorSection.hidden = true;
+            return;
+        }
+
         editorSection.hidden = false;
 
         renderInvCats();

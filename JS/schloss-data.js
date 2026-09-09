@@ -71,6 +71,70 @@ function getSchlossTheme(id) {
     return SCHLOSS_THEMES.find(function (theme) { return theme.id === id; }) || SCHLOSS_THEMES[0];
 }
 
+
+/* =====================================================
+   STIL-KATALOG (Anzeige/Gast) – Spiegel von public.schloss_styles
+   Wird für Gäste und die UI gebraucht; sicherheitsrelevant ist nur
+   die DB-Tabelle (siehe supabase_migration_schloss_styles.sql). Diese
+   Liste beim Ändern von schloss_styles von Hand synchron halten – wie
+   MIRELON_LEVELS <-> game_levels.
+
+   publicAvailable:false  -> Stil erscheint NICHT im öffentlichen
+     "Raum gestalten"-Bereich und ist nicht wählbar. Nur über den
+     Entwickler-Override ?style=<key> lokal prüfbar.
+   coinPrice:null         -> noch kein bewusst festgelegter Preis
+     -> Kauf serverseitig gesperrt.
+   ===================================================== */
+
+const SCHLOSS_STYLES = [
+    {
+        key: "wald", name: "Waldschloss", icon: "🌲",
+        requiredLevel: 3, coinPrice: null,
+        starterEligible: true, publicAvailable: true, sort: 10,
+        // repräsentative Raumvorschau für die Starter-/Stilkarten
+        preview: "images/schloss/stil/wald_vorschau.jpg"
+    },
+    {
+        key: "wueste", name: "Wüstenschloss", icon: "🏜️",
+        requiredLevel: 3, coinPrice: null,
+        starterEligible: true, publicAvailable: false, sort: 20,
+        preview: "images/schloss/stil/wueste_vorschau.jpg"
+    }
+    // rosa / feuer: kommen mit ihrer Raumhülle + realem Preis + Level
+    // (Stufe 5/10/15/20). Bis dahin bewusst NICHT im Katalog -> keine
+    // leeren Karten im Spiel.
+];
+
+function getSchlossStyle(key) {
+    return SCHLOSS_STYLES.find(function (s) { return s.key === key; }) || null;
+}
+
+
+/* =====================================================
+   STARTER-MÖBELPOOLS je Stil – Spiegel von
+   public.schloss_starter_furniture. Für den GAST-Ablauf (keine DB).
+   Bei eingeloggten Spielern wählt die Server-Funktion
+   claim_castle_starter_setup() aus der DB-Tabelle; diese Liste dann
+   von Hand synchron halten.
+
+   Regeln: nur vorhandene, aktive Boden-/Deko-IDs. Keine Wanddeko,
+   keine Vorhänge, keine Sonderlicht-Möbel. NICHT die Level-3-
+   Startpaket-IDs (stuhl/tisch/teppich_wald_a) – die besitzt ein frisch
+   freigeschalteter Spieler schon.
+   ===================================================== */
+
+const STARTER_POOLS = {
+    wald: {
+        seat: ["hocker_wald_a", "baenkchen_wald_a"],
+        decor: ["beistelltisch_wald_a", "pflanze_wald_a", "truhe_wald_a", "teppich_rund_wald_a", "blumenkasten_wald_a"]
+    },
+    // Wüste: leer, bis die Wüsten-Startermöbel existieren + aktiv sind.
+    wueste: {
+        seat: [],
+        decor: []
+    }
+};
+
 /* Möbel-Designs: sprite = gemaltes 2D-Bild (aktuell als aufrechter
    Cutout in der 3D-Szene gerendert). model = optionaler Pfad zu einem
    echten .glb-3D-Modell (images/schloss/models/); ist er gesetzt, lädt

@@ -73,6 +73,17 @@ function defaultSchloss() {
         style: "wald",
         activeRoom: "wohnzimmer",
 
+        /* Schloss-Stile: "style" = aktuell aktiver, "ownedStyles" =
+           dauerhaft besessene (zwischen denen kostenlos gewechselt wird).
+           "starterSetupCompleted" schaltet den einmaligen Einrichtungs-
+           start beim ersten Schlossbesuch frei. ownedStyles +
+           starterSetupCompleted sind serverseitig geschützt (siehe
+           supabase_migration_schloss_styles.sql) - der Client liest sie
+           nur, gesetzt werden sie ausschliesslich von
+           claim_castle_starter_setup() / purchase_schloss_style(). */
+        ownedStyles: ["wald"],
+        starterSetupCompleted: false,
+
         /* wirtschaftlich wertvoll - serverseitig geschützt, siehe
            supabase_migration_schloss.sql */
         unlockedRooms: ["wohnzimmer"],
@@ -82,7 +93,12 @@ function defaultSchloss() {
             wohnzimmer: {
                 wallpaper: "default",
                 floor: "default",
-                placedItems: []
+                placedItems: [],
+                /* Kaminfeuer an/aus - rein kosmetisch, synchronisiert wie
+                   wallpaper/floor über den normalen sync_player_data-Weg
+                   (kein geschütztes Feld, kein DB-Katalog). Fehlt der Wert,
+                   gilt der Kamin als an (!== false). */
+                fireOn: true
             }
         },
 
@@ -699,6 +715,27 @@ if (!player.consumables || typeof player.consumables !== "object") {
 
         if (!player.schloss.customFurniture || typeof player.schloss.customFurniture !== "object") {
             player.schloss.customFurniture = {};
+        }
+
+        /* Stil-Felder für Alt-Speicherstände nachrüsten. ownedStyles wird
+           aus dem AKTUELL gespeicherten Stil abgeleitet - KEIN automatisch
+           geschenktes "wald". "wald" ist nur technischer Notnagel bei
+           komplett fehlendem/kaputtem Stil. Der einmalige Starterablauf
+           läuft beim nächsten Schlossbesuch (starterSetupCompleted bleibt
+           false). Für eingeloggte Konten setzt der Server beides ohnehin. */
+        if (typeof player.schloss.style !== "string" || !player.schloss.style) {
+            player.schloss.style = "wald";
+        }
+        if (!Array.isArray(player.schloss.ownedStyles) || !player.schloss.ownedStyles.length) {
+            player.schloss.ownedStyles = [player.schloss.style];
+        }
+        if (typeof player.schloss.starterSetupCompleted !== "boolean") {
+            player.schloss.starterSetupCompleted = false;
+        }
+        // Aktiver Stil muss ein besessener sein (der Server erzwingt das
+        // gleich; hier für die reine Gast-/Offline-Ansicht).
+        if (player.schloss.ownedStyles.indexOf(player.schloss.style) === -1) {
+            player.schloss.style = player.schloss.ownedStyles[0] || "wald";
         }
 
     }
