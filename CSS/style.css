@@ -1122,8 +1122,7 @@ main {
 
 }
 
-#sidebar-feathers,
-#sidebar-achievements{
+#sidebar-feathers{
 
     display:flex;
     align-items:center;

@@ -114,7 +114,6 @@ function buildSidebarMarkup() {
                 <span class="sidebar-player-info">
                     <strong id="sidebar-player-name">Abenteurer</strong>
                     <span id="sidebar-feathers"><img src="images/muenze.png" alt="" class="coin-icon"> 0 Münzen</span>
-                    <span id="sidebar-achievements">⭐ 0 Erfolge</span>
                 </span>
 
                 <span class="sidebar-profile-hint" aria-hidden="true">Profil &amp; Konto öffnen</span>
@@ -552,11 +551,6 @@ function updateSidebarPlayer() {
             "sidebar-feathers"
         );
 
-    const achievements =
-        document.getElementById(
-            "sidebar-achievements"
-        );
-
     const mobileFeathers =
         document.getElementById(
             "mobile-topbar-feathers"
@@ -584,19 +578,6 @@ function updateSidebarPlayer() {
         feathers.innerHTML =
             '<img src="images/muenze.png" alt="" class="coin-icon"> ' +
             player.coins + " Münzen";
-
-    }
-
-
-    if (achievements) {
-
-        const amount =
-            Array.isArray(player.achievements)
-                ? player.achievements.length
-                : 0;
-
-        achievements.textContent =
-            "⭐ " + amount + " Erfolge";
 
     }
 
