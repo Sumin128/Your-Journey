@@ -476,7 +476,24 @@
         renderInventory();
         renderStyleTab();
 
+        // Aus player.schloss ableitbare Schloss-Erfolge prüfen (Einzug,
+        // Möbelzahl, Wanddeko, beide Designs). Läuft bei jedem
+        // player-updated - also auch nach jedem Möbel-Speichern aus
+        // schloss-3d.js (das feuert player-updated).
+        if (typeof checkSchlossAchievements === "function") {
+            checkSchlossAchievements();
+        }
+
     }
+
+    // Reine Interaktions-Erfolge: der Drehring und der Kaminknopf hinterlassen
+    // keinen eindeutigen Zustand in player.schloss - deshalb direkt am Event.
+    window.addEventListener("schloss:free-rotate", function () {
+        if (typeof addAchievement === "function") { addAchievement("Alles im rechten Winkel"); }
+    });
+    window.addEventListener("schloss:fire-toggle", function () {
+        if (typeof addAchievement === "function") { addAchievement("Feuer nach Wunsch"); }
+    });
 
     render();
 

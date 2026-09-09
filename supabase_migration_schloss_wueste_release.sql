@@ -1,6 +1,6 @@
 -- ============================================================
 -- Your Journey – Migration: Wüstenschloss-Design Preis + Level
--- (2026-09-09) – ENTWURF, NOCH NICHT AUSGEFÜHRT
+-- (2026-09-09) – AUSGEFÜHRT ALS 20260909121253 wuestenschloss_preis_level
 -- ============================================================
 -- Baut auf:
 --   supabase_migration_schloss_styles.sql   (schloss_styles, purchase_schloss_style,
@@ -49,7 +49,7 @@ where style_key = 'wueste'
 
 
 -- ============================================================
--- Nach dem Ausführen prüfen:
+-- Live geprüft nach dem Ausführen:
 --   select style_key, required_level, coin_price, public_available, starter_eligible
 --   from public.schloss_styles order by sort;
 --   -> wueste: required_level 8 | coin_price 250 | public_available FALSE

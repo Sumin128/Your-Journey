@@ -2422,6 +2422,71 @@ const shopItemAchievements = [
 
 
 /* =====================================================
+   MEIN SCHLOSS - ERFOLGE
+   Rund um Einrichten, Möbelrotation, Wanddeko, Kamin und die
+   Schlossdesigns. Vergabe rein clientseitig (wie Quiz/Wörterraten -
+   player.achievements ist kein serverseitig geschütztes Feld) über
+   checkSchlossAchievements() bzw. die schloss:*-Events. castleReward
+   ist Schema-Vorbereitung für spätere an Erfolge gekoppelte Möbel-/
+   Design-Belohnungen (heute überall null).
+   ===================================================== */
+
+const schlossAchievements = [
+    { id: "schloss_einzug", name: "Einzug ins Schloss", description: "Richte dein Schloss zum ersten Mal ein.", icon: "🏰", castleReward: null },
+    { id: "schloss_erstes_moebel", name: "Erstes Möbelstück", description: "Stell dein erstes Möbel in deinem Schlosszimmer auf.", icon: "🪑", castleReward: null },
+    { id: "schloss_gemuetlich", name: "Gemütlich wird's", description: "Hab 6 Möbel gleichzeitig in deinem Zimmer stehen.", icon: "🛋️", castleReward: null },
+    { id: "schloss_volles_haus", name: "Volles Haus", description: "Hab 12 Möbel gleichzeitig in deinem Zimmer stehen.", icon: "🏡", castleReward: null },
+    { id: "schloss_drehmeister", name: "Alles im rechten Winkel", description: "Dreh ein Möbel in deinem Schlosszimmer.", icon: "🔄", castleReward: null },
+    { id: "schloss_galerie", name: "Deine Galerie", description: "Häng 5 Bilder oder Wanddeko in deinem Zimmer auf.", icon: "🖼️", castleReward: null },
+    { id: "schloss_rundum", name: "Rundum geschmückt", description: "Häng Wanddeko an alle drei Wände deines Zimmers.", icon: "📐", castleReward: null },
+    { id: "schloss_kaminknopf", name: "Feuer nach Wunsch", description: "Schalt das Kaminfeuer mit dem Kaminknopf um.", icon: "🔥", castleReward: null },
+    { id: "schloss_zwei_welten", name: "Zwei Welten", description: "Besitze das Wald- und das Wüstenschloss-Design.", icon: "🏜️", castleReward: null, secret: true }
+];
+
+// Wird aus JS/schloss.js aufgerufen (bei jedem player-updated im Editor).
+// Prüft die aus player.schloss ableitbaren Erfolge; die reinen
+// Interaktions-Erfolge (Drehring, Kaminknopf) kommen über die
+// schloss:*-Events direkt via addAchievement.
+function checkSchlossAchievements() {
+
+    if (!player || !player.schloss) { return; }
+    const s = player.schloss;
+
+    if (s.starterSetupCompleted === true) {
+        addAchievement("Einzug ins Schloss");
+    }
+
+    const ownedStyles = Array.isArray(s.ownedStyles) ? s.ownedStyles : [];
+    if (ownedStyles.indexOf("wald") !== -1 && ownedStyles.indexOf("wueste") !== -1) {
+        addAchievement("Zwei Welten");
+    }
+
+    const room = s.rooms && s.rooms[s.activeRoom || "wohnzimmer"];
+    const placed = room && Array.isArray(room.placedItems) ? room.placedItems : [];
+
+    if (placed.length >= 1) { addAchievement("Erstes Möbelstück"); }
+    if (placed.length >= 6) { addAchievement("Gemütlich wird's"); }
+    if (placed.length >= 12) { addAchievement("Volles Haus"); }
+
+    // Wanddeko-Erfolge brauchen den Katalog (placementType). Auf Seiten
+    // ohne schloss-data.js einfach überspringen.
+    if (typeof getSchlossFurniture === "function") {
+        const walls = {};
+        let wallCount = 0;
+        placed.forEach(function (item) {
+            const f = getSchlossFurniture(item.furnitureId);
+            if (f && f.placementType === "wallDecor") {
+                wallCount++;
+                if (item.wall) { walls[item.wall] = true; }
+            }
+        });
+        if (wallCount >= 5) { addAchievement("Deine Galerie"); }
+        if (walls.back && walls.left && walls.right) { addAchievement("Rundum geschmückt"); }
+    }
+}
+
+
+/* =====================================================
    GESAMTKATALOG ALLER ERFOLGE
    Wird von der Erfolge-Seite (erfolge.html) genutzt, um
    alle Erfolge (freigeschaltet oder nicht) anzuzeigen.
@@ -2436,7 +2501,7 @@ const achievementCatalog = quizCompletionAchievements.concat([
 ]).concat(puzzleCompletionAchievements).concat([
     puzzleGalleryAchievement,
     puzzleLuisAchievement
-]).concat(coinMilestoneAchievements).concat(shopItemAchievements).concat(memoryCompletionAchievements);
+]).concat(coinMilestoneAchievements).concat(shopItemAchievements).concat(memoryCompletionAchievements).concat(schlossAchievements);
 
 
 /* =====================================================

@@ -1465,6 +1465,7 @@ function initSchloss3D(canvas) {
             applyFireState(_fireOn);
             paintFireBtn();
             saveSchloss();
+            window.dispatchEvent(new CustomEvent("schloss:fire-toggle", { detail: { on: _fireOn } }));
         });
     }
 
@@ -1558,6 +1559,8 @@ function initSchloss3D(canvas) {
             instance.z = selected.position.z;
             saveSchloss();
         }
+
+        window.dispatchEvent(new CustomEvent("schloss:free-rotate"));
 
     }
 
@@ -2146,6 +2149,7 @@ function initSchloss3D(canvas) {
                 // Rotation rein visuell und kann keinen alten Instanzwert
                 // zwischenspeichern.
                 saveSchloss();
+                window.dispatchEvent(new CustomEvent("schloss:free-rotate"));
             }
             clearSurfaceFollowers(selected);
             rotMoved = false;
