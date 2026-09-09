@@ -85,12 +85,19 @@ function buildSidebarMarkup() {
         return `<a href="${href}" class="${cls}"${current}${attr}>${icon(iconSrc)}<span class="sidebar-label">${label}${note}</span></a>`;
     };
 
-    // defaultOpen: Gruppe ist beim Laden aufgeklappt, auch ohne aktiven
-    // Link darin (Standardzustand fuer "Welt", siehe Gruppen-Logik unten).
-    const group = (label, iconSrc, subs, defaultOpen) =>
-        `<button type="button" class="sidebar-group-header"${defaultOpen ? ' data-default-open="true"' : ""}>${icon(iconSrc)}` +
-        `<span class="sidebar-label">${label}</span><span class="sidebar-chevron">▸</span></button>` +
-        `<div class="sidebar-subnav">${subs.join("")}</div>`;
+    // defaultOpen: Standardgruppe, die aufgeht, wenn weder die aktive
+    // Seite noch der Sitzungszustand eine andere Gruppe vorgibt
+    // (siehe Akkordeon-Logik unten). Kopf = echter <button> mit
+    // aria-expanded + aria-controls, Panel = role="region".
+    let groupIndex = 0;
+    const group = (label, iconSrc, subs, defaultOpen) => {
+        const n = groupIndex++;
+        const hid = "sidebar-group-" + n;
+        const pid = "sidebar-subnav-" + n;
+        return `<button type="button" id="${hid}" class="sidebar-group-header" aria-expanded="false" aria-controls="${pid}"${defaultOpen ? ' data-default-open="true"' : ""}>` +
+            `${icon(iconSrc)}<span class="sidebar-label">${label}</span><span class="sidebar-chevron" aria-hidden="true">▸</span></button>` +
+            `<div class="sidebar-subnav" id="${pid}" role="region" aria-labelledby="${hid}">${subs.join("")}</div>`;
+    };
 
     return `
         <div class="sidebar-header">
@@ -289,65 +296,151 @@ window.addEventListener("player-updated", function () {
 
 
 /* =====================================================
-   AUSKLAPPBARE GRUPPEN (Welt, Kreativ, Läden, Fortschritt)
-   - Ein Klick auf den Gruppentitel klappt NUR diese Gruppe
-     auf/zu (kein Akkordeon, mehrere dürfen offen sein).
-   - Beim Laden offen: die Gruppe mit dem aktiven Link
-     (aria-current). Liegt die aktive Seite in keiner Gruppe
-     (z. B. Einstellungen, Impressum), ist "Welt"
-     (data-default-open) als Standardgruppe offen.
-   - Kein persistenter Zustand: die aktive Seite ergibt sich
-     bei jedem Laden aus der URL, die Hervorhebung bleibt so
-     auch nach einem Reload erhalten.
+   SIDEBAR-AKKORDEON (Welt, Kreativ, Läden, Fortschritt)
+   - Immer nur EINE Reitergruppe gleichzeitig offen. Öffnen
+     einer anderen schließt die bisherige.
+   - Klick auf die bereits offene Gruppe schließt sie
+     (kurzzeitig ist dann keine Gruppe offen).
+   - Beim Laden: die Gruppe mit der aktiven Seite öffnet
+     (aria-current). Sonst der zuletzt in DIESER Sitzung offene
+     Zustand (sessionStorage). Sonst die Standardgruppe
+     (data-default-open = "Welt").
+   - Impressum & Datenschutz liegen bewusst NICHT in einer
+     Gruppe (.sidebar-utility) und bleiben immer erreichbar.
+   - Rein Navigation/Darstellung: kein DB-/Spielstand-Bezug.
    ===================================================== */
 
-const sidebarGroupHeaders =
-    document.querySelectorAll(".sidebar-group-header");
+const SIDEBAR_GROUP_SESSION_KEY = "mirelonSidebarGroup";
 
-function setSidebarGroupOpen(header, isOpen) {
-
-    const panel = header.nextElementSibling;
-
-    if (!panel) {
-        return;
-    }
-
-    header.classList.toggle("is-open", isOpen);
-    header.setAttribute("aria-expanded", String(isOpen));
-    panel.classList.toggle("is-open", isOpen);
-
-}
-
-const sidebarActiveGroupExists = Array.prototype.some.call(
-    sidebarGroupHeaders,
-    function (header) {
-        const panel = header.nextElementSibling;
-        return Boolean(panel) && panel.querySelector('[aria-current="page"]') !== null;
-    }
+const sidebarGroupHeaders = Array.prototype.slice.call(
+    document.querySelectorAll(".sidebar-group-header")
 );
 
-sidebarGroupHeaders.forEach(function (header) {
+function sidebarGroupPanel(header) {
+    return header ? header.nextElementSibling : null;
+}
 
-    const panel = header.nextElementSibling;
+/* Die EINE zentrale Funktion für den geöffneten Zustand: schließt
+   alle Gruppen und öffnet - sofern übergeben - genau eine. Keine
+   konkurrierenden "open"-Klassen pro Gruppe. */
+function setOpenSidebarGroup(target, opts) {
 
-    const containsActiveLink =
-        Boolean(panel) && panel.querySelector('[aria-current="page"]') !== null;
+    const persist = !opts || opts.persist !== false;
+    let openIndex = -1;
 
-    // "Welt" ist die Standardgruppe: offen, solange keine andere Gruppe
-    // die aktive Seite enthält.
-    const openByDefault =
-        header.dataset.defaultOpen === "true" && !sidebarActiveGroupExists;
+    sidebarGroupHeaders.forEach(function (header, i) {
 
-    setSidebarGroupOpen(header, containsActiveLink || openByDefault);
+        const panel = sidebarGroupPanel(header);
+        const isOpen = header === target;
 
-    header.addEventListener("click", function () {
+        if (isOpen) {
+            openIndex = i;
+        }
 
-        // Nur diese Gruppe umschalten - andere bleiben, wie sie sind.
-        setSidebarGroupOpen(header, !header.classList.contains("is-open"));
+        // Beim automatischen Schließen einer anderen Gruppe darf der
+        // Fokus nicht in einem dann unsichtbaren Panel hängen bleiben.
+        if (!isOpen && panel && document.activeElement &&
+            panel.contains(document.activeElement) &&
+            document.activeElement !== header) {
+            header.focus();
+        }
+
+        header.classList.toggle("is-open", isOpen);
+        header.setAttribute("aria-expanded", String(isOpen));
+
+        if (panel) {
+            panel.classList.toggle("is-open", isOpen);
+        }
 
     });
 
-});
+    if (persist) {
+        try {
+            sessionStorage.setItem(
+                SIDEBAR_GROUP_SESSION_KEY,
+                openIndex === -1 ? "none" : String(openIndex)
+            );
+        } catch (e) {
+            /* privater Modus / gesperrter Storage - egal */
+        }
+    }
+
+}
+
+(function initSidebarAccordion() {
+
+    if (!sidebarGroupHeaders.length) {
+        return;
+    }
+
+    // aria-controls / Panel-IDs sind schon im Markup; hier nur den
+    // Startzustand hart zurücksetzen.
+    sidebarGroupHeaders.forEach(function (header) {
+        const panel = sidebarGroupPanel(header);
+        header.classList.remove("is-open");
+        header.setAttribute("aria-expanded", "false");
+        if (panel) { panel.classList.remove("is-open"); }
+    });
+
+    // 1) Gruppe, die die aktuell besuchte Seite enthält (aria-current).
+    let target = null;
+
+    sidebarGroupHeaders.forEach(function (header) {
+        const panel = sidebarGroupPanel(header);
+        if (!target && panel && panel.querySelector('[aria-current="page"]')) {
+            target = header;
+        }
+    });
+
+    if (target) {
+
+        // Aktive Seite gewinnt und wird als Sitzungszustand gemerkt.
+        setOpenSidebarGroup(target);
+
+    } else {
+
+        // 2) Zuletzt in dieser Sitzung offener Zustand.
+        let stored = null;
+        try {
+            stored = sessionStorage.getItem(SIDEBAR_GROUP_SESSION_KEY);
+        } catch (e) { /* ignore */ }
+
+        if (stored === "none") {
+            setOpenSidebarGroup(null, { persist: false });
+        } else if (stored !== null && sidebarGroupHeaders[Number(stored)]) {
+            setOpenSidebarGroup(sidebarGroupHeaders[Number(stored)], { persist: false });
+        } else {
+            // 3) Standardgruppe (data-default-open), sonst nichts.
+            const def = sidebarGroupHeaders.filter(function (h) {
+                return h.dataset.defaultOpen === "true";
+            })[0] || null;
+            setOpenSidebarGroup(def, { persist: false });
+        }
+
+    }
+
+    sidebarGroupHeaders.forEach(function (header) {
+
+        header.addEventListener("click", function () {
+
+            // Eingeklappte Desktop-Sidebar: ein Klick auf eine Gruppe
+            // öffnet erst die Sidebar (statt "blind" eine unsichtbare
+            // Gruppe auf-/zuzuklappen), dann öffnet diese Gruppe.
+            if (!mirelonMobileNavQuery.matches &&
+                !sidebar.classList.contains("open")) {
+                setSidebarOpen(true);
+                setOpenSidebarGroup(header);
+                return;
+            }
+
+            // Akkordeon: offene Gruppe schließen, sonst diese öffnen.
+            setOpenSidebarGroup(header.classList.contains("is-open") ? null : header);
+
+        });
+
+    });
+
+})();
 
 
 /* =====================================================

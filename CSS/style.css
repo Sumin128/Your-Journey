@@ -1620,6 +1620,20 @@ main {
 
 }
 
+/* Akkordeon: weich, aber zuegig - und bei reduzierter Bewegung
+   ganz ohne Animation (kein Springen/Flackern). */
+@media (prefers-reduced-motion: reduce){
+
+    .sidebar-subnav{
+        transition:none;
+    }
+
+    .sidebar-chevron{
+        transition:none;
+    }
+
+}
+
 .sidebar-sublink{
 
     height:46px;
