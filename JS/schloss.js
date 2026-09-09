@@ -215,6 +215,7 @@
             inventoryEl.hidden = !isInventory;
             if (invCatsEl) { invCatsEl.hidden = !isInventory; }
             if (styleEl) { styleEl.hidden = tab !== "style"; }
+            if (drawer) { drawer.classList.toggle("is-style-tab", tab === "style"); }
 
             // Beim Tab-Wechsel die Schublade automatisch aufklappen.
             if (drawer) { drawer.classList.remove("is-collapsed"); }

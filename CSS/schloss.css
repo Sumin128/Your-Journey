@@ -243,6 +243,8 @@
 /* 15°-Einrast-Hilfe: aus = gedämpft, an = hervorgehoben. */
 .schloss-rotate-snap {
     filter: grayscale(0.6) brightness(0.95);
+    font-size: 0.76rem;
+    font-weight: 800;
 }
 
 .schloss-rotate-snap.is-on {
@@ -354,6 +356,12 @@
     max-height: 164px;
     overflow-y: auto;
 
+}
+
+/* Designkarten brauchen mehr Höhe als die kompakte Möbelzeile. */
+.schloss-drawer.is-style-tab .schloss-drawer-body {
+    max-height: none;
+    overflow-y: visible;
 }
 
 .schloss-drawer.is-collapsed .schloss-drawer-body {

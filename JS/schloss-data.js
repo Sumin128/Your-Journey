@@ -115,12 +115,11 @@ const SCHLOSS_STYLES = [
     {
         // Freischaltung ab Stufe 8, Kaufpreis 250 Münzen (Spiegel von
         // public.schloss_styles – siehe supabase_migration_schloss_wueste_release.sql).
-        // publicAvailable bleibt false bis buildDesertShell + Texturen +
-        // Stilwechsel + Speicherung + Tests wirklich fertig und lokal
-        // abgenommen sind; erst dann DB public_available=true + hier true.
+        // Seit dem Wüsten-Release öffentlich kaufbar. Der DB-Spiegel steht
+        // ebenfalls auf public_available=true (Launch-Migration).
         key: "wueste", name: "Wüstenschloss", icon: "🏜️",
         requiredLevel: 8, coinPrice: 250,
-        starterEligible: true, publicAvailable: false, sort: 20,
+        starterEligible: true, publicAvailable: true, sort: 20,
         preview: "images/schloss/stil/wueste_vorschau.jpg"
     }
     // rosa / feuer: kommen mit ihrer Raumhülle + realem Preis + Level
@@ -347,24 +346,22 @@ const SCHLOSS_FURNITURE = [
     //     Platzierungs- oder Kompatibilitätsbeschränkung. Jedes besessene
     //     Möbel ist in jedem Raumdesign nutzbar (Wald im Wüstenschloss,
     //     Wüste im Waldschloss, später auch Rosa/Eis).
-    //     active: false -> noch nicht kaufbar, erscheint NICHT in Tamos
-    //     Werkstatt (auch nicht im "Alle"-Reiter). Spiegel von
-    //     schloss_furniture.active. Zum Wüsten-Launch auf true (hier +
-    //     in der DB).
+    //     Seit dem Wüsten-Release kaufbar und in Tamos Werkstatt sichtbar;
+    //     public.schloss_furniture.active ist ebenfalls true.
     //     GLBs aus Tripo (image_to_3d v3.0 -> GLTF/WEBP/1024/9k/Boden-Pivot
     //     -> warmtex.py mild); Kelim + Wandbild bleiben 2D.
-    { id: "wuesten_hocker_a", name: "Wüstenhocker", category: "sitzmoebel", collection: "wueste", active: false, price: 14, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.62, d: 0.62 }, designs: [{ sprite: "images/schloss/moebel/wuesten_hocker_a.png", model: "images/schloss/models/wuesten_hocker_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "mosaiktisch_a", name: "Mosaiktisch", category: "tische", collection: "wueste", active: false, price: 20, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.72, d: 0.72 }, modelScale: 1.15, surface: { shape: "circle", inset: 0.04 }, designs: [{ sprite: "images/schloss/moebel/mosaiktisch_a.png", model: "images/schloss/models/mosaiktisch_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "oasenpflanze_a", name: "Oasenpflanze", category: "pflanzen", collection: "wueste", active: false, price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.55, d: 0.55 }, modelScale: 1.35, designs: [{ sprite: "images/schloss/moebel/oasenpflanze_a.png", model: "images/schloss/models/oasenpflanze_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "wuesten_hocker_a", name: "Wüstenhocker", category: "sitzmoebel", collection: "wueste", price: 14, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.62, d: 0.62 }, designs: [{ sprite: "images/schloss/moebel/wuesten_hocker_a.png", model: "images/schloss/models/wuesten_hocker_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "mosaiktisch_a", name: "Mosaiktisch", category: "tische", collection: "wueste", price: 20, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.72, d: 0.72 }, modelScale: 1.15, surface: { shape: "circle", inset: 0.04 }, designs: [{ sprite: "images/schloss/moebel/mosaiktisch_a.png", model: "images/schloss/models/mosaiktisch_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "oasenpflanze_a", name: "Oasenpflanze", category: "pflanzen", collection: "wueste", price: 12, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.55, d: 0.55 }, modelScale: 1.35, designs: [{ sprite: "images/schloss/moebel/oasenpflanze_a.png", model: "images/schloss/models/oasenpflanze_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Wüstenlaterne: steady-glow (light, KEINE flame) -> 💡/🌙-Schalter wie
     // lampe_wald_a, gemeinsames Licht-Budget.
-    { id: "wuesten_laterne_a", name: "Wüstenlaterne", category: "licht", collection: "wueste", active: false, price: 16, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.32, d: 0.32 }, light: { color: "#ffcf9a", intensity: 4.5, distance: 3.6, height: 0.95 }, designs: [{ sprite: "images/schloss/moebel/wuesten_laterne_a.png", model: "images/schloss/models/wuesten_laterne_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
-    { id: "wuesten_kommode_a", name: "Akazien-Kommode", category: "aufbewahrung", collection: "wueste", active: false, price: 26, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.55 }, surface: { shape: "rect", inset: 0.1, drop: 0.04 }, designs: [{ sprite: "images/schloss/moebel/wuesten_kommode_a.png", model: "images/schloss/models/wuesten_kommode_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "wuesten_laterne_a", name: "Wüstenlaterne", category: "licht", collection: "wueste", price: 16, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.32, d: 0.32 }, light: { color: "#ffcf9a", intensity: 4.5, distance: 3.6, height: 0.95 }, designs: [{ sprite: "images/schloss/moebel/wuesten_laterne_a.png", model: "images/schloss/models/wuesten_laterne_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "wuesten_kommode_a", name: "Akazien-Kommode", category: "aufbewahrung", collection: "wueste", price: 26, size: "medium", rooms: ["wohnzimmer"], footprint: { w: 1.0, d: 0.55 }, surface: { shape: "rect", inset: 0.1, drop: 0.04 }, designs: [{ sprite: "images/schloss/moebel/wuesten_kommode_a.png", model: "images/schloss/models/wuesten_kommode_a.glb" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null },
     // Kelim-Teppich: flach liegend (floorDecor, keine Möbel-Kollision),
     // konturerhaltend einfärbbar auf der Sprite-Textur - kein GLB.
-    { id: "kelim_teppich_a", name: "Kelim-Teppich", category: "textilien", collection: "wueste", active: false, price: 16, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.5, d: 2.1 }, flatOnFloor: true, placementType: "floorDecor", designs: [{ sprite: "images/schloss/moebel/kelim_teppich_a.png", model: null }], colorable: true, colors: ["#c98a5a", "#7fa8a0", "#e8d3a8", "#b6472f"], paintable: false, hasContent: false, unlockedBy: null },
+    { id: "kelim_teppich_a", name: "Kelim-Teppich", category: "textilien", collection: "wueste", price: 16, size: "large", rooms: ["wohnzimmer"], footprint: { w: 1.5, d: 2.1 }, flatOnFloor: true, placementType: "floorDecor", designs: [{ sprite: "images/schloss/moebel/kelim_teppich_a.png", model: null }], colorable: true, colors: ["#c98a5a", "#7fa8a0", "#e8d3a8", "#b6472f"], paintable: false, hasContent: false, unlockedBy: null },
     // Wüstenbild: gemalte 2D-Wandkunst (Oasen-Szene mit Rahmen) - wallDecor.
-    { id: "wuesten_wandbild_a", name: "Wüstenbild", category: "deko", collection: "wueste", active: false, price: 22, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.62, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/wuesten_wandbild_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null }
+    { id: "wuesten_wandbild_a", name: "Wüstenbild", category: "deko", collection: "wueste", price: 22, size: "small", rooms: ["wohnzimmer"], footprint: { w: 0.62, d: 0.1 }, placementType: "wallDecor", designs: [{ sprite: "images/schloss/moebel/wuesten_wandbild_a.png" }], colorable: false, colors: [], paintable: false, hasContent: false, unlockedBy: null }
 
 ];
 
