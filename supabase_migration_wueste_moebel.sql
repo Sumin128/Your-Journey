@@ -1,6 +1,6 @@
 -- ============================================================
 -- Your Journey – Migration: erste Wüstenschloss-Möbel
--- (2026-09-09) – ENTWURF, NOCH NICHT AUSGEFÜHRT
+-- (2026-09-09)
 -- ============================================================
 -- Baut auf:
 --   supabase_migration_schloss_shop.sql            (schloss_furniture, purchase_schloss_furniture)
@@ -64,6 +64,12 @@ insert into public.schloss_starter_furniture (style_key, slot, furniture_id, sor
 on conflict (style_key, furniture_id) do update set
     slot = excluded.slot,
     sort = excluded.sort;
+
+-- PostgreSQL legt fuer Fremdschluessel nicht automatisch einen Index an.
+-- Der zusammengesetzte Primaerschluessel beginnt mit style_key und deckt
+-- deshalb Zugriffe ueber furniture_id allein nicht ab.
+create index if not exists schloss_starter_furniture_furniture_id_idx
+    on public.schloss_starter_furniture (furniture_id);
 
 
 -- ============================================================

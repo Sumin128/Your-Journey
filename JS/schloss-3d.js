@@ -1154,13 +1154,13 @@ function initSchloss3D(canvas) {
     const RING_BASE_R = 0.62;
     const rotateRing = new THREE.Group();
     rotateRing.visible = false;
-    const _rotBandMat = new THREE.MeshBasicMaterial({ color: 0x53c7e6, transparent: true, opacity: 0.92, side: THREE.DoubleSide, depthWrite: false });
+    const _rotBandMat = new THREE.MeshBasicMaterial({ color: 0xe0a53c, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false });
     const _rotBand = new THREE.Mesh(new THREE.RingGeometry(RING_BASE_R - 0.055, RING_BASE_R + 0.055, 48), _rotBandMat);
     _rotBand.rotation.x = -Math.PI / 2;
     _rotBand.renderOrder = 3;
     const _rotKnob = new THREE.Mesh(
         new THREE.SphereGeometry(0.085, 18, 12),
-        new THREE.MeshBasicMaterial({ color: 0x1f93b3 })
+        new THREE.MeshBasicMaterial({ color: 0x6b421f })
     );
     _rotKnob.renderOrder = 4;
     // Unsichtbare, großzügige Trefferfläche (Donut - Loch = Möbelkörper).
@@ -1542,19 +1542,6 @@ function initSchloss3D(canvas) {
     let rotMoved = false;
     let rotGrabAngle = 0;
     let rotStartY = 0;
-    let _saveTimer = null;
-
-    // Während des Ziehens/Drehens NICHT bei jedem Pointer-Move speichern:
-    // lokal flüssig rendern, erst nach kurzer Ruhe (bzw. beim Loslassen)
-    // persistieren.
-    function saveSchlossDebounced() {
-        if (_saveTimer) { clearTimeout(_saveTimer); }
-        _saveTimer = setTimeout(function () { _saveTimer = null; saveSchloss(); }, 260);
-    }
-    function saveSchlossNow() {
-        if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
-        saveSchloss();
-    }
 
     function updatePointerNDC(event) {
         const bounds = canvas.getBoundingClientRect();
@@ -1653,7 +1640,6 @@ function initSchloss3D(canvas) {
             repositionFollowers(selected, false);
             rotateRing.position.set(c.x, 0.03, c.z);
             knobLocal(ny);
-            saveSchlossDebounced();
             return;
         }
 
@@ -2073,7 +2059,10 @@ function initSchloss3D(canvas) {
                     inst.x = c.x;
                     inst.z = c.z;
                 }
-                saveSchlossNow();
+                // Erst jetzt persistieren: waehrend des Ziehens bleibt die
+                // Rotation rein visuell und kann keinen alten Instanzwert
+                // zwischenspeichern.
+                saveSchloss();
             }
             clearSurfaceFollowers(selected);
             rotMoved = false;
