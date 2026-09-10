@@ -106,25 +106,28 @@ function getSchlossTheme(id) {
 
 const SCHLOSS_STYLES = [
     {
+        // Kaufrhythmus: Stufe 3 erstes Design gratis (Starter-Wahl), danach
+        // je Design 250 Münzen ab dessen requiredLevel. 'wald' hat einen
+        // Preis, damit ein Spieler, der beim Starter 'wueste' gewählt hat,
+        // 'wald' nachkaufen kann.
         key: "wald", name: "Waldschloss", icon: "🌲",
-        requiredLevel: 3, coinPrice: null,
+        requiredLevel: 3, coinPrice: 250,
         starterEligible: true, publicAvailable: true, sort: 10,
         // repräsentative Raumvorschau für die Starter-/Stilkarten
         preview: "images/schloss/stil/wald_vorschau.jpg"
     },
     {
-        // Freischaltung ab Stufe 8, Kaufpreis 250 Münzen (Spiegel von
-        // public.schloss_styles – siehe supabase_migration_schloss_wueste_release.sql).
-        // Seit dem Wüsten-Release öffentlich kaufbar. Der DB-Spiegel steht
-        // ebenfalls auf public_available=true (Launch-Migration).
+        // Zweites Design: kaufbar ab Stufe 7 (3 + 4) für 250 Münzen –
+        // oder gratis, wenn beim Starter gewählt. Spiegel von
+        // public.schloss_styles (siehe supabase_migration_schloss_stil_kaufrhythmus.sql).
         key: "wueste", name: "Wüstenschloss", icon: "🏜️",
-        requiredLevel: 8, coinPrice: 250,
+        requiredLevel: 7, coinPrice: 250,
         starterEligible: true, publicAvailable: true, sort: 20,
         preview: "images/schloss/stil/wueste_vorschau.jpg"
     }
-    // rosa / feuer: kommen mit ihrer Raumhülle + realem Preis + Level
-    // (Stufe 5/10/15/20). Bis dahin bewusst NICHT im Katalog -> keine
-    // leeren Karten im Spiel.
+    // rosa / feuer: kommen mit ihrer Raumhülle, je 250 Münzen, alle 4
+    // Stufen ein weiteres Design (Stufe 11 / 15). Bis dahin bewusst NICHT
+    // im Katalog -> keine leeren Karten im Spiel.
 ];
 
 function getSchlossStyle(key) {

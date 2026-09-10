@@ -96,18 +96,14 @@ drop policy if exists "schloss_styles_read_all" on public.schloss_styles;
 insert into public.schloss_styles
     (style_key, name, required_level, coin_price, starter_eligible, public_available, sort)
 values
-    -- Waldstil: fertig, Standard-Startwahl. Preis NULL.
-    -- HINWEIS: Sobald ein Spieler beim Starter einen anderen Stil wählt,
-    -- ist 'wald' NICHT mehr in ownedStyles. Damit 'wald' danach wieder
-    -- erreichbar ist, braucht er beim Öffentlich-Schalten des zweiten
-    -- Stils einen coin_price ODER einen kostenlosen Rückwechsel-Pfad
-    -- (siehe Bericht, offener Punkt).
-    ('wald',   'Waldschloss',   3, NULL, true,  true,  10),
-    -- Wüstenstil: starter-fähig, aber NOCH NICHT public_available.
-    -- Erst nach visueller Freigabe + Raumhülle-Integration + >= 2 aktiven
-    -- Wüsten-Startermöbeln in schloss_starter_furniture auf true setzen
-    -- und einen coin_price festlegen.
-    ('wueste', 'Wüstenschloss', 3, NULL, true,  false, 20)
+    -- Waldstil: fertig, Standard-Startwahl. Preis 250 (Kaufrhythmus:
+    -- Stufe 3 erstes Design gratis, danach je 250 Münzen). Der Preis
+    -- macht 'wald' nachkaufbar, falls beim Starter 'wueste' gewählt wurde.
+    ('wald',   'Waldschloss',   3, 250, true,  true,  10),
+    -- Wüstenstil: seit dem Wüsten-Release public_available=true (eigene
+    -- Launch-Migration). Kaufbar ab Stufe 7 (= 3 + 4) für 250 Münzen,
+    -- oder gratis als Starter-Wahl.
+    ('wueste', 'Wüstenschloss', 7, 250, true,  true,  20)
 on conflict (style_key) do update set
     name             = excluded.name,
     required_level   = excluded.required_level,
