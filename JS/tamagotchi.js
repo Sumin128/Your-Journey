@@ -399,10 +399,15 @@
        4b. VERSCHIEBEN & POSITION
        ===================================================== */
 
+    // Kopfleiste/Logo einiger Seiten liegt fix oben -> das Baumkind (und der
+    // Einblende-Reiter) dürfen da nicht drunter geraten, sonst ist es nicht
+    // mehr antippbar.
+    var TOP_SAFE = 56;
+
     function applyPosition() {
         var p = player.tamagotchi.pos;
         var fits = p && typeof p.x === "number" &&
-            p.x >= 0 && p.y >= 0 &&
+            p.x >= 0 && p.y >= TOP_SAFE &&
             p.x <= window.innerWidth - 40 && p.y <= window.innerHeight - 40;
         if (fits) {
             root.style.left = p.x + "px";
@@ -441,7 +446,7 @@
             root.classList.add("pc-dragging");
             if (panel && !panel.hidden) { closePanel(); }
             var x = Math.max(4, Math.min(window.innerWidth - root.offsetWidth - 4, baseLeft + dx));
-            var y = Math.max(4, Math.min(window.innerHeight - root.offsetHeight - 4, baseTop + dy));
+            var y = Math.max(TOP_SAFE, Math.min(window.innerHeight - root.offsetHeight - 4, baseTop + dy));
             root.style.left = x + "px";
             root.style.top = y + "px";
             root.style.right = "auto";
@@ -762,6 +767,9 @@
             t.hidden = true;
             save();
             applyVisibility();
+            if (typeof showMirelonToast === "function") {
+                showMirelonToast("Dein Baumkind macht eine Pause. Tipp auf den kleinen Reiter am rechten Rand, wenn du es zurückholen möchtest.", "info");
+            }
             return;
         }
 
