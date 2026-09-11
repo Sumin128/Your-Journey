@@ -521,6 +521,12 @@
         if (!PET_SPECIES[player.tamagotchi.species] && GEMINI_SPECIES[player.tamagotchi.species]) {
             player.tamagotchi.species = GEMINI_SPECIES[player.tamagotchi.species];
         }
+        // Sichtbarkeit + Position aus den (evtl. später eingetroffenen)
+        // Cloud-Daten nachziehen - sonst bleibt der Begleiter im Zustand
+        // der Standarddaten stecken: sichtbar, aber openPanel() bricht
+        // wegen hidden:true ab und der Einblende-Reiter fehlt.
+        applyVisibility();
+        applyPosition();
         renderSprite();
         if (panel && !panel.hidden) {
             renderPanel();
