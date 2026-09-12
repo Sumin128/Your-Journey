@@ -616,7 +616,7 @@
         var t = player.tamagotchi;
         var sp = species();
         var title = LEVEL_TITLES[t.level] || "Gefährte";
-        var need = t.level * 100;
+        var need = xpNeeded(t.level);
         var xpPct = clamp((t.xp / need) * 100);
 
         var bars = VITALS.map(function (v) {
@@ -638,7 +638,10 @@
             '  <button class="pc-icon-btn" type="button" data-act="menu" aria-label="Menü">⚙</button>' +
             '  <button class="pc-icon-btn" type="button" data-act="close" aria-label="Schließen">✕</button>' +
             '</div>' +
-            '<div class="pc-xp"><span class="pc-xp-fill" style="width:' + xpPct + '%"></span></div>' +
+            '<div class="pc-xp-row">' +
+            '  <div class="pc-xp"><span class="pc-xp-fill" style="width:' + xpPct + '%"></span></div>' +
+            '  <span class="pc-xp-label">' + t.xp + ' / ' + need + ' XP</span>' +
+            '</div>' +
             '<div class="pc-vitals">' + bars + '</div>' +
             '<div class="pc-actions">' +
             '  <button type="button" data-act="feed">🍓<span>Füttern</span></button>' +

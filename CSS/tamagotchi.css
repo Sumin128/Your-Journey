@@ -251,9 +251,12 @@
 
 /* XP */
 
+.pc-xp-row {
+    margin: 8px 0;
+}
+
 .pc-xp {
     height: 6px;
-    margin: 8px 0;
     background: #e8ded0;
     border-radius: 99px;
     overflow: hidden;
@@ -264,6 +267,15 @@
     height: 100%;
     background: linear-gradient(90deg, #f4a531, #ffd77a);
     transition: width 0.4s ease;
+}
+
+.pc-xp-label {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--yj-color-ink-soft, #7a5c3e);
+    text-align: right;
 }
 
 /* Werte */
