@@ -1,0 +1,7 @@
+# Hochaufloesende Produktionsquellen werden nicht an die Website ausgeliefert.
+assets-source/
+
+# Lokale Test- und Arbeitsdateien.
+_preview/
+debug.log
+charaktere/*.zip

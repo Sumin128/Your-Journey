@@ -40,6 +40,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=20">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=6">
+    <link rel="stylesheet" href="CSS/symbolduell.css?v=1">
 
     <title>Tessas Hasenschule – Mirelon</title>
 
@@ -132,6 +133,24 @@
 
                 <article class="hase-menu-card">
 
+                    <div class="hase-menu-icon">✨</div>
+
+                    <div class="hase-menu-info">
+                        <h3>Mirelons Symbolduell</h3>
+                        <p>Entdecke das einzige gleiche Symbol schneller als Tessa.</p>
+                    </div>
+
+                    <button
+                        id="start-symbolduell-button"
+                        type="button"
+                        class="yj-button">
+                        Spielen ➜
+                    </button>
+
+                </article>
+
+                <article class="hase-menu-card">
+
                     <div class="hase-menu-icon">🧠</div>
 
                     <div class="hase-menu-info">
@@ -156,6 +175,55 @@
                 class="yj-button yj-button--secondary yj-button--wide">
                 ← &nbsp; Zurück zu Tessa
             </button>
+
+        </section>
+
+
+        <section id="symbolduell-game" class="game-panel yj-panel yj-panel--paper" hidden>
+
+            <div id="symbolduell-intro" class="symbolduell-hero">
+                <div class="symbolduell-hero-mark" aria-hidden="true">✨</div>
+                <h2>Mirelons Symbolduell</h2>
+                <p>Auf beiden Karten gibt es <strong>genau ein gleiches Symbol</strong>. Finde es vor Tessa!</p>
+
+                <div class="symbolduell-rules">
+                    <div class="symbolduell-rule"><strong>8</strong><span>Symbole je Karte</span></div>
+                    <div class="symbolduell-rule"><strong>1</strong><span>gemeinsamer Treffer</span></div>
+                    <div class="symbolduell-rule"><strong>8</strong><span>Punkte zum Sieg</span></div>
+                </div>
+
+                <p>Tessa braucht meist 10 bis 15 Sekunden. Tippe das gemeinsame Symbol auf einer der beiden Karten an.</p>
+                <div class="symbolduell-actions">
+                    <button id="symbolduell-start-button" type="button" class="yj-button">Duell starten</button>
+                    <button id="back-to-hase-menu-from-symbolduell" type="button" class="yj-button yj-button--secondary">← Spiel verlassen</button>
+                </div>
+            </div>
+
+            <div id="symbolduell-play" hidden>
+                <div class="symbolduell-topbar">
+                    <div class="symbolduell-score">Du <output id="symbolduell-player-score">0</output></div>
+                    <p id="symbolduell-message" class="symbolduell-message" aria-live="polite">Finde das gleiche Symbol!</p>
+                    <div class="symbolduell-score">Tessa <output id="symbolduell-tessa-score">0</output></div>
+                </div>
+
+                <div class="symbolduell-arena" aria-label="Zwei Symbolkarten">
+                    <div id="symbolduell-card-left" class="symbolduell-card" aria-label="Linke Karte"></div>
+                    <div id="symbolduell-card-right" class="symbolduell-card" aria-label="Rechte Karte"></div>
+                </div>
+
+                <div id="symbolduell-thinking" class="symbolduell-thinking" aria-hidden="true"></div>
+                <p class="symbolduell-thinking-label">Tessa sucht ebenfalls …</p>
+            </div>
+
+            <div id="symbolduell-result" class="symbolduell-result" hidden>
+                <div class="symbolduell-hero-mark" aria-hidden="true">🏆</div>
+                <h2 id="symbolduell-result-title"></h2>
+                <p id="symbolduell-result-text"></p>
+                <div class="symbolduell-actions">
+                    <button id="symbolduell-restart-button" type="button" class="yj-button">Nochmal spielen</button>
+                    <button id="symbolduell-result-back" type="button" class="yj-button yj-button--secondary">← Zu Tessas Spielen</button>
+                </div>
+            </div>
 
         </section>
 
@@ -334,7 +402,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="JS/player.js?v=39"></script>
-    <script src="JS/level-data.js?v=2"></script>
+    <script src="JS/level-data.js?v=3"></script>
     <script src="JS/level-up.js?v=3"></script>
     <script src="JS/auth.js?v=12"></script>
     <script src="JS/sidebar.js?v=29"></script>
@@ -344,8 +412,8 @@
     <script src="JS/confetti.js?v=1"></script>
     <script src="JS/sounds.js?v=1"></script>
     <script src="JS/words.js?v=1"></script>
-    <script src="JS/eulenschule.js?v=9"></script>
+    <script src="JS/eulenschule.js?v=10"></script>
     <script src="JS/memory.js?v=2"></script>
+    <script src="JS/symbolduell.js?v=1"></script>
 </body>
 </html>
-

@@ -84,6 +84,8 @@ function mirelonXpFor(reason, difficulty) {
             return d === "normal" ? 10 : 5;
         case "malstube_bild_gespeichert":
             return 10;
+        case "symbolduell_gewonnen":
+            return 25;
         default:
             return null;
     }

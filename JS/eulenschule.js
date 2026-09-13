@@ -41,17 +41,19 @@ window.addEventListener("player-updated", updateHasenschulePlayer);
    1b. BILDSCHIRM-NAVIGATION
    Tessas Hasenschule funktioniert wie Branos' Bärental:
    Begrüßung -> Spielmenü -> gewähltes Spiel (Wörterraten
-   oder Memory, siehe JS/memory.js).
+   Memory oder Symbolduell, siehe JS/memory.js und JS/symbolduell.js).
    ===================================================== */
 
 const tessaIntro = document.getElementById("tessa-intro");
 const haseGameMenu = document.getElementById("hase-game-menu");
 const wordGameSection = document.getElementById("word-game");
 const memoryGameSection = document.getElementById("memory-game");
+const symbolduellGameSection = document.getElementById("symbolduell-game");
 
 const haseStartButton = document.getElementById("hase-start-button");
 const startWordgameButton = document.getElementById("start-wordgame-button");
 const startMemoryButton = document.getElementById("start-memory-button");
+const startSymbolduellButton = document.getElementById("start-symbolduell-button");
 const backToTessaButton = document.getElementById("back-to-tessa");
 const backToHaseMenuButton = document.getElementById("back-to-hase-menu");
 const backToHaseMenuFromMemoryButton = document.getElementById("back-to-hase-menu-from-memory");
@@ -73,6 +75,19 @@ if (startMemoryButton) {
 
         if (typeof showMemoryDifficultySelect === "function") {
             showMemoryDifficultySelect();
+        }
+
+    });
+}
+
+if (startSymbolduellButton) {
+    startSymbolduellButton.addEventListener("click", function () {
+
+        haseGameMenu.hidden = true;
+        symbolduellGameSection.hidden = false;
+
+        if (typeof showSymbolduellIntro === "function") {
+            showSymbolduellIntro();
         }
 
     });

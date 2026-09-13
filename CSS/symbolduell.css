@@ -1,0 +1,252 @@
+#symbolduell-game {
+    --duell-ink: #4c2b1b;
+    --duell-gold: #dda23b;
+    --duell-red: #b94d46;
+    --duell-green: #3e7c55;
+    overflow: hidden;
+}
+
+.symbolduell-hero,
+.symbolduell-result {
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.symbolduell-hero-mark {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 10px;
+    display: grid;
+    place-items: center;
+    border: 4px solid #fff8df;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff5bd 0 45%, #d8813f 46% 100%);
+    box-shadow: 0 8px 20px rgba(78, 43, 23, .22);
+    font-size: 44px;
+}
+
+.symbolduell-rules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 18px 0;
+}
+
+.symbolduell-rule {
+    padding: 12px;
+    border: 1px solid rgba(123, 78, 32, .22);
+    border-radius: 16px;
+    background: rgba(255, 250, 232, .72);
+}
+
+.symbolduell-rule strong,
+.symbolduell-rule span {
+    display: block;
+}
+
+.symbolduell-rule strong {
+    color: var(--duell-red);
+    font-size: 1.3rem;
+}
+
+.symbolduell-topbar {
+    display: grid;
+    grid-template-columns: 1fr minmax(180px, 1.4fr) 1fr;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.symbolduell-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 8px 12px;
+    border-radius: 18px;
+    background: #fff8e3;
+    border: 2px solid rgba(154, 93, 39, .24);
+    color: var(--duell-ink);
+    font-weight: 800;
+}
+
+.symbolduell-score output {
+    min-width: 34px;
+    font-size: 1.65rem;
+    color: var(--duell-red);
+}
+
+.symbolduell-message {
+    margin: 0;
+    min-height: 48px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: var(--duell-ink);
+    font-weight: 800;
+}
+
+.symbolduell-message.is-player { color: var(--duell-green); }
+.symbolduell-message.is-tessa { color: #8152a6; }
+
+.symbolduell-arena {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(270px, 1fr) minmax(270px, 1fr);
+    place-items: center;
+    gap: clamp(14px, 4vw, 54px);
+    max-width: 870px;
+    margin: 0 auto;
+    padding: 18px;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,.82), transparent 44%),
+        linear-gradient(145deg, #ecdcae, #d4b878);
+    box-shadow: inset 0 0 0 2px rgba(108, 65, 28, .18);
+}
+
+.symbolduell-card {
+    width: min(38vw, 350px);
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 9%;
+    border: clamp(7px, 1vw, 12px) solid #fffdf5;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 26%, rgba(255,255,255,.92), transparent 34%),
+        radial-gradient(circle, #fff9e6 0 62%, #f7e6ae 100%);
+    box-shadow: 0 12px 28px rgba(80, 47, 22, .25), 0 0 0 3px var(--duell-gold);
+}
+
+.symbolduell-card:first-child { transform: rotate(-2deg); }
+.symbolduell-card:last-child { transform: rotate(2deg); }
+
+.symbolduell-symbol {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform .16s ease;
+}
+
+.symbolduell-symbol-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-image: url("../images/symbolduell/symbole-atlas.png");
+    background-repeat: no-repeat;
+    background-size: 800% 800%;
+    transform: rotate(var(--symbol-rotation)) scale(var(--symbol-scale));
+    filter: drop-shadow(0 2px 1px rgba(64, 37, 20, .16));
+    transition: transform .16s ease, filter .16s ease;
+    pointer-events: none;
+}
+
+.symbolduell-symbol:hover .symbolduell-symbol-image,
+.symbolduell-symbol:focus-visible .symbolduell-symbol-image {
+    filter: drop-shadow(0 0 7px rgba(221, 162, 59, .75));
+}
+
+.symbolduell-symbol:hover,
+.symbolduell-symbol:focus-visible {
+    transform: scale(1.1);
+}
+
+.symbolduell-symbol:focus-visible {
+    outline: 3px solid #2b76b9;
+    outline-offset: 2px;
+}
+
+.symbolduell-symbol.is-match {
+    background: radial-gradient(circle, rgba(255, 240, 126, .9), rgba(255, 240, 126, 0) 72%);
+    animation: symbolduell-found .55s ease both;
+}
+
+.symbolduell-symbol.is-match .symbolduell-symbol-image {
+    filter: drop-shadow(0 0 9px #ffd34d) drop-shadow(0 0 2px #7e4c11);
+}
+
+.symbolduell-symbol.is-wrong {
+    animation: symbolduell-wrong .34s ease;
+}
+
+.symbolduell-thinking {
+    max-width: 870px;
+    height: 8px;
+    margin: 12px auto 6px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: rgba(103, 66, 35, .14);
+}
+
+.symbolduell-thinking::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #8b65ad, #d49ee3);
+}
+
+.symbolduell-thinking.is-running::after {
+    animation: symbolduell-think var(--thinking-duration) linear forwards;
+}
+
+.symbolduell-thinking-label {
+    margin: 0 0 12px;
+    text-align: center;
+    color: #775f50;
+    font-size: .88rem;
+}
+
+.symbolduell-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+@keyframes symbolduell-found {
+    50% { transform: scale(1.18); }
+}
+
+@keyframes symbolduell-wrong {
+    25%, 75% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+}
+
+@keyframes symbolduell-think {
+    to { width: 100%; }
+}
+
+@media (max-width: 720px) {
+    .symbolduell-rules { grid-template-columns: 1fr; }
+    .symbolduell-topbar { grid-template-columns: 1fr 1fr; }
+    .symbolduell-message { grid-column: 1 / -1; grid-row: 2; }
+    .symbolduell-arena { grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 7px; }
+    .symbolduell-card { width: min(42vw, 290px); padding: 7%; border-width: 6px; }
+    .symbolduell-score { min-height: 42px; padding: 6px 8px; font-size: .9rem; }
+}
+
+@media (max-width: 430px) {
+    .symbolduell-card { width: 40vw; }
+    .symbolduell-arena { border-radius: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .symbolduell-symbol,
+    .symbolduell-symbol-image,
+    .symbolduell-thinking::after { animation: none !important; transition: none !important; }
+    .symbolduell-thinking.is-running::after { width: 100%; opacity: .45; }
+}
