@@ -7304,6 +7304,13 @@ justify-content:center;
 
 }
 
+.highscore-animal-note {
+
+    margin-top: 8px;
+    font-size: 0.85rem;
+
+}
+
 .highscore-panel {
 
     width: min(100%, 900px);
@@ -7356,6 +7363,31 @@ justify-content:center;
 
     border-color: var(--yj-color-accent);
     background: color-mix(in srgb, var(--yj-color-accent) 12%, var(--yj-color-button-bg));
+
+}
+
+/* Tier-Vergleichswerte (Kuro, Tessa, Faro, Branos, Luis) - keine echten
+   Mitspieler, deshalb eigene, gedämpftere Optik + "Tier"-Marke am Namen. */
+.highscore-row--animal {
+
+    border-style: dashed;
+    background: color-mix(in srgb, var(--yj-color-success, #4c8c5a) 10%, var(--yj-color-button-bg));
+
+}
+
+.highscore-tag {
+
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+
+    background: var(--yj-color-success, #4c8c5a);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
 
 }
 

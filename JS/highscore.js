@@ -17,6 +17,21 @@
         return;
     }
 
+    /* Feste "Tier-Vergleichswerte" - keine echten Mitspieler, sondern
+       Ansporn-Ziele der fünf Mirelon-Figuren. Punkte fest verdrahtet
+       (Vielfache von 10, wie ein echter Sieg), keine eigene Tabelle,
+       kein Account - rein zur Motivation. Werte später bei Bedarf
+       anpassen, wenn sich zeigt, wo echte Kinder gerade stehen. */
+    const ANIMAL_RIVALS = [
+        { icon: "🦎", name: "Luis", points: 30 },
+        { icon: "🐰", name: "Tessa", points: 60 },
+        { icon: "🦉", name: "Kuro", points: 90 },
+        { icon: "🐻", name: "Branos", points: 130 },
+        { icon: "🦊", name: "Faro", points: 170 }
+    ].map(function (a) {
+        return { user_id: null, player_name: a.icon + " " + a.name, points: a.points, isAnimal: true };
+    });
+
     function setMessage(text, isError) {
 
         messageEl.textContent = text;
@@ -37,6 +52,9 @@
             if (currentUserId && row.user_id === currentUserId) {
                 item.classList.add("highscore-row--own");
             }
+            if (row.isAnimal) {
+                item.classList.add("highscore-row--animal");
+            }
 
             const rank = document.createElement("span");
             rank.className = "highscore-rank";
@@ -45,6 +63,12 @@
             const name = document.createElement("span");
             name.className = "highscore-name";
             name.textContent = row.player_name;
+            if (row.isAnimal) {
+                const tag = document.createElement("span");
+                tag.className = "highscore-tag";
+                tag.textContent = "Tier";
+                name.appendChild(tag);
+            }
 
             const points = document.createElement("span");
             points.className = "highscore-time";
@@ -79,26 +103,28 @@
                 .from("highscores")
                 .select("user_id, player_name, points")
                 .order("points", { ascending: false })
-                .limit(10);
+                .limit(20);
 
         if (scoresResult.error) {
             setMessage("Bestenliste konnte nicht geladen werden.", true);
             return;
         }
 
-        if (!scoresResult.data || !scoresResult.data.length) {
-            setMessage("Hier steht noch niemand – gewinne als Erste*r ein Spiel!", false);
-        } else {
-            renderList(scoresResult.data, session ? session.user.id : null);
-        }
+        // Tier-Vergleichswerte reinmischen und neu nach Punkten sortieren -
+        // damit sie an ihrem echten Rang stehen, statt einfach unten dran.
+        const merged = (scoresResult.data || [])
+            .concat(ANIMAL_RIVALS)
+            .sort(function (a, b) { return b.points - a.points; });
+        const displayRows = merged.slice(0, 10);
+
+        renderList(displayRows, session ? session.user.id : null);
 
         if (!session) {
             return;
         }
 
         const ownInTop =
-            scoresResult.data &&
-            scoresResult.data.some(function (row) {
+            displayRows.some(function (row) {
                 return row.user_id === session.user.id;
             });
 
