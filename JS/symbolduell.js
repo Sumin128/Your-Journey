@@ -7,7 +7,7 @@
 (function () {
     "use strict";
 
-    const SYMBOLS = [
+    const MIRELON_SYMBOLS = [
         ["fuchs", "Fuchs"], ["eichenblatt", "Eichenblatt"], ["zauberstab", "Zauberstab"],
         ["goldschluessel", "Goldschlüssel"], ["pilz", "Pilz"], ["kristall", "Kristall"],
         ["zaubertrank", "Zaubertrank"], ["burgturm", "Burgturm"], ["feder", "Feder"],
@@ -30,6 +30,55 @@
     ].map(function (entry, index) {
         return { id: index, key: entry[0], label: entry[1] };
     });
+
+    const FAIRYTALE_SYMBOLS = [
+        ["waldprinzessin", "Waldprinzessin"], ["wuestenprinzessin", "Wüstenprinzessin"],
+        ["eisprinzessin", "Eisprinzessin"], ["junger_ritter", "Junger Ritter"],
+        ["walddrache", "Walddrache"], ["eisdrache", "Eisdrache"], ["mondeule", "Mondeule"],
+        ["moosgolem", "Moosgolem"], ["waldlaeuferin", "Waldläuferin"],
+        ["zauberlehrling", "Zauberlehrling"], ["hexenlehrling", "Hexenlehrling"],
+        ["maskierter_schurke", "Maskierter Schurke"], ["wolkenriese", "Wolkenriese"],
+        ["brueckentroll", "Brückentroll"], ["lichtgeist", "Lichtgeist"],
+        ["kristallfuchs", "Kristallfuchs"], ["theaterschurke", "Theaterschurke"],
+        ["burgwaechter", "Burgwächter"], ["drachenhueterin", "Drachenhüterin"],
+        ["wanderbarde", "Wanderbarde"], ["fluegelkatze", "Flügelkatze"],
+        ["froschbote", "Froschbote"], ["greifenjunges", "Greifenjunges"],
+        ["pilzwesen", "Pilzwesen"], ["koenigliche_erfinderin", "Königliche Erfinderin"],
+        ["mondkoenigin", "Mondkönigin"], ["stallheld", "Stallheld"],
+        ["koboldhaendler", "Koboldhändler"], ["sternenhirsch", "Sternenhirsch"],
+        ["uhrwerkvogel", "Uhrwerkvogel"], ["steinloewe", "Steinlöwe"],
+        ["schattenwicht", "Schattenwicht"], ["glasschuh", "Verzauberter Glasschuh"],
+        ["spinnrad", "Goldenes Spinnrad"], ["zauberspiegel", "Zauberspiegel"],
+        ["koenigsbrief", "Königsbrief"], ["rosenschloss", "Rosenschloss"],
+        ["waldtor", "Verzaubertes Waldtor"], ["eispalast", "Eispalast"],
+        ["wuestenpalast", "Wüstenpalast"], ["flugteppich", "Fliegender Teppich"],
+        ["drachenei", "Drachenei"], ["maerchenbuch", "Zauberbuch"],
+        ["mondlaterne", "Mondlaterne"], ["mondbruecke", "Mondbrücke"],
+        ["wunschbrunnen", "Wunschbrunnen"], ["hexenhaus", "Hexenhaus"],
+        ["heldenzelt", "Heldenzelt"], ["kristallkrone", "Kristallkrone"],
+        ["heldenumhang", "Heldenumhang"], ["uebungsschwert", "Übungsschwert"],
+        ["prinzessinnenfaecher", "Prinzessinnenfächer"], ["rosenwappen", "Rosenwappen"],
+        ["sternenbanner", "Sternenbanner"], ["zauberportal", "Zauberportal"],
+        ["wolkentreppe", "Wolkentreppe"], ["zauberkessel", "Zauberkessel"]
+    ].map(function (entry, index) {
+        return { id: index, key: entry[0], label: entry[1] };
+    });
+
+    const CATEGORIES = {
+        mirelon: {
+            label: "Mirelon",
+            atlas: "images/symbolduell/symbole-atlas.png",
+            symbols: MIRELON_SYMBOLS
+        },
+        maerchen: {
+            label: "Märchenwelt",
+            atlas: "images/symbolduell/maerchen-atlas.webp",
+            symbols: FAIRYTALE_SYMBOLS
+        }
+    };
+
+    let activeCategory = CATEGORIES.mirelon;
+    let SYMBOLS = activeCategory.symbols;
 
     const SCORE_TO_WIN = 8;
     const GRID_SLOTS = [0, 1, 2, 3, 5, 6, 7, 8];
@@ -166,6 +215,7 @@
             button.setAttribute("aria-label", symbol.label);
             image.className = "symbolduell-symbol-image";
             image.setAttribute("aria-hidden", "true");
+            image.style.backgroundImage = 'url("' + activeCategory.atlas + '")';
             image.style.backgroundPosition =
                 ((symbolId % 8) / 7 * 100).toFixed(4) + "% " +
                 (Math.floor(symbolId / 8) / 7 * 100).toFixed(4) + "%";
@@ -311,6 +361,21 @@
         intro.hidden = false;
     }
 
+    section.querySelectorAll("[data-symbolduell-category]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const category = CATEGORIES[button.dataset.symbolduellCategory];
+            if (!category) {
+                return;
+            }
+            activeCategory = category;
+            SYMBOLS = category.symbols;
+            validateDeck(deck);
+            section.querySelectorAll("[data-symbolduell-category]").forEach(function (option) {
+                option.setAttribute("aria-pressed", String(option === button));
+            });
+        });
+    });
+
     document.getElementById("symbolduell-start-button")?.addEventListener("click", startMatch);
     document.getElementById("symbolduell-restart-button")?.addEventListener("click", startMatch);
     document.getElementById("back-to-hase-menu-from-symbolduell")?.addEventListener("click", function () {
@@ -326,5 +391,5 @@
     window.addEventListener("pagehide", clearTimers);
 
     window.showSymbolduellIntro = showIntro;
-    window.MirelonSymbolduell = { buildDeck: buildDeck, validateDeck: validateDeck, symbols: SYMBOLS };
+    window.MirelonSymbolduell = { buildDeck: buildDeck, validateDeck: validateDeck, categories: CATEGORIES };
 }());

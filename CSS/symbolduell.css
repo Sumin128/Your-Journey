@@ -26,6 +26,37 @@
     font-size: 44px;
 }
 
+.symbolduell-categories {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 16px 0 4px;
+}
+
+.symbolduell-category {
+    min-height: 46px;
+    padding: 9px 18px;
+    border: 2px solid rgba(123, 78, 32, .28);
+    border-radius: 999px;
+    background: #fff8e3;
+    color: var(--duell-ink);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.symbolduell-category[aria-pressed="true"] {
+    border-color: var(--duell-gold);
+    background: #f7d98c;
+    box-shadow: 0 3px 0 #a9692d;
+}
+
+.symbolduell-category:focus-visible {
+    outline: 3px solid #2b76b9;
+    outline-offset: 2px;
+}
+
 .symbolduell-rules {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

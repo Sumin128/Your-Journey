@@ -40,7 +40,7 @@
         rel="stylesheet"
         href="CSS/components/index.css?v=20">
     <link rel="stylesheet" href="CSS/tamagotchi.css?v=6">
-    <link rel="stylesheet" href="CSS/symbolduell.css?v=1">
+    <link rel="stylesheet" href="CSS/symbolduell.css?v=2">
 
     <title>Tessas Hasenschule – Mirelon</title>
 
@@ -185,6 +185,15 @@
                 <div class="symbolduell-hero-mark" aria-hidden="true">✨</div>
                 <h2>Mirelons Symbolduell</h2>
                 <p>Auf beiden Karten gibt es <strong>genau ein gleiches Symbol</strong>. Finde es vor Tessa!</p>
+
+                <div class="symbolduell-categories" role="group" aria-label="Symbolwelt wählen">
+                    <button type="button" class="symbolduell-category" data-symbolduell-category="mirelon" aria-pressed="true">
+                        <span aria-hidden="true">🌿</span> Mirelon
+                    </button>
+                    <button type="button" class="symbolduell-category" data-symbolduell-category="maerchen" aria-pressed="false">
+                        <span aria-hidden="true">👑</span> Märchenwelt
+                    </button>
+                </div>
 
                 <div class="symbolduell-rules">
                     <div class="symbolduell-rule"><strong>8</strong><span>Symbole je Karte</span></div>
@@ -414,6 +423,6 @@
     <script src="JS/words.js?v=1"></script>
     <script src="JS/eulenschule.js?v=10"></script>
     <script src="JS/memory.js?v=2"></script>
-    <script src="JS/symbolduell.js?v=1"></script>
+    <script src="JS/symbolduell.js?v=2"></script>
 </body>
 </html>
