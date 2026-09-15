@@ -25,6 +25,10 @@
             roomId: null, roomCode: null, gameType: gameType, status: null,
             maxPlayers: null, hostId: null, players: [], mySeat: null,
             stateVersion: 0, publicInfo: null, myHand: null, myPendingCards: null,
+            // Nur gefüllt, wenn WIR der Gastgeber sind (siehe load_room_state()):
+            // voller, unredigierter Zustand fürs eigene Wiederaufsetzen nach
+            // einem Reload/Reconnect - kein Gast bekommt das je gesetzt.
+            hostState: null,
             connectionStatus: "idle" // idle|connecting|connected|reconnecting|error
         };
 
@@ -66,6 +70,7 @@
             state.publicInfo = snap.public_info;
             state.myHand = snap.my_hand;
             state.myPendingCards = snap.my_pending_cards;
+            state.hostState = snap.host_state;
             emit("snapshot", state);
             checkHostPresence();
             return state;
@@ -196,6 +201,13 @@
             if (channel) { channel.broadcast(payload); }
         }
 
+        // Serverseitige Ereignis-ID-Eindeutigkeit (siehe record_room_event()
+        // in der Migration) - true nur beim allerersten Aufruf mit dieser
+        // eventId für diesen Raum, sonst false (schon verarbeitet/verspätet).
+        function recordEvent(eventId) {
+            return T.recordRoomEvent(state.roomId, eventId);
+        }
+
         async function leave() {
             broadcastLobbyChanged();
             try { await T.leaveRoom(state.roomId); } catch (e) { /* egal, wir trennen trotzdem */ }
@@ -212,6 +224,7 @@
             startGame: startGame,
             submitState: submitState,
             sendGameEvent: sendGameEvent,
+            recordEvent: recordEvent,
             refresh: refresh,
             leave: leave,
             isHost: isHost,

@@ -18,6 +18,8 @@
     var E = window.MiroEngine;
     var session = null;
     var processedEventIds = [];
+    var stateListenerBound = false; // miro:state-Listener nur EINMAL binden, siehe attach()
+    var syncChain = Promise.resolve(); // reiht hostSync()-Aufrufe strikt hintereinander, siehe hostSync()
 
     function isHost() { return session && session.isHost(); }
 
@@ -72,14 +74,28 @@
     }
 
     /* =====================================================
-       GASTGEBER: eigene/AI-Züge nach jeder Aktion verteilen
+       GASTGEBER: Zustand nach JEDER Aktion speichern + verteilen -
+       eigene Züge (Ziehen/Legen/Passen/Farbwunsch/Tausch/Schatzfund/
+       Nebelzauber/Zauberkette), KI-Züge UND entfernte Aktionswünsche
+       laufen alle über afterAction() -> emitState() in JS/miro-ui.js,
+       das hier unten per "miro:state"-Ereignis abgehört wird (siehe
+       attach()) - ein einziger Anschlusspunkt statt eines Sync-Aufrufs
+       an jeder einzelnen Aktionsstelle (das war zuvor die Lücke: nur
+       fremde Aktionswünsche wurden synchronisiert, eigene Züge des
+       Gastgebers nie).
+       Aufrufe werden strikt hintereinander ausgeführt (syncChain),
+       damit ein schneller zweiter hostSync()-Aufruf nicht mit einer
+       veralteten state_version auf den ersten, noch laufenden Aufruf
+       trifft (sonst version_conflict statt sauberer Reihenfolge).
        ===================================================== */
     function hostSync() {
-        var full = window.MiroUI.getState();
-        if (!full) { return; }
-        var publicInfo = redactForEveryone(full);
-        session.submitState(publicInfo, E.snapshot(full)).then(function (version) {
-            session.sendGameEvent({ type: "state_update", version: version });
+        syncChain = syncChain.then(function () {
+            var full = window.MiroUI.getState();
+            if (!full) { return; }
+            var publicInfo = redactForEveryone(full);
+            return session.submitState(publicInfo, E.snapshot(full)).then(function (version) {
+                session.sendGameEvent({ type: "state_update", version: version });
+            });
         }).catch(function (err) {
             // version_conflict o.ä. - im Zweifel eigenen Stand neu bekannt geben,
             // statt eine Diskrepanz stehen zu lassen.
@@ -90,6 +106,10 @@
     // Gastgeber: Aktionswunsch eines Gastes prüfen und ausführen -
     // genau dieselbe Engine wie bei einem lokalen Zug, nur dass Sitz-
     // platz und Zug von außen kommen statt von einem eigenen Klick.
+    // Serverseitige Ereignis-ID-Prüfung ZUERST (siehe record_room_event()
+    // in der Migration) - das lokale processedEventIds-Array ist nur
+    // eine schnelle Vorabkontrolle innerhalb derselben Sitzung und
+    // schützt NICHT über einen Gastgeber-Reload/-Reconnect hinweg.
     function handleActionRequest(payload) {
         if (!isHost()) { return; }
         if (processedEventIds.indexOf(payload.eventId) !== -1) { return; }
@@ -99,6 +119,17 @@
         var actualSeat = seatOf(payload.userId);
         if (actualSeat === null || actualSeat !== payload.seat) { return; } // Sitzplatz vorgetäuscht - ignorieren
 
+        session.recordEvent(payload.eventId).then(function (isNew) {
+            if (isNew) { applyActionRequest(actualSeat, payload); }
+            // sonst: schon einmal verarbeitet (Netzwerk-Wiederholung,
+            // verspätete Zustellung nach Reconnect) - stillschweigend verwerfen.
+        }).catch(function () {
+            // im Zweifel lieber verwerfen als denselben Zug versehentlich
+            // doppelt anzuwenden.
+        });
+    }
+
+    function applyActionRequest(actualSeat, payload) {
         // Startwürfeln läuft VOR dem eigentlichen Zug (currentPlayerId ist
         // dann noch null) - eigener Zweig statt der Zug-Prüfung unten.
         if (payload.action.type === "startdice_roll") {
@@ -158,6 +189,22 @@
         hostSync();
     }
 
+    // Der GASTGEBER selbst verbindet sich neu (Reload, Browser-Crash,
+    // kurzer Netzwerkabbruch). isHost() bleibt dabei true (host_id
+    // ändert sich nicht) - ohne diese Unterscheidung würde attach()
+    // hostStartGame() erneut aufrufen und die laufende Partie für ALLE
+    // Mitspieler auf null zurücksetzen. load_room_state() liefert dem
+    // echten Gastgeber zusätzlich host_state: den vollen, unredigierten
+    // Zustand (echte Hände aller Spieler) statt nur der eigenen, wie
+    // reconstruct() ihn für Gäste zusammenbaut - das braucht der
+    // Gastgeber, weil er als Einziger die Engine für alle weiterführt.
+    function hostResumeGame() {
+        var roomState = session.getState();
+        if (!roomState.hostState) { hostStartGame(); return; } // kein gespeicherter Stand (z. B. Crash direkt beim Start) - sicherheitshalber neu erzeugen
+        if (roomState.hostState.phase === "coin") { window.MiroUI.startCoinPhaseState(roomState.hostState); }
+        else { window.MiroUI.startWithState(roomState.hostState); }
+    }
+
     function guestJoinRunningGame() {
         var roomState = session.getState();
         var reconstructed = reconstruct(roomState.publicInfo, roomState.mySeat, roomState.myHand, roomState.myPendingCards);
@@ -187,11 +234,13 @@
             },
             hostSync: hostSync,
             // Gastgeber-only: verteilt einen soeben erzeugten, autoritativen
-            // Würfelwert an alle anderen Geräte (siehe hostRollStartDiceForSeat
-            // in JS/miro-ui.js). Rein ephemer/nicht persistiert - ein Gast, der
-            // genau währenddessen die Verbindung verliert, sieht beim
-            // Wiederverbinden einfach das fertige Spiel (wie ein Beitritt nach
-            // Partiestart), kein zusätzlicher Aufwand für diesen Randfall.
+            // Würfelwert an alle anderen Geräte für die gemeinsame Animation
+            // (siehe hostRollStartDiceForSeat in JS/miro-ui.js). Der eigentliche
+            // Rundenfortschritt (state.coinProgress) wird UNABHÄNGIG davon
+            // schon normal über hostSync() gespeichert - ein Gast, der genau
+            // während dieses einen Broadcasts die Verbindung verliert, sieht
+            // beim Wiederverbinden trotzdem den zuletzt gespeicherten Stand,
+            // nur ohne diese eine Wurf-Animation nachträglich zu sehen.
             hostBroadcastStartDice: function (seat, value) {
                 session.sendGameEvent({ type: "startdice_result", seat: seat, value: value });
             }
@@ -216,7 +265,24 @@
             window.MultiplayerLobbyUI.setBanner(absent ? "⏳ Der Gastgeber hat die Verbindung verloren – wir warten auf die Rückkehr." : "");
         });
 
-        if (isHost()) { hostStartGame(); } else { guestJoinRunningGame(); }
+        // Einmalig binden (attach() kann mehrfach pro Seitenleben laufen,
+        // z. B. bei einer zweiten Online-Partie ohne Reload) - hört auf
+        // JEDE lokale Zustandsänderung (siehe emitState() in JS/miro-ui.js,
+        // von afterAction() nach Ziehen/Legen/Passen/Farbwunsch/Tausch/
+        // Schatzfund/Nebelzauber UND nach jedem KI-Zug ausgelöst) und
+        // sorgt so dafür, dass wirklich JEDE eigene Aktion des Gastgebers
+        // gespeichert und verteilt wird, nicht nur fremde Aktionswünsche.
+        if (!stateListenerBound) {
+            stateListenerBound = true;
+            document.addEventListener("miro:state", function () {
+                if (isHost()) { hostSync(); }
+            });
+        }
+
+        var roomState = session.getState();
+        if (isHost() && roomState.status === "waiting") { hostStartGame(); }
+        else if (isHost()) { hostResumeGame(); }
+        else { guestJoinRunningGame(); }
     }
 
     window.MiroMultiplayerAdapter = { attach: attach };

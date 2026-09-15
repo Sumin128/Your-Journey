@@ -601,6 +601,48 @@
         });
     }
 
+    /* =====================================================
+       ONLINE: eigene Gabel-/Schutzschild-Entscheidung für einen
+       entfernten Sitzplatz. Der Gastgeber entscheidet das NICHT
+       automatisch für einen echten Menschen (siehe Bericht Punkt 4) -
+       er hält den Zug an und fragt genau dieses Gerät; die Antwort
+       geht als eigener Aktionswunsch zurück (siehe
+       JS/jagd-multiplayer-adapter.js). Nutzt bewusst dieselben Modale
+       wie lokal, nur mit einem netzwerk- statt einem lokalen Callback.
+       ===================================================== */
+    function showRemoteForkPrompt(payload) {
+        showForkPrompt(function (choice) {
+            window.JagdOnline.requestAction({ step: "fork_choice", tokenId: payload.tokenId, choice: choice });
+        });
+    }
+
+    function showRemoteShieldPrompt(payload) {
+        var ev = D.getEvent("schutzschild");
+        els.eventModal.hidden = false;
+        var iconWrap = els.eventModal.querySelector(".jagd-event-icon");
+        var iconFile = D.ASSETS.actionIcons[ev.id];
+        iconWrap.innerHTML = iconFile ? '<img src="' + iconFile + '" alt="">' : ev.icon;
+        els.eventModal.querySelector(".jagd-event-name").textContent = ev.name;
+        els.eventModal.querySelector(".jagd-event-text").textContent = ev.text;
+
+        var shieldPicker = els.eventModal.querySelector("#jagd-shield-picker");
+        shieldPicker.innerHTML = "";
+        shieldPicker.hidden = false;
+        document.getElementById("jagd-event-confirm").hidden = true;
+
+        payload.options.forEach(function (opt) {
+            var btn = document.createElement("button");
+            btn.className = "yj-button jagd-shield-option";
+            btn.innerHTML = '<span class="jagd-shield-token jagd-token--' + payload.color + '" data-number="' + (opt.tokenIndex + 1) + '"></span>' +
+                '<span>Figur ' + (opt.tokenIndex + 1) + ' schützen</span>';
+            btn.addEventListener("click", function () {
+                els.eventModal.hidden = true;
+                window.JagdOnline.requestAction({ step: "shield_choice", tokenId: payload.tokenId, targetTokenId: opt.id });
+            });
+            shieldPicker.appendChild(btn);
+        });
+    }
+
     function finishAction(tokenId, outcome) {
         var token = state.tokens[tokenId];
         var tokenEl = tokenEls[tokenId];
@@ -774,6 +816,8 @@
         getState: function () { return state; },
         setState: function (newState) { state = newState; },
         startWithState: startWithState,
+        showRemoteForkPrompt: showRemoteForkPrompt,
+        showRemoteShieldPrompt: showRemoteShieldPrompt,
         refresh: function () { renderAllTokens(); renderTurnUI(); },
         // Nach einem empfangenen Zustands-Update: steht die eigene Figur
         // gerade am Zug und wurde schon gewürfelt, aber noch nicht

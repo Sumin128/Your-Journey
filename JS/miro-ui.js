@@ -36,11 +36,15 @@
     // bei Gleichstand würfeln nur die Betroffenen erneut (siehe
     // runStartDiceTurn()/resolveStartDiceRound()). Ersetzt den früheren
     // Münzwurf vollständig.
-    var startDiceContenders = [];   // Spieler-IDs, die in DIESER (Wieder-)Runde noch würfeln müssen
-    var startDiceResults = {};      // Spieler-ID -> Wert nur für die aktuelle Runde (Gleichstandsprüfung)
-    var startDiceAllResults = {};   // Spieler-ID -> letzter gewürfelter Wert, bleibt auch nach Ausscheiden sichtbar
-    var startDiceActiveId = null;   // Sitzplatz, der gerade dran ist (Markierung + Tipp-Freigabe)
-    var startDiceWinnerId = null;   // kurz gesetzt für die Sieger-Hervorhebung, bevor alles ausblendet
+    // Startwürfel-Rundenfortschritt (Reihe, Gleichstand-Kandidaten,
+    // bisherige Ergebnisse, wer gerade dran ist) lebt bewusst NICHT in
+    // eigenen Modul-Variablen, sondern direkt auf state.coinProgress -
+    // das macht ihn Teil des Zustands, der online über hostSync()/
+    // load_room_state() gespeichert und nach einem Reconnect
+    // fortgesetzt werden kann, statt bei jedem Beitritt neu
+    // anzufangen (siehe startCoinPhaseState()). Nach Spielbeginn wird
+    // das Feld wieder entfernt (siehe finishCoinPhase()).
+    var startDiceWinnerId = null;   // kurz gesetzt für die Sieger-Hervorhebung - rein lokal/ephemer, kein Reconnect-Bedarf
     var els = {};
 
     document.addEventListener("DOMContentLoaded", init);
@@ -154,13 +158,23 @@
         els.game.hidden = false;
         els.startdice.hidden = false;
         els.game.classList.remove("is-coin-complete", "is-coin-leaving");
-        startDiceContenders = state.players.map(function (p) { return p.id; });
-        startDiceResults = {};
-        startDiceAllResults = {};
-        startDiceActiveId = null;
         startDiceWinnerId = null;
+        // Läuft das Startwürfeln online schon (Gastgeber-Neustart nach
+        // eigenem Reload, oder Beitritt mitten in der Runde), steht der
+        // Fortschritt schon in state.coinProgress (siehe hostSync()) -
+        // dann hier NICHT neu anfangen, sondern genau dort weitermachen.
+        if (!state.coinProgress) { initCoinProgress(); }
         render();
         runStartDiceTurn();
+    }
+
+    function initCoinProgress() {
+        state.coinProgress = {
+            contenders: state.players.map(function (p) { return p.id; }),
+            results: {},
+            allResults: {},
+            activeId: null
+        };
     }
 
     /* =====================================================
@@ -187,17 +201,15 @@
        ===================================================== */
 
     function beginStartDice() {
-        startDiceContenders = state.players.map(function (p) { return p.id; });
-        startDiceResults = {};
-        startDiceAllResults = {};
-        startDiceActiveId = null;
+        initCoinProgress();
         startDiceWinnerId = null;
         runStartDiceTurn();
     }
 
     function updateStartDiceUi() {
-        var player = state.players[startDiceActiveId];
-        var isMyTurn = player.type === "human" && (!isOnlineActive() || startDiceActiveId === window.MiroOnline.mySeat);
+        var cp = state.coinProgress;
+        var player = state.players[cp.activeId];
+        var isMyTurn = player.type === "human" && (!isOnlineActive() || cp.activeId === window.MiroOnline.mySeat);
         if (player.type === "ai") { els.startdiceHint.textContent = player.name + " würfelt …"; }
         else if (isMyTurn) { els.startdiceHint.textContent = "Du bist dran – tippe auf den Würfel"; }
         else { els.startdiceHint.textContent = player.name + " ist an der Reihe …"; }
@@ -207,9 +219,10 @@
     }
 
     function runStartDiceTurn() {
-        var nextId = startDiceContenders.filter(function (id) { return startDiceResults[id] === undefined; })[0];
+        var cp = state.coinProgress;
+        var nextId = cp.contenders.filter(function (id) { return cp.results[id] === undefined; })[0];
         if (nextId === undefined) { resolveStartDiceRound(); return; }
-        startDiceActiveId = nextId;
+        cp.activeId = nextId;
         updateStartDiceUi();
         if (isOnlineActive()) { runStartDiceTurnOnline(nextId, state.players[nextId]); return; }
         if (state.players[nextId].type === "ai") {
@@ -235,16 +248,17 @@
     }
 
     function onStartDiceTap() {
-        if (startDiceActiveId === null || els.startdiceBtn.disabled) { return; }
+        var cp = state.coinProgress;
+        if (!cp || cp.activeId === null || els.startdiceBtn.disabled) { return; }
         if (isOnlineActive()) {
-            if (startDiceActiveId !== window.MiroOnline.mySeat) { return; }
+            if (cp.activeId !== window.MiroOnline.mySeat) { return; }
             els.startdiceBtn.disabled = true;
-            if (window.MiroOnline.isHost()) { hostRollStartDiceForSeat(startDiceActiveId); }
+            if (window.MiroOnline.isHost()) { hostRollStartDiceForSeat(cp.activeId); }
             else { window.MiroOnline.requestAction({ type: "startdice_roll" }); }
             return;
         }
-        if (state.players[startDiceActiveId].type !== "human") { return; }
-        var id = startDiceActiveId;
+        if (state.players[cp.activeId].type !== "human") { return; }
+        var id = cp.activeId;
         els.startdiceBtn.disabled = true;
         playStartDiceRoll(id, 1 + Math.floor(Math.random() * 6), runStartDiceTurn);
     }
@@ -254,7 +268,8 @@
     // übrigen Geräte und wendet ihn lokal genauso an wie ein Gast das
     // per applyStartDiceResult() tut - identischer Ablauf überall.
     function hostRollStartDiceForSeat(seat) {
-        if (startDiceActiveId !== seat || (startDiceResults[seat] !== undefined)) { return; }
+        var cp = state.coinProgress;
+        if (!cp || cp.activeId !== seat || cp.results[seat] !== undefined) { return; }
         var value = 1 + Math.floor(Math.random() * 6);
         if (window.MiroOnline.hostBroadcastStartDice) { window.MiroOnline.hostBroadcastStartDice(seat, value); }
         playStartDiceRoll(seat, value, runStartDiceTurn);
@@ -264,32 +279,41 @@
     // eingeschlossen, für sein eigenes Echo) beim Empfang eines
     // "startdice_result"-Broadcasts aufgerufen.
     function applyStartDiceResult(seat, value) {
-        if (!state || state.phase !== "coin" || startDiceActiveId !== seat || startDiceResults[seat] !== undefined) { return; }
+        var cp = state && state.coinProgress;
+        if (!state || state.phase !== "coin" || !cp || cp.activeId !== seat || cp.results[seat] !== undefined) { return; }
         playStartDiceRoll(seat, value, runStartDiceTurn);
     }
 
     function playStartDiceRoll(playerId, value, done) {
-        startDiceResults[playerId] = value;
-        startDiceAllResults[playerId] = value;
+        var cp = state.coinProgress;
+        cp.results[playerId] = value;
+        cp.allResults[playerId] = value;
         if (window.JagdSound) { window.JagdSound.roll(); }
         if (window.MiroStartDice3D) { window.MiroStartDice3D.roll(value); }
         else { els.startdiceFace.textContent = String(value); }
         renderOpponents();
         renderOwnCoinBadge();
+        // Online: der Gastgeber hält den Rundenfortschritt zusätzlich in
+        // der Datenbank fest (state.coinProgress ist Teil des normal
+        // gesyncten Zustands) - ein wiederverbundener Mitspieler setzt so
+        // genau hier fort, statt bei allen Sitzplätzen neu anzufangen.
+        if (isOnlineActive() && window.MiroOnline.isHost()) { window.MiroOnline.hostSync(); }
         setTimeout(done, 900);
     }
 
     function resolveStartDiceRound() {
-        var best = Math.max.apply(null, startDiceContenders.map(function (id) { return startDiceResults[id]; }));
-        var tied = startDiceContenders.filter(function (id) { return startDiceResults[id] === best; });
-        startDiceActiveId = null;
+        var cp = state.coinProgress;
+        var best = Math.max.apply(null, cp.contenders.map(function (id) { return cp.results[id]; }));
+        var tied = cp.contenders.filter(function (id) { return cp.results[id] === best; });
+        cp.activeId = null;
         if (tied.length > 1) {
             els.startdiceHint.textContent = "Gleichstand bei " + best + "! " +
                 tied.map(function (id) { return state.players[id].name; }).join(" & ") + " würfeln erneut.";
-            startDiceContenders = tied;
-            startDiceResults = {};
+            cp.contenders = tied;
+            cp.results = {};
             renderOpponents();
             renderOwnCoinBadge();
+            if (isOnlineActive() && window.MiroOnline.isHost()) { window.MiroOnline.hostSync(); }
             setTimeout(runStartDiceTurn, 1400);
             return;
         }
@@ -306,7 +330,6 @@
         setTimeout(function () {
             E.startFromCoin(state, starterId);
             finishCoinPhase();
-            if (isOnlineActive()) { window.MiroOnline.hostSync(); }
         }, 1200);
     }
 
@@ -318,7 +341,9 @@
         setTimeout(function () {
             els.startdice.hidden = true;
             els.game.classList.remove("is-coin-leaving");
-            startDiceActiveId = null;
+            // Temporäre Würfel-Rundendaten sind nach Spielbeginn nicht mehr
+            // nötig - raus aus dem (ggf. persistierten) Zustand.
+            delete state.coinProgress;
             startDiceWinnerId = null;
             render();
             emitState("initiative");
@@ -330,8 +355,9 @@
     function renderOwnCoinBadge() {
         if (!els.handCoinBadge) { return; }
         var seatedPlayer = viewPlayer();
-        if (!state || state.phase !== "coin" || !seatedPlayer) { els.handCoinBadge.hidden = true; return; }
-        var value = startDiceAllResults[seatedPlayer.id];
+        var cp = state && state.coinProgress;
+        if (!state || state.phase !== "coin" || !cp || !seatedPlayer) { els.handCoinBadge.hidden = true; return; }
+        var value = cp.allResults[seatedPlayer.id];
         els.handCoinBadge.hidden = false;
         els.handCoinBadge.className = "miro-coin-badge" +
             (typeof value !== "number" ? " is-pending" : "") +
@@ -431,7 +457,7 @@
         renderHand();
         renderOwnCoinBadge();
         var seatedPlayer = viewPlayer();
-        var activeId = state.phase === "coin" ? startDiceActiveId : state.currentPlayerId;
+        var activeId = state.phase === "coin" ? (state.coinProgress && state.coinProgress.activeId) : state.currentPlayerId;
         document.querySelector(".miro-player-area").classList.toggle("is-current", Boolean(seatedPlayer && seatedPlayer.id === activeId));
         els.effect.textContent = effectText();
     }
@@ -451,7 +477,8 @@
         els.opponents.innerHTML = "";
         var visibleCount = 0;
         var seatedPlayer = viewPlayer();
-        var activeId = state.phase === "coin" ? startDiceActiveId : state.currentPlayerId;
+        var cp = state.coinProgress;
+        var activeId = state.phase === "coin" ? (cp && cp.activeId) : state.currentPlayerId;
         state.players.forEach(function (player) {
             if (seatedPlayer && player.id === seatedPlayer.id) { return; }
             visibleCount++;
@@ -468,8 +495,8 @@
             wrap.appendChild(hand);
             var label = document.createElement("strong"); label.textContent = player.name + " · " + player.hand.length + " Karten";
             wrap.appendChild(label);
-            if (state.phase === "coin") {
-                var rollValue = startDiceAllResults[player.id];
+            if (state.phase === "coin" && cp) {
+                var rollValue = cp.allResults[player.id];
                 var badge = document.createElement("span");
                 badge.className = "miro-coin-badge" +
                     (typeof rollValue !== "number" ? " is-pending" : "") +

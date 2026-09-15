@@ -34,6 +34,15 @@
 --   4. Aufräum-Funktion expire_stale_game_rooms() (von einem externen
 --      Scheduler/Cron aufzurufen - hier nur die Funktion, kein
 --      pg_cron-Job, damit nichts automatisch anfängt zu laufen)
+--   5. NEU  public.game_room_events + record_room_event() (serverseitige
+--      Ereignis-ID-Eindeutigkeit pro Raum, Anti-Replay)
+--   6. NEU  is_game_room_member(), room_id_from_topic() + RLS-Policies
+--      auf realtime.messages (private Broadcast-/Presence-Kanäle -
+--      ohne diese Policies UND { private: true } im Client wäre der
+--      Kanalname "room:<uuid>" allein keine Zugriffskontrolle)
+--   7. load_room_state() liefert dem echten Gastgeber zusätzlich
+--      host_state (voller, unredigierter Zustand) fürs Wiederaufsetzen
+--      nach eigenem Reload/Reconnect
 --
 -- KEINE Änderung an: player_data, sync_player_data, earn_xp,
 --   earn_coins, highscores oder sonstigen Fortschritts-/Belohnungs-
@@ -538,6 +547,7 @@ declare
     v_my_seat int;
     v_my_hand jsonb;
     v_my_pending_cards jsonb;
+    v_host_state jsonb;
     v_players jsonb;
 begin
     if auth.uid() is null then
@@ -574,6 +584,16 @@ begin
         end if;
     end if;
 
+    -- Nur der echte Gastgeber bekommt den vollen, unredigierten Zustand
+    -- zurück (mit allen Handkarten) - fürs eigene Wiederaufsetzen nach
+    -- einem Reload/Verbindungsabbruch (siehe JS/miro-multiplayer-adapter.js
+    -- bzw. JS/jagd-multiplayer-adapter.js hostResumeGame()). Für jeden
+    -- anderen Aufrufer bleibt das schlicht null - kein Umweg, über den
+    -- ein Gast an fremde Handkarten käme.
+    if v_room.host_id = auth.uid() then
+        v_host_state := v_room.state;
+    end if;
+
     select coalesce(jsonb_agg(jsonb_build_object(
         'seat', seat, 'user_id', user_id, 'color', color, 'player_name', player_name,
         'is_ai', is_ai, 'ready', ready, 'connected', connected
@@ -593,6 +613,7 @@ begin
         'my_seat', v_my_seat,
         'my_hand', v_my_hand,
         'my_pending_cards', v_my_pending_cards,
+        'host_state', v_host_state,
         'players', v_players
     );
 end;
@@ -632,11 +653,159 @@ revoke all on function public.expire_stale_game_rooms() from public, anon, authe
 
 
 -- ============================================================
+-- 12) is_game_room_member: Hilfsfunktion für die Realtime-Autorisierung
+--     (Abschnitt 14) und für zukünftige Mitgliedschaftsprüfungen.
+--     Muss SECURITY DEFINER sein: game_room_players ist RLS-gesperrt
+--     ohne Policy (siehe oben), eine Prüfung mit den Rechten des
+--     aufrufenden Nutzers selbst würde daher IMMER leer bleiben - eine
+--     serverseitig unerreichbare Tabelle ist für sich allein KEINE
+--     nutzbare Mitgliedschaftsprüfung.
+-- ============================================================
+create or replace function public.is_game_room_member(p_room_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+    select exists (
+        select 1 from public.game_room_players
+        where room_id = p_room_id and user_id = auth.uid()
+    );
+$$;
+
+revoke all on function public.is_game_room_member(uuid) from public, anon;
+grant execute on function public.is_game_room_member(uuid) to authenticated;
+
+
+-- ============================================================
+-- 13) game_room_events + record_room_event: serverseitige Ereignis-ID-
+--     Eindeutigkeit pro Raum (Anti-Replay). Jeder Aktionswunsch (Zug,
+--     Startwürfeln, Gabel-/Schutzschildwahl, siehe JS/*-multiplayer-
+--     adapter.js) trägt clientseitig eine zufällige eventId; der
+--     Gastgeber ruft vor dem Ausführen record_room_event() auf und
+--     verwirft die Anfrage, wenn sie schon einmal verarbeitet wurde -
+--     auch über einen Gastgeber-Reload/Reconnect hinweg (eine rein
+--     clientseitige, im Arbeitsspeicher gehaltene Liste reicht dafür
+--     NICHT, weil sie bei jedem Neuladen verloren geht).
+-- ============================================================
+create table if not exists public.game_room_events (
+    room_id    uuid not null references public.game_rooms(id) on delete cascade,
+    event_id   text not null,
+    seat       int,
+    created_at timestamptz not null default now(),
+    primary key (room_id, event_id)
+);
+
+revoke all on public.game_room_events from public, anon, authenticated;
+alter table public.game_room_events enable row level security;
+drop policy if exists "game_room_events_no_direct_access" on public.game_room_events;
+
+create or replace function public.record_room_event(p_room_id uuid, p_event_id text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_seat int;
+begin
+    if auth.uid() is null then
+        raise exception 'Nicht angemeldet';
+    end if;
+    if p_event_id is null or length(btrim(p_event_id)) = 0 then
+        raise exception 'Ungültige Ereignis-ID';
+    end if;
+
+    select seat into v_seat
+    from public.game_room_players
+    where room_id = p_room_id and user_id = auth.uid();
+    if v_seat is null then
+        raise exception 'Du bist kein Mitglied dieses Raums';
+    end if;
+
+    insert into public.game_room_events (room_id, event_id, seat)
+    values (p_room_id, p_event_id, v_seat)
+    on conflict (room_id, event_id) do nothing;
+
+    -- true nur beim allerersten Einfügen dieses Ereignisses - bei einem
+    -- erneuten Aufruf mit derselben (room_id, event_id) liefert die
+    -- Funktion false zurück, der Aufrufer muss die Aktion dann
+    -- verwerfen statt sie ein zweites Mal auszuführen.
+    return found;
+end;
+$$;
+
+revoke all on function public.record_room_event(uuid, text) from public, anon;
+grant execute on function public.record_room_event(uuid, text) to authenticated;
+
+
+-- ============================================================
+-- 14) Realtime-Autorisierung für die privaten Raumkanäle "room:<uuid>"
+--     (siehe JS/multiplayer-transport.js, Kanal-Konfiguration
+--     { private: true }). Ohne { private: true } im Client UND ohne
+--     diese Policies wäre der Kanalname selbst KEINE Zugriffskontrolle:
+--     jeder angemeldete Client könnte jeden beliebigen Raum mithören
+--     oder eigene Nachrichten hineinsenden, nur weil er die Raum-UUID
+--     kennt oder errät. Nur wer laut game_room_players einen Sitzplatz
+--     im jeweiligen Raum hat, darf dessen Broadcast-/Presence-Kanal
+--     abonnieren bzw. senden.
+--
+--     room_id_from_topic() ist bewusst fehlertolerant (gibt bei einem
+--     Thema, das nicht zum Muster "room:<uuid>" passt, einfach null
+--     zurück statt einer Ausnahme) - eine UUID-Typumwandlung, die bei
+--     einem unerwarteten Thema hart fehlschlägt, würde sonst die ganze
+--     Policy-Auswertung zum Absturz bringen statt sie schlicht
+--     abzulehnen.
+-- ============================================================
+create or replace function public.room_id_from_topic(p_topic text)
+returns uuid
+language plpgsql
+set search_path = public
+immutable
+as $$
+begin
+    if p_topic is null or p_topic !~ '^room:' then
+        return null;
+    end if;
+    return substring(p_topic from 6)::uuid;
+exception when invalid_text_representation then
+    return null;
+end;
+$$;
+
+revoke all on function public.room_id_from_topic(text) from public, anon;
+grant execute on function public.room_id_from_topic(text) to authenticated;
+
+drop policy if exists "room members can receive realtime" on realtime.messages;
+create policy "room members can receive realtime" on realtime.messages
+for select
+to authenticated
+using (
+    public.room_id_from_topic(realtime.topic()) is not null
+    and public.is_game_room_member(public.room_id_from_topic(realtime.topic()))
+);
+
+drop policy if exists "room members can send realtime" on realtime.messages;
+create policy "room members can send realtime" on realtime.messages
+for insert
+to authenticated
+with check (
+    public.room_id_from_topic(realtime.topic()) is not null
+    and public.is_game_room_member(public.room_id_from_topic(realtime.topic()))
+);
+
+
+-- ============================================================
 -- Ende. Nach dem Ausführen prüfen:
 --   select proname from pg_proc where pronamespace = 'public'::regnamespace
 --     and proname in ('create_game_room','join_game_room','set_player_ready',
 --     'host_set_seat','leave_game_room','start_game_room','submit_room_state',
---     'load_room_state','expire_stale_game_rooms','generate_room_code');
+--     'load_room_state','expire_stale_game_rooms','generate_room_code',
+--     'is_game_room_member','record_room_event','room_id_from_topic');
 --   select has_table_privilege('authenticated','public.game_rooms','SELECT'); -- false
 --   select has_table_privilege('authenticated','public.game_room_players','SELECT'); -- false
+--   select has_table_privilege('authenticated','public.game_room_events','SELECT'); -- false
+--   select * from pg_policies where schemaname = 'realtime' and tablename = 'messages'
+--     and policyname like 'room members%'; -- 2 Zeilen (select + insert)
 -- ============================================================

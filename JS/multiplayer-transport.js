@@ -86,6 +86,15 @@
         return rpc("load_room_state", { p_room_id: roomId });
     }
 
+    // Serverseitige Ereignis-ID-Eindeutigkeit (Anti-Replay) - siehe
+    // record_room_event() in der Migration. Gibt true nur beim
+    // allerersten Aufruf mit dieser (roomId, eventId)-Kombination
+    // zurück; ein zweiter Aufruf (Netzwerk-Wiederholung, verspätete
+    // Zustellung nach einem Reconnect) liefert false.
+    function recordRoomEvent(roomId, eventId) {
+        return rpc("record_room_event", { p_room_id: roomId, p_event_id: eventId });
+    }
+
     /* =====================================================
        REALTIME-KANAL (ein privater Kanal pro Raum)
        Broadcast: Spielereignisse (Aktionswünsche, bestätigte
@@ -98,8 +107,14 @@
         handlers = handlers || {};
         if (!loggedIn()) { throw new Error("not_logged_in"); }
 
+        // private:true ist zwingend, damit dieser Kanal überhaupt den
+        // RLS-Policies auf realtime.messages (siehe Migration Abschnitt
+        // 14) unterliegt - ohne dieses Flag wäre "room:<uuid>" als
+        // Kanalname allein KEINE Zugriffskontrolle, jeder angemeldete
+        // Client könnte sonst jeden Raum mithören/senden.
         var channel = supabaseClient.channel("room:" + roomId, {
             config: {
+                private: true,
                 broadcast: { self: false, ack: false },
                 presence: { key: myUserId() }
             }
@@ -162,6 +177,7 @@
         startGame: startGame,
         submitState: submitState,
         loadState: loadState,
+        recordRoomEvent: recordRoomEvent,
         connectRoomChannel: connectRoomChannel
     };
 
