@@ -119,10 +119,10 @@ verdrahten.
 (`images/tamagotchi/<id>_{happy,eating,drinking,sleeping,playing}.png`) – aus den
 Roh-PNGs geschnitten. Widget und Bako-Basar nutzen sie.
 
-**Verbindlicher Stil** – identisch zu [`docs/wer-ist-es.md`](wer-ist-es.md): warmer, hochwertiger
-Retro-Pixel-Art-Stil, 16-/32-Bit-Fantasy-Look, deutlich erkennbare Pixel, warme Farben, klare
-Konturen, kindgerecht aber nicht babyhaft. **Nicht** fotorealistisch, **kein** weiches 3D,
-**kein** Disney-/Pixar-Look, **keine** Glubschaugen, **keine** Feenflügel/Glitzer.
+**Verbindlicher Stil:** warmer, hochwertiger Retro-Pixel-Art-Stil, 16-/32-Bit-Fantasy-Look,
+deutlich erkennbare Pixel, warme Farben, klare Konturen, kindgerecht aber nicht babyhaft.
+**Nicht** fotorealistisch, **kein** weiches 3D, **kein** Disney-/Pixar-Look, **keine**
+Glubschaugen, **keine** Feenflügel/Glitzer.
 
 **Sprite-Set je Baumkind** – freigestellt (transparentes PNG), frontal/leicht gedreht,
 Ganzkörper sitzend, gleiche Kameradistanz und Größe über alle Baumkinder. Dateiname

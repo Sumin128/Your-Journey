@@ -3,8 +3,7 @@
    Branos Spielhalle: Willkommen -> Spielmenü -> Lokal/Computer/Online
    -> Mirelons Jagd / Miro (eingebettet, siehe JS/jagd-ui.js +
    JS/miro-ui.js) -> zurück zum Menü. Das frühere "Wer ist es?" wurde
-   entfernt (lief nicht zuverlässig); JS/animals.js wird auf dieser
-   Seite nicht mehr geladen.
+   verworfen und vollständig entfernt (lief nicht zuverlässig).
    ===================================================== */
 
 if (typeof markAnimalVisited === "function") {

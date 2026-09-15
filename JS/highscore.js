@@ -2,7 +2,7 @@
    HIGHSCORE.JS
    Globale Punkte-Bestenliste (Tabelle highscores in Supabase,
    siehe supabase_schema_highscores.sql). Jeder gewonnene
-   Quiz/Wörterraten/Wer-ist-es/Puzzle-Durchgang gibt Punkte
+   Quiz/Wörterraten/Puzzle-Durchgang gibt Punkte
    (siehe awardHighscorePoints in JS/player.js) - hier wird
    nur die Rangliste angezeigt.
    ===================================================== */

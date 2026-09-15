@@ -135,6 +135,7 @@ drop policy if exists "game_room_players_no_direct_access" on public.game_room_p
 create or replace function public.generate_room_code()
 returns text
 language plpgsql
+set search_path = ''
 as $$
 declare
     alphabet constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -172,7 +173,7 @@ create or replace function public.create_game_room(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_room_id uuid;
@@ -203,7 +204,7 @@ begin
 end;
 $$;
 
-revoke all on function public.create_game_room(text, int, text, text) from public, anon;
+revoke all on function public.create_game_room(text, int, text, text) from public, anon, authenticated;
 grant execute on function public.create_game_room(text, int, text, text) to authenticated;
 
 
@@ -220,7 +221,7 @@ create or replace function public.join_game_room(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_room record;
@@ -284,7 +285,7 @@ begin
 end;
 $$;
 
-revoke all on function public.join_game_room(text, text, text) from public, anon;
+revoke all on function public.join_game_room(text, text, text) from public, anon, authenticated;
 grant execute on function public.join_game_room(text, text, text) to authenticated;
 
 
@@ -295,7 +296,7 @@ create or replace function public.set_player_ready(p_room_id uuid, p_ready boole
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 begin
     if auth.uid() is null then
@@ -314,7 +315,7 @@ begin
 end;
 $$;
 
-revoke all on function public.set_player_ready(uuid, boolean) from public, anon;
+revoke all on function public.set_player_ready(uuid, boolean) from public, anon, authenticated;
 grant execute on function public.set_player_ready(uuid, boolean) to authenticated;
 
 
@@ -327,7 +328,7 @@ create or replace function public.host_set_seat(p_room_id uuid, p_seat int, p_is
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_room record;
@@ -367,7 +368,7 @@ begin
 end;
 $$;
 
-revoke all on function public.host_set_seat(uuid, int, boolean) from public, anon;
+revoke all on function public.host_set_seat(uuid, int, boolean) from public, anon, authenticated;
 grant execute on function public.host_set_seat(uuid, int, boolean) to authenticated;
 
 
@@ -382,7 +383,7 @@ create or replace function public.leave_game_room(p_room_id uuid)
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_status text;
@@ -407,7 +408,7 @@ begin
 end;
 $$;
 
-revoke all on function public.leave_game_room(uuid) from public, anon;
+revoke all on function public.leave_game_room(uuid) from public, anon, authenticated;
 grant execute on function public.leave_game_room(uuid) to authenticated;
 
 
@@ -424,7 +425,7 @@ create or replace function public.start_game_room(p_room_id uuid)
 returns void
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_room record;
@@ -461,7 +462,7 @@ begin
 end;
 $$;
 
-revoke all on function public.start_game_room(uuid) from public, anon;
+revoke all on function public.start_game_room(uuid) from public, anon, authenticated;
 grant execute on function public.start_game_room(uuid) to authenticated;
 
 
@@ -483,7 +484,7 @@ create or replace function public.submit_room_state(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_room record;
@@ -523,7 +524,7 @@ begin
 end;
 $$;
 
-revoke all on function public.submit_room_state(uuid, bigint, jsonb, jsonb, text) from public, anon;
+revoke all on function public.submit_room_state(uuid, bigint, jsonb, jsonb, text) from public, anon, authenticated;
 grant execute on function public.submit_room_state(uuid, bigint, jsonb, jsonb, text) to authenticated;
 
 
@@ -540,7 +541,7 @@ create or replace function public.load_room_state(p_room_id uuid)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_room record;
@@ -619,7 +620,7 @@ begin
 end;
 $$;
 
-revoke all on function public.load_room_state(uuid) from public, anon;
+revoke all on function public.load_room_state(uuid) from public, anon, authenticated;
 grant execute on function public.load_room_state(uuid) to authenticated;
 
 
@@ -634,7 +635,7 @@ create or replace function public.expire_stale_game_rooms()
 returns int
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_count int;
@@ -665,7 +666,7 @@ create or replace function public.is_game_room_member(p_room_id uuid)
 returns boolean
 language sql
 security definer
-set search_path = public
+set search_path = ''
 stable
 as $$
     select exists (
@@ -674,7 +675,7 @@ as $$
     );
 $$;
 
-revoke all on function public.is_game_room_member(uuid) from public, anon;
+revoke all on function public.is_game_room_member(uuid) from public, anon, authenticated;
 grant execute on function public.is_game_room_member(uuid) to authenticated;
 
 
@@ -705,7 +706,7 @@ create or replace function public.record_room_event(p_room_id uuid, p_event_id t
 returns boolean
 language plpgsql
 security definer
-set search_path = public
+set search_path = ''
 as $$
 declare
     v_seat int;
@@ -713,15 +714,20 @@ begin
     if auth.uid() is null then
         raise exception 'Nicht angemeldet';
     end if;
-    if p_event_id is null or length(btrim(p_event_id)) = 0 then
+    if p_event_id is null or length(btrim(p_event_id)) not between 1 and 128 then
         raise exception 'Ungültige Ereignis-ID';
     end if;
 
     select seat into v_seat
     from public.game_room_players
-    where room_id = p_room_id and user_id = auth.uid();
+    where room_id = p_room_id and user_id = auth.uid()
+      and exists (
+          select 1
+          from public.game_rooms
+          where id = p_room_id and host_id = auth.uid()
+      );
     if v_seat is null then
-        raise exception 'Du bist kein Mitglied dieses Raums';
+        raise exception 'Nur der Gastgeber darf Ereignisse bestätigen';
     end if;
 
     insert into public.game_room_events (room_id, event_id, seat)
@@ -736,7 +742,7 @@ begin
 end;
 $$;
 
-revoke all on function public.record_room_event(uuid, text) from public, anon;
+revoke all on function public.record_room_event(uuid, text) from public, anon, authenticated;
 grant execute on function public.record_room_event(uuid, text) to authenticated;
 
 
@@ -761,7 +767,7 @@ grant execute on function public.record_room_event(uuid, text) to authenticated;
 create or replace function public.room_id_from_topic(p_topic text)
 returns uuid
 language plpgsql
-set search_path = public
+set search_path = ''
 immutable
 as $$
 begin
@@ -774,7 +780,7 @@ exception when invalid_text_representation then
 end;
 $$;
 
-revoke all on function public.room_id_from_topic(text) from public, anon;
+revoke all on function public.room_id_from_topic(text) from public, anon, authenticated;
 grant execute on function public.room_id_from_topic(text) to authenticated;
 
 drop policy if exists "room members can receive realtime" on realtime.messages;
@@ -782,6 +788,8 @@ create policy "room members can receive realtime" on realtime.messages
 for select
 to authenticated
 using (
+    realtime.messages.extension in ('broadcast', 'presence')
+    and
     public.room_id_from_topic(realtime.topic()) is not null
     and public.is_game_room_member(public.room_id_from_topic(realtime.topic()))
 );
@@ -791,6 +799,8 @@ create policy "room members can send realtime" on realtime.messages
 for insert
 to authenticated
 with check (
+    realtime.messages.extension in ('broadcast', 'presence')
+    and
     public.room_id_from_topic(realtime.topic()) is not null
     and public.is_game_room_member(public.room_id_from_topic(realtime.topic()))
 );

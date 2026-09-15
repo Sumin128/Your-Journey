@@ -1835,7 +1835,7 @@ function showPendingLuisThemeReaction() {
 /* =====================================================
    HIGHSCORE-PUNKTE
    Gemeinsamer Punktestand über alle Spiele hinweg (Quiz,
-   Wörterraten, Wer-ist-es, Puzzle) - unabhängig von den
+   Wörterraten, Puzzle) - unabhängig von den
    Münzen. Jeder Sieg gibt den gleichen festen Punktewert.
    Speist die globale Bestenliste (bestenliste.html/highscore.js)
    über eine eigene Supabase-Tabelle (siehe
