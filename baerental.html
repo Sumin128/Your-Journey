@@ -43,7 +43,25 @@
 
     <link
         rel="stylesheet"
-        href="CSS/baerental.css?v=7">
+        href="CSS/baerental.css?v=8">
+
+    <!-- Branos Spielhalle: Mirelons Jagd + Miro. Eigene, in sich
+         geschlossene Stylesheets (nicht an CSS/style.css gekoppelt). -->
+    <link rel="stylesheet" href="CSS/jagd.css?v=1">
+    <link rel="stylesheet" href="CSS/miro.css?v=1">
+
+    <!-- EIN gemeinsamer Importmap-Block für beide Spiele (ein Dokument
+         darf nur eine <script type="importmap"> besitzen) - Mirelons
+         Jagds 3D-Würfel und Miros Startwürfel/-Münzmodul teilen sich
+         dieselbe three.js-Version. -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/"
+        }
+    }
+    </script>
 
     <title>Bärental – Mirelon</title>
 
@@ -117,16 +135,15 @@
                     </p>
 
                     <p>
-                        Bei mir brauchst du ein gutes Auge,
-                        ein kluges Köpfchen und manchmal
-                        ein bisschen Mut zum Raten.
+                        Bei mir gibt es eine kleine Spielhalle mit
+                        Gesellschaftsspielen – allein, gegen den Computer
+                        oder mit der ganzen Familie an einem Gerät.
                     </p>
 
 
                     <div class="bear-fact">
 
-                        
-                        Kannst du mir helfen, mein geheimes Tier zu finden?
+                        Lust auf eine Partie?
 
                     </div>
 
@@ -149,245 +166,463 @@
 
 
         <!-- =================================================
-     SPIELMENÜ
-     ================================================= -->
+             SPIELMENÜ (Branos Spielhalle)
+             ================================================= -->
 
-<section
-    id="bear-game-menu"
-    class="bear-screen"
-    hidden>
+        <section
+            id="bear-game-menu"
+            class="bear-screen"
+            hidden>
 
-    <div class="bear-game-layout">
+            <div class="bear-game-layout">
 
-        <!-- BRANOS LINKS -->
+                <!-- BRANOS LINKS -->
 
-        <div class="bear-menu-branos">
+                <div class="bear-menu-branos">
 
-            <img
-                src="images/branos.png"
-                alt="Branos"
-                id="branos-menu-image"
-                loading="lazy">
-
-        </div>
-
-
-        <!-- RECHTE SEITE -->
-
-        <div class="bear-menu-content">
-
-
-            <!-- HOLZSCHILD -->
-
-            <header class="bear-menu-sign">
-
-                <span class="bear-sign-paw">🐾</span>
-
-                <h1>Branos' Spiele</h1>
-
-            </header>
-
-
-            <!-- PERGAMENT -->
-
-            <div class="bear-menu-scroll">
-
-                <div class="bear-menu-question">
-
-                    Bereit für eine Runde „Wer ist es?"
+                    <img
+                        src="images/branos.png"
+                        alt="Branos"
+                        id="branos-menu-image"
+                        loading="lazy">
 
                 </div>
 
 
-                <div class="bear-menu-divider">
+                <!-- RECHTE SEITE -->
 
-                    <span></span>
-                    <b>🐾</b>
-                    <span></span>
+                <div class="bear-menu-content">
+
+
+                    <!-- HOLZSCHILD -->
+
+                    <header class="bear-menu-sign">
+
+                        <span class="bear-sign-paw">🐾</span>
+
+                        <h1>Branos' Spielhalle</h1>
+
+                    </header>
+
+
+                    <!-- PERGAMENT -->
+
+                    <div class="bear-menu-scroll">
+
+                        <div class="bear-menu-question">
+
+                            Worauf hast du heute Lust?
+
+                        </div>
+
+
+                        <div class="bear-menu-divider">
+
+                            <span></span>
+                            <b>🐾</b>
+                            <span></span>
+
+                        </div>
+
+
+                        <!-- ================================
+                             MIRELONS JAGD
+                             ================================ -->
+
+                        <article class="bear-set-row">
+
+                            <div class="bear-set-icon">
+                                🗺️
+                            </div>
+
+                            <div class="bear-set-description">
+
+                                <h2>Mirelons Jagd</h2>
+
+                                <p>
+                                    Würfle, laufe und wirf deine Gegner
+                                    zurück ins Lager – allein gegen den
+                                    Computer oder zu zweit bis viert.
+                                </p>
+
+                            </div>
+
+                            <div class="bear-set-action">
+
+                                <strong>2–4 Spieler</strong>
+
+                                <button
+                                    id="open-jagd-game"
+                                    class="bear-wood-button yj-button"
+                                    type="button">
+
+                                    Spielen
+                                    <span>➜</span>
+
+                                </button>
+
+                            </div>
+
+                        </article>
+
+
+                        <div class="bear-menu-divider">
+
+                            <span></span>
+                            <b>🐾</b>
+                            <span></span>
+
+                        </div>
+
+
+                        <!-- ================================
+                             MIRO
+                             ================================ -->
+
+                        <article class="bear-set-row">
+
+                            <div class="bear-set-icon">
+                                🃏
+                            </div>
+
+                            <div class="bear-set-description">
+
+                                <h2>Miro</h2>
+
+                                <p>
+                                    Ein eigenes Mirelon-Kartenspiel voller
+                                    Zauber, Farben und Überraschungen.
+                                </p>
+
+                            </div>
+
+                            <div class="bear-set-action">
+
+                                <strong>2–4 Spieler</strong>
+
+                                <button
+                                    id="open-miro-game"
+                                    class="bear-wood-button yj-button"
+                                    type="button">
+
+                                    Spielen
+                                    <span>➜</span>
+
+                                </button>
+
+                            </div>
+
+                        </article>
+
+                    </div>
+
+
+                    <!-- ZURÜCK -->
+
+                    <button
+                        id="back-to-branos"
+                        class="bear-back-button yj-button yj-button--wide"
+                        type="button">
+
+                        ← &nbsp; Zurück zu Branos
+
+                    </button>
 
                 </div>
 
-
-                <!-- ================================
-                     TIERE
-                     ================================ -->
-
-                <article class="bear-set-row">
-
-                    <div class="bear-set-icon">
-                        🐾
-                    </div>
-
-
-                    <div class="bear-set-description">
-
-                        <h2>Tiere</h2>
-
-                        <p>
-                            Finde heraus, welches Tier
-                            Branos ausgewählt hat.
-                        </p>
-
-                    </div>
-
-
-                    <div class="bear-set-action">
-
-                        <strong>35 Karten</strong>
-
-                        <button
-                            id="start-animal-game"
-                            class="bear-wood-button yj-button"
-                            type="button">
-
-                            Spielen
-                            <span>➜</span>
-
-                        </button>
-
-                    </div>
-
-                </article>
-
             </div>
-
-
-            <!-- ZURÜCK -->
-
-            <button
-                id="back-to-branos"
-                class="bear-back-button yj-button yj-button--wide"
-                type="button">
-
-                ← &nbsp; Zurück zu Branos
-
-            </button>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-        <!-- =================================================
-     WER IST ES?
-     ================================================= -->
-
-<!-- =================================================
-     WER IST ES?
-     ================================================= -->
-
-<section
-    id="guess-animal-game"
-    class="bear-screen"
-    hidden>
-
-    <div class="guess-compact-layout">
-
-
-        <!-- OBERE LEISTE -->
-
-        <header class="guess-compact-header">
-
-            <div>
-
-                <h1 id="guess-game-title">🐾 Wer ist es?</h1>
-
-                <span id="guess-game-subtitle">
-                    Finde Branos' geheimes Tier
-                </span>
-
-            </div>
-
-
-            <div class="guess-question-counter">
-
-                ❓ Fragen übrig:
-
-                <strong id="questions-left">
-                    7
-                </strong>
-
-            </div>
-
-        </header>
-
-
-        <!-- LINKE SEITE -->
-
-        <aside class="guess-side-panel">
-
-
-            <img
-                src="images/branos.png"
-                id="guess-branos-image"
-                alt="Branos"
-                loading="lazy">
-
-
-            <div id="branos-answer">
-                Stell mir eine Frage!
-            </div>
-
-
-            <section id="question-area">
-
-                <h2>
-                    Stell mir eine Frage
-                </h2>
-
-                <div id="question-buttons">
-
-                    <!-- Fragen kommen später per JavaScript -->
-
-                </div>
-
-            </section>
-
-
-            <div class="guess-controls">
-
-
-                <button
-                    id="guess-now-button"
-                    class="guess-wood-button yj-button"
-                    type="button">
-
-                    🎯 Jetzt raten
-
-                </button>
-
-
-                <button
-                    id="back-to-bear-menu"
-                    class="guess-wood-button secondary yj-button yj-button--secondary"
-                    type="button">
-
-                    ← Spiel verlassen
-
-                </button>
-
-
-            </div>
-
-        </aside>
-
-
-        <!-- RECHTE SEITE / 35 KARTEN -->
-
-        <section id="animal-board">
-
-            <!-- Tiere werden durch animals.js erzeugt -->
 
         </section>
 
 
-    </div>
+        <!-- =================================================
+             MIRELONS JAGD (eingebettet, siehe JS/jagd-*.js)
+             ================================================= -->
 
-</section>
+        <div id="bear-jagd-embed" hidden>
 
-        </main>
+            <div id="jagd-landing" class="jagd-screen" hidden>
+                <header class="jagd-landing-header">
+                    <span class="jagd-brano-portrait" aria-hidden="true">🦫</span>
+                    <div>
+                        <h1>Branos Spielhalle</h1>
+                        <p>„Kommt rein! Hier spielen wir zusammen, gegen den Computer oder
+                           gemischt – ganz wie ihr wollt."</p>
+                    </div>
+                </header>
+                <div class="jagd-card-grid">
+                    <button type="button" id="jagd-card-start" class="jagd-game-card jagd-game-card--main">
+                        <img class="jagd-card-illustration jagd-card-illustration--board"
+                             src="images/mirelons-jagd/spielfeld-mirelons-jagd-v2.webp"
+                             alt="Mirelons Jagd mit vier magischen Landschaften">
+                        <strong>Mirelons Jagd</strong>
+                        <span class="jagd-card-meta">2-4 Spieler · ca. 20-30 Min · Computer &amp; Mehrspieler</span>
+                        <span class="jagd-card-badge jagd-card-badge--play">Jetzt spielen</span>
+                    </button>
+                    <button type="button" id="jagd-card-miro" class="jagd-game-card">
+                        <span class="jagd-card-illustration"><img src="images/miro/kartenrueckseite.png" alt="" style="height:5.3rem;width:auto;border-radius:.35rem;box-shadow:0 .25rem .5rem #2c160b66"></span>
+                        <strong>Miro</strong>
+                        <span class="jagd-card-meta">Kartenspiel</span>
+                        <span class="jagd-card-badge jagd-card-badge--play">Jetzt spielen</span>
+                    </button>
+                    <button type="button" id="jagd-card-tierversteck" class="jagd-game-card">
+                        <span class="jagd-card-illustration">🫥</span>
+                        <strong>Tierversteck</strong>
+                        <span class="jagd-card-meta">Gesellschaftsspiel</span>
+                        <span class="jagd-card-badge">Kommt später</span>
+                    </button>
+                </div>
+                <p class="jagd-online-note">🔒 Online mit Raumcode – später. Keine öffentliche Spielersuche, kein freier Chat.</p>
+            </div>
+
+            <div id="jagd-modeselect" class="jagd-screen">
+
+                <h1>Mirelons Jagd</h1>
+                <p>Allein gegen den Computer, gemeinsam an einem Gerät, oder gemischt.</p>
+
+                <fieldset class="jagd-piece-choice">
+                    <legend>Wie viele Figuren je Spieler?</legend>
+                    <div class="jagd-piece-buttons" role="group" aria-label="Figuren je Spieler">
+                        <button type="button" data-pieces="2" aria-pressed="false">2 Figuren</button>
+                        <button type="button" data-pieces="3" aria-pressed="false">3 Figuren</button>
+                        <button type="button" data-pieces="4" aria-pressed="true" class="is-active">4 Figuren</button>
+                    </div>
+                </fieldset>
+
+                <fieldset class="jagd-color-choice">
+                    <legend>Welche Farbe möchtest du spielen?</legend>
+                    <div class="jagd-color-buttons" role="group" aria-label="Farbe für Spieler 1">
+                        <button type="button" data-color="gruen" aria-pressed="true" class="is-active"><span class="jagd-color-dot jagd-color-dot--gruen"></span>Waldgrün</button>
+                        <button type="button" data-color="orange" aria-pressed="false"><span class="jagd-color-dot jagd-color-dot--orange"></span>Wüstenorange</button>
+                        <button type="button" data-color="blau" aria-pressed="false"><span class="jagd-color-dot jagd-color-dot--blau"></span>Eisblau</button>
+                        <button type="button" data-color="rosa" aria-pressed="false"><span class="jagd-color-dot jagd-color-dot--rosa"></span>Rosenrot</button>
+                    </div>
+                </fieldset>
+
+                <div id="jagd-mode-grid" class="jagd-mode-grid">
+                    <button type="button" data-mode="cpu1">🤖 Gegen den Computer</button>
+                    <button type="button" data-mode="p2">🧑‍🤝‍🧑 Zwei Spieler an einem Gerät</button>
+                    <button type="button" data-mode="p3">🧑‍🤝‍🧑 Drei Spieler an einem Gerät</button>
+                    <button type="button" data-mode="p4">🧑‍🤝‍🧑 Vier Spieler an einem Gerät</button>
+                    <button type="button" data-mode="mixed">🎭 Menschen &amp; Computer mischen</button>
+                </div>
+
+                <div id="jagd-mixed-config" hidden>
+                    <div id="jagd-mixed-slots" class="jagd-mixed-slots"></div>
+                    <p id="jagd-mixed-warning" class="jagd-warning" hidden></p>
+                    <button type="button" id="jagd-mixed-start" class="yj-button yj-button--primary">Los geht's!</button>
+                </div>
+
+                <button type="button" class="jagd-online-disabled" disabled>🔒 Online mit Raumcode – Später</button>
+
+                <button type="button" id="jagd-back-landing" class="jagd-link-btn">← Zurück zu Branos' Spielen</button>
+
+            </div>
+
+            <div id="jagd-game" class="jagd-screen" hidden>
+
+                <button type="button" id="jagd-sound-toggle" class="jagd-sound-toggle" aria-pressed="true">🔊 Ton an</button>
+
+                <div id="jagd-turn-banner" class="jagd-turn-banner">Wer beginnt?</div>
+
+                <div class="jagd-dice-row">
+                    <button type="button" id="jagd-dice-btn" class="jagd-dice-3d" aria-label="Würfeln. Antippen zum Würfeln, ziehen zum Anschauen.">
+                        <canvas aria-hidden="true"></canvas>
+                        <span id="jagd-dice-face" class="jagd-dice-face" aria-label="Gewürfelte Zahl">1</span>
+                    </button>
+                    <span class="jagd-dice-hint">Würfel antippen</span>
+                </div>
+
+                <div id="jagd-global-effect" class="jagd-global-effect" role="status" hidden></div>
+                <div id="jagd-direction" class="jagd-direction" role="status">↻ Laufrichtung: vorwärts zum Schloss</div>
+
+                <div id="jagd-board" class="jagd-board" aria-label="Spielbrett Mirelons Jagd"></div>
+
+                <div id="jagd-player-strip" class="jagd-player-strip"></div>
+
+                <div id="jagd-home-row" class="jagd-home-row"></div>
+
+                <details class="jagd-rules">
+                    <summary>📖 Kurzregeln</summary>
+                    <ul>
+                        <li>Wer sich nicht bewegen kann, setzt aus - der Würfel geht weiter.</li>
+                        <li>Eine 1 oder 6 holt eine neue Figur aus dem Lager, eine 6 gibt einen Extra-Wurf.</li>
+                        <li>⬜ <strong>Normalfeld:</strong> Hier passiert nichts Besonderes.</li>
+                        <li>✨ <strong>Ereignisfeld:</strong> Eines von acht violett-goldenen Feldern löst eine zufällige Aktion aus.</li>
+                        <li>🟩 <strong>Startfeld:</strong> Hier beginnt deine farbige Figur ihre Runde.</li>
+                        <li>🏰 <strong>Zielweg:</strong> Vier farbige Endfelder führen zum Schloss; jedes darf nur eine Figur tragen.</li>
+                        <li>Landest du auf einer gegnerischen Figur, wird sie ins Lager geschickt.</li>
+                        <li>Steht dort deine eigene Figur oder eine gegnerische mit Schutzschild, darf diese Figur nicht ziehen.</li>
+                        <li>Kann keine deiner Figuren ziehen, setzt du diese Runde aus.</li>
+                        <li>Auch Tamos Abkürzung ist eines dieser zufälligen Ereignisse.</li>
+                        <li>Im Zielweg dürfen eigene Figuren übersprungen werden, aber kein Endfeld doppelt belegen.</li>
+                    </ul>
+                </details>
+
+                <div class="jagd-log-wrap">
+                    <h2>🗨️ Was ist passiert?</h2>
+                    <p>Hier stehen die letzten Würfe, Ereignisse und Rauswürfe. Das Neueste steht oben.</p>
+                    <div id="jagd-log" class="jagd-log" aria-live="polite"></div>
+                </div>
+
+                <div class="jagd-game-actions">
+                    <button type="button" id="jagd-restart" class="yj-button yj-button--secondary">🔁 Neustart</button>
+                    <a href="#" id="jagd-leave" class="yj-button yj-button--secondary">🚪 Partie verlassen</a>
+                </div>
+
+            </div>
+
+            <div id="jagd-event-modal" class="jagd-modal" hidden>
+                <div class="jagd-modal-card">
+                    <span class="jagd-event-icon">✨</span>
+                    <h2 class="jagd-event-name">Ereignis</h2>
+                    <p class="jagd-event-text"></p>
+                    <div id="jagd-shield-picker" class="jagd-shield-picker" hidden></div>
+                    <button type="button" id="jagd-event-confirm" class="yj-button yj-button--primary">Weiter</button>
+                </div>
+            </div>
+
+            <div id="jagd-fork-modal" class="jagd-modal" hidden>
+                <div class="jagd-modal-card">
+                    <h2>Gabelung erreicht!</h2>
+                    <p>Hauptweg (länger, mit Rastplatz) oder Abkürzung (kürzer, mit Ereignisfeld)?</p>
+                    <div class="jagd-fork-buttons">
+                        <button type="button" id="jagd-fork-main" class="yj-button yj-button--secondary">Hauptweg</button>
+                        <button type="button" id="jagd-fork-short" class="yj-button yj-button--primary">Abkürzung</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="jagd-win-modal" class="jagd-modal" hidden>
+                <div class="jagd-modal-card">
+                    <span class="jagd-event-icon">🏆</span>
+                    <p class="jagd-win-text">Gewonnen!</p>
+                    <button type="button" id="jagd-win-again" class="yj-button yj-button--primary">Neue Partie</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MIRO (eingebettet, siehe JS/miro-*.js)
+             ================================================= -->
+
+        <div id="bear-miro-embed" hidden>
+
+            <div id="miro-setup" class="miro-setup">
+                <a href="#" id="miro-leave-setup" class="miro-back">← Zurück zu Branos' Spielen</a>
+                <section class="miro-setup-card">
+                    <div class="miro-logo-mark">✦</div>
+                    <h1>Miro</h1>
+                    <p>Magische Karten, überraschende Zauber und ein bisschen Mut.</p>
+                    <fieldset class="miro-player-config">
+                        <legend>Wer sitzt mit am Tisch?</legend>
+                        <label><span>Spieler 1</span><strong>🧑 Du</strong></label>
+                        <label><span>Spieler 2</span><select id="miro-player-2"><option value="ai">🤖 Computer</option><option value="human">🧑 Mensch</option></select></label>
+                        <label><span>Spieler 3</span><select id="miro-player-3"><option value="off">— frei —</option><option value="ai">🤖 Computer</option><option value="human">🧑 Mensch</option></select></label>
+                        <label><span>Spieler 4</span><select id="miro-player-4"><option value="off">— frei —</option><option value="ai">🤖 Computer</option><option value="human">🧑 Mensch</option></select></label>
+                    </fieldset>
+                    <button type="button" id="miro-start" class="miro-primary">Partie vorbereiten</button>
+                    <button type="button" class="miro-roomcode" disabled>🔒 Mit Raumcode – später</button>
+                </section>
+            </div>
+
+            <div id="miro-game" class="miro-game" hidden>
+                <header class="miro-hud">
+                    <div><strong id="miro-turn">Startwürfeln</strong><span id="miro-direction">↻</span></div>
+                    <div class="miro-active-color"><span>Aktive Farbe</span><strong id="miro-color">–</strong></div>
+                    <button type="button" id="miro-rules">? Regeln</button>
+                    <button type="button" id="miro-leave" title="Partie verlassen">🚪 Verlassen</button>
+                </header>
+
+                <section class="miro-table" aria-label="Miro Spieltisch">
+                    <div id="miro-direction-ring" class="miro-direction-ring" aria-hidden="true">
+                        <span class="miro-flow-arrow miro-flow-arrow--top-left">➜</span>
+                        <span class="miro-flow-arrow miro-flow-arrow--top-right">➜</span>
+                        <span class="miro-flow-arrow miro-flow-arrow--right">➜</span>
+                        <span class="miro-flow-arrow miro-flow-arrow--left">➜</span>
+                    </div>
+                    <section id="miro-opponents" class="miro-opponents" aria-label="Mitspieler"></section>
+                    <div id="miro-effect" class="miro-effect" aria-live="polite"></div>
+                    <div id="miro-fx" class="miro-fx" aria-hidden="true"></div>
+                    <div class="miro-pile-zone miro-pile-zone--draw">
+                        <button type="button" id="miro-draw" class="miro-deck" aria-label="Eine Karte ziehen">
+                            <span class="miro-deck-layers"></span>
+                            <span id="miro-deck-count" class="miro-count">0</span>
+                        </button>
+                        <span>Ziehstapel</span>
+                    </div>
+                    <div class="miro-center-stage">
+                        <div id="miro-startdice" class="miro-coin-explain">
+                            <h2>Wer beginnt?</h2>
+                            <p id="miro-startdice-hint">Jeder würfelt einmal – die höchste Zahl beginnt.</p>
+                            <div id="miro-startdice-players" class="miro-startdice-players"></div>
+                            <button type="button" id="miro-startdice-btn" class="jagd-dice-3d" aria-label="Würfeln. Antippen zum Würfeln.">
+                                <canvas aria-hidden="true"></canvas>
+                                <span id="miro-startdice-face" class="jagd-dice-face">1</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="miro-pile-zone miro-pile-zone--discard">
+                        <div id="miro-discard" class="miro-discard" aria-label="Ablagestapel"></div>
+                        <span>Ablagestapel</span>
+                    </div>
+                </section>
+
+                <section class="miro-player-area">
+                    <div class="miro-hand-title"><strong>Deine Hand</strong><span id="miro-hand-count"></span></div>
+                    <div id="miro-hand" class="miro-hand" aria-label="Deine Handkarten"></div>
+                    <button type="button" id="miro-pass" class="miro-secondary" hidden>Zug beenden</button>
+                </section>
+            </div>
+
+            <div id="miro-choice" class="miro-modal" hidden>
+                <div class="miro-modal-card">
+                    <h2 id="miro-choice-title">Wähle</h2>
+                    <p id="miro-choice-text"></p>
+                    <div id="miro-choice-options" class="miro-choice-options"></div>
+                </div>
+            </div>
+
+            <div id="miro-rules-modal" class="miro-modal" hidden>
+                <div class="miro-modal-card miro-rules-card">
+                    <button type="button" id="miro-rules-close" class="miro-close" aria-label="Schließen">×</button>
+                    <h2>So spielt man Miro</h2>
+                    <h3>Das Ziel</h3>
+                    <ul>
+                        <li>Wer zuerst keine Karten mehr auf der Hand hat, gewinnt.</li>
+                    </ul>
+                    <h3>Dein Zug</h3>
+                    <ul>
+                        <li><strong>Karte legen:</strong> Deine Karte muss dieselbe Farbe, dieselbe Zahl oder dasselbe Aktionssymbol wie die oberste Karte haben.</li>
+                        <li><strong>Karte ziehen:</strong> Kannst oder möchtest du nichts legen, drückst du auf den Ziehstapel. Du erhältst eine Karte und dein Zug ist sofort beendet.</li>
+                    </ul>
+                    <h3>Aktionskarten</h3>
+                    <ul>
+                        <li><strong>+2 und +3:</strong> Legt der Spieler vor dir eine solche Karte, bekommst du zwei oder drei Karten und wirst übersprungen. Du darfst keine eigene +2- oder +3-Karte dagegenlegen.</li>
+                        <li><strong>Aussetzen:</strong> Wird diese Karte vor deinem Zug gelegt, wirst du einmal übersprungen. Weil dein Zug gar nicht beginnt, kannst du keine eigene Aussetzen-Karte dagegenlegen.</li>
+                        <li><strong>Richtung wechseln:</strong> Sobald diese Karte gelegt wird, läuft die Spielrichtung andersherum. Diese Karte gibt es nur in Partien mit mindestens drei Spielern.</li>
+                        <li><strong>Farbe wünschen:</strong> Diese bunte Karte darfst du immer legen. Danach wählst du, welche Farbe als Nächstes gilt.</li>
+                        <li><strong>🔀 Kartentausch:</strong> Diese bunte Karte darfst du immer legen. Danach wählst du einen Mitspieler und eine Karte, die du ihm gibst. Du erhältst dafür eine zufällige Karte aus seiner Hand und bestimmst die neue Farbe. Als letzte Handkarte kannst du sie nicht spielen.</li>
+                        <li><strong>💎 Schatzfund:</strong> Sobald du die Karte legst, werden dir zwei Karten vom Ziehstapel gezeigt. Eine behältst du, die andere kommt zurück in den Stapel.</li>
+                        <li><strong>🌫️ Nebelzauber:</strong> Diese Karte darfst du immer legen. Danach gibt jeder Spieler automatisch eine zufällige Handkarte in der aktuellen Spielrichtung weiter.</li>
+                    </ul>
+                    <h3>Zauberkette</h3>
+                    <p>Liegt zum Beispiel eine blaue 5 oben und du legst eine rote 5 darauf, beginnt eine Zauberkette. Du darfst sofort noch eine beliebige Zahlenkarte legen. Eine Aktionskarte ist weiterhin erlaubt, wenn ihre Farbe zur aktiven Farbe passt; bunte Karten und der Nebelzauber sind immer erlaubt. Möchtest du keine weitere Karte legen, drückst du auf „Zauberkette beenden".</p>
+                </div>
+            </div>
+
+            <div id="miro-win" class="miro-modal" hidden>
+                <div class="miro-modal-card miro-win-card">
+                    <div>🏆</div><h2 id="miro-win-title">Gewonnen!</h2>
+                    <button type="button" id="miro-win-again" class="miro-primary">Neue Partie</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
     <!-- =====================================================
          JAVASCRIPT
          ===================================================== -->
@@ -397,13 +632,28 @@
     <script src="JS/level-data.js?v=3"></script>
     <script src="JS/level-up.js?v=3"></script>
     <script src="JS/auth.js?v=12"></script>
-<script src="JS/sidebar.js?v=29"></script>
-<script src="JS/bugreport.js?v=1"></script>
+    <script src="JS/sidebar.js?v=29"></script>
+    <script src="JS/bugreport.js?v=1"></script>
     <script src="JS/tamagotchi.js?v=13"></script>
     <script src="JS/fireworks.js?v=1"></script>
     <script src="JS/confetti.js?v=1"></script>
-<script src="JS/animals.js?v=1"></script>
-<script src="JS/baerental.js?v=2"></script>
+
+    <!-- Branos Spielhalle: Mirelons Jagd -->
+    <script src="JS/jagd-sound.js?v=1"></script>
+    <script src="JS/jagd-data.js?v=1"></script>
+    <script src="JS/jagd-engine.js?v=1"></script>
+    <script src="JS/jagd-ai.js?v=1"></script>
+    <script src="JS/jagd-ui.js?v=1"></script>
+    <script type="module" src="JS/jagd-dice-3d.mjs?v=1"></script>
+
+    <!-- Branos Spielhalle: Miro -->
+    <script src="JS/miro-data.js?v=1"></script>
+    <script src="JS/miro-engine.js?v=1"></script>
+    <script src="JS/miro-ai.js?v=1"></script>
+    <script src="JS/miro-ui.js?v=1"></script>
+    <script type="module" src="JS/miro-startdice-3d.mjs?v=1"></script>
+
+    <script src="JS/baerental.js?v=3"></script>
 
 
 </body>

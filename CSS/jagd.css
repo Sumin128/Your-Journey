@@ -1,0 +1,694 @@
+/* =====================================================
+   MIRELONS JAGD - lokale Vorschau
+   Eigenständige Datei, hängt bewusst NICHT an CSS/style.css der
+   echten Seite (Vorschau soll unabhängig lauffähig bleiben).
+   Platzhalter-Optik: warme, ruhige Farben, klare Formen - keine
+   finalen Illustrationen (kommen später von Codex).
+   ===================================================== */
+
+:root {
+    --jagd-paper: #fbf3e3;
+    --jagd-ink: #3a2c1c;
+    --jagd-ink-soft: #6b5642;
+    --jagd-border: #c8a06a;
+    --jagd-gold: #d9a441;
+    --jagd-gruen: #2f6b3e;
+    --jagd-orange: #d97a2e;
+    --jagd-blau: #3f7fb0;
+    --jagd-rosa: #c1476b;
+    --jagd-wood: #7a4a2b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #f4e4c1, #d9b98a 70%, var(--jagd-wood));
+    color: var(--jagd-ink);
+    min-height: 100vh;
+    position: relative;
+    isolation: isolate;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: -28px;
+    z-index: -2;
+    background: url("../images/mirelons-jagd/spielfeld-mirelons-jagd-v2.webp") center/cover no-repeat;
+    filter: blur(20px) saturate(0.7) brightness(0.72);
+    transform: scale(1.08);
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(circle at center, rgba(250, 232, 191, 0.88) 0 30%, rgba(104, 61, 28, 0.38) 100%),
+        linear-gradient(rgba(255, 244, 214, 0.2), rgba(73, 40, 19, 0.22));
+    pointer-events: none;
+}
+
+.jagd-preview-banner {
+    margin: 0;
+    padding: 6px 12px;
+    background: #402a17;
+    color: #f6dfa0;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.jagd-screen {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+}
+
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+
+.yj-button {
+    font: inherit;
+    font-weight: 700;
+    padding: 10px 18px;
+    border-radius: 12px;
+    border: 2px solid var(--jagd-border);
+    cursor: pointer;
+    background: var(--jagd-paper);
+    color: var(--jagd-ink);
+}
+
+.yj-button--primary { background: var(--jagd-gold); border-color: #a8792a; color: #3a2408; }
+.yj-button--secondary { background: #fff; }
+.yj-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* --- Landing --- */
+
+.jagd-landing-header {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    background: var(--jagd-paper);
+    border: 3px solid var(--jagd-border);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 18px;
+}
+
+.jagd-brano-portrait { font-size: 3rem; }
+
+.jagd-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.jagd-game-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 18px 12px;
+    background: var(--jagd-paper);
+    border: 3px solid var(--jagd-border);
+    border-radius: 16px;
+    cursor: pointer;
+    font: inherit;
+    color: var(--jagd-ink);
+    text-align: center;
+}
+
+.jagd-game-card--main { border-color: var(--jagd-gold); box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.35); }
+.jagd-card-illustration { font-size: 2.6rem; }
+.jagd-card-illustration--board {
+    width: min(100%, 210px);
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 2px solid #7a4a2b;
+    box-shadow: 0 6px 14px rgba(58, 36, 8, 0.24);
+}
+.jagd-card-meta { font-size: 0.75rem; color: var(--jagd-ink-soft); }
+
+.jagd-card-badge {
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #e4d6bb;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.jagd-card-badge--play { background: var(--jagd-gold); color: #3a2408; }
+
+.jagd-game-card.is-shaking { animation: jagd-shake 0.4s; }
+@keyframes jagd-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.jagd-online-note { font-size: 0.8rem; color: var(--jagd-ink-soft); text-align: center; margin-top: 16px; }
+
+/* --- Modusauswahl --- */
+
+.jagd-piece-choice {
+    margin: 16px 0;
+    padding: 12px;
+    border: 2px solid var(--jagd-border);
+    border-radius: 14px;
+    background: rgba(255, 248, 231, 0.8);
+}
+.jagd-piece-choice legend { padding: 0 6px; font-weight: 800; }
+.jagd-piece-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.jagd-piece-buttons button {
+    min-height: 44px;
+    border: 2px solid #a8792a;
+    border-radius: 11px;
+    background: #fff;
+    color: var(--jagd-ink);
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+}
+.jagd-piece-buttons button.is-active {
+    background: var(--jagd-gold);
+    box-shadow: inset 0 0 0 2px #fff2bd;
+}
+
+.jagd-color-choice {
+    margin: 16px 0;
+    padding: 12px;
+    border: 2px solid var(--jagd-border);
+    border-radius: 14px;
+    background: rgba(255, 248, 231, 0.8);
+}
+.jagd-color-choice legend { padding: 0 6px; font-weight: 800; }
+.jagd-color-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.jagd-color-buttons button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    border: 2px solid #a8792a;
+    border-radius: 11px;
+    background: #fff;
+    color: var(--jagd-ink);
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+}
+.jagd-color-buttons button.is-active { background: #fff0bd; box-shadow: inset 0 0 0 2px #e1a934; }
+.jagd-color-dot { width: 18px; height: 18px; border: 2px solid #fff8df; border-radius: 50%; box-shadow: 0 0 0 1px #6b421f; }
+.jagd-color-dot--gruen { background: #348e55; }
+.jagd-color-dot--orange { background: #e09b27; }
+.jagd-color-dot--blau { background: #3798ce; }
+.jagd-color-dot--rosa { background: #c94b5a; }
+
+.jagd-mode-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.jagd-mode-grid button {
+    font: inherit;
+    font-weight: 700;
+    padding: 14px;
+    border-radius: 14px;
+    border: 2px solid var(--jagd-border);
+    background: var(--jagd-paper);
+    cursor: pointer;
+    text-align: left;
+}
+
+.jagd-mixed-slots { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.jagd-slot-toggle { font: inherit; padding: 10px; border-radius: 10px; border: 2px solid var(--jagd-border); background: #fff; cursor: pointer; }
+.jagd-warning { color: #a02323; font-weight: 700; }
+
+.jagd-online-disabled {
+    display: block;
+    width: 100%;
+    margin: 14px 0;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px dashed var(--jagd-border);
+    background: transparent;
+    color: var(--jagd-ink-soft);
+    font-weight: 700;
+}
+
+.jagd-link-btn { background: none; border: none; color: var(--jagd-ink-soft); text-decoration: underline; cursor: pointer; font: inherit; }
+
+/* --- Spielbrett --- */
+
+.jagd-turn-banner {
+    text-align: center;
+    font-weight: 800;
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--jagd-paper);
+    border: 2px solid var(--jagd-border);
+    margin-bottom: 10px;
+}
+
+.jagd-dice-row { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; margin-bottom: 14px; }
+.jagd-dice-face {
+    position: absolute;
+    right: -5px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 25px;
+    aspect-ratio: 1;
+    border: 2px solid #6b421f;
+    border-radius: 10px;
+    background: #fff8df;
+    color: #6b421f;
+    font: 900 0.82rem/1 system-ui, sans-serif;
+    box-shadow: 0 3px 0 rgba(107, 66, 31, 0.22);
+    pointer-events: none;
+}
+.jagd-dice-3d {
+    position: relative;
+    width: 82px;
+    height: 82px;
+    border-radius: 16px;
+    background: radial-gradient(circle, #fff9e9 0 42%, #e7c98d 100%);
+    border: 2px solid var(--jagd-border);
+    box-shadow: inset 0 0 15px rgba(107, 66, 31, 0.18), 0 4px 9px rgba(58, 36, 8, 0.2);
+    cursor: grab;
+    touch-action: none;
+    overflow: visible;
+    padding: 0;
+    color: inherit;
+}
+.jagd-dice-3d:active { cursor: grabbing; }
+.jagd-dice-3d:focus-visible { outline: 4px solid #fff4b0; outline-offset: 3px; }
+.jagd-dice-3d:disabled { opacity: 0.58; cursor: default; }
+.jagd-dice-3d.is-reroll {
+    opacity: 1;
+    animation: jagd-dice-ready 0.85s ease-in-out infinite alternate;
+}
+@keyframes jagd-dice-ready {
+    from { box-shadow: inset 0 0 15px rgba(107, 66, 31, 0.18), 0 0 0 2px #fff2b0, 0 4px 9px rgba(58, 36, 8, 0.2); }
+    to { box-shadow: inset 0 0 15px rgba(107, 66, 31, 0.18), 0 0 0 6px rgba(235, 174, 53, 0.7), 0 5px 16px rgba(92, 51, 13, 0.38); }
+}
+.jagd-dice-3d canvas { display: block; width: 100%; height: 100%; border-radius: 14px; }
+.jagd-dice-3d.is-fallback canvas { display: none; }
+.jagd-dice-3d.is-fallback .jagd-dice-face {
+    position: static;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 2rem;
+}
+.jagd-dice-hint { font-size: 0.76rem; font-weight: 750; color: var(--jagd-ink-soft); }
+
+.jagd-global-effect {
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto 10px;
+    padding: 7px 13px;
+    border: 2px solid #7a4ac1;
+    border-radius: 999px;
+    background: #f2e9ff;
+    color: #4d267f;
+    font-size: 0.82rem;
+    font-weight: 850;
+    text-align: center;
+}
+.jagd-global-effect[hidden] { display: none; }
+
+.jagd-direction {
+    width: fit-content;
+    margin: 0 auto 10px;
+    padding: 6px 12px;
+    border: 2px solid #618447;
+    border-radius: 999px;
+    background: #edf7df;
+    color: #315b2d;
+    font-size: 0.8rem;
+    font-weight: 850;
+    text-align: center;
+}
+.jagd-direction.is-reversed {
+    border-color: #7a4ac1;
+    background: #f2e9ff;
+    color: #4d267f;
+}
+
+.jagd-board {
+    position: relative;
+    container-type: inline-size;
+    width: min(100%, 880px);
+    aspect-ratio: 1;
+    margin: 0 auto 16px;
+    background: #efe0bd url("../images/mirelons-jagd/spielfeld-mirelons-jagd-v2.webp") center/cover no-repeat;
+    border: 4px solid var(--jagd-wood);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 12px 28px rgba(55, 31, 10, 0.32);
+}
+
+.jagd-cell {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 4.35%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+    border: 2px solid #704422;
+    border-radius: 28%;
+    background: #fff8e7;
+    box-shadow: 0 2px 4px rgba(58, 36, 16, 0.42);
+    z-index: 2;
+}
+
+.jagd-cell--start { width: 4.85%; border: 3px solid #fff4cc; }
+.jagd-cell--start.jagd-tint-gruen { background: #348e55; }
+.jagd-cell--start.jagd-tint-orange { background: #e09b27; }
+.jagd-cell--start.jagd-tint-blau { background: #3798ce; }
+.jagd-cell--start.jagd-tint-rosa { background: #c94b5a; }
+.jagd-cell--action { width: 4.65%; background: #754696; border: 3px solid #f1c758; }
+.jagd-cell--action::after { content: "✦"; color: #fff4be; font-size: clamp(9px, 2.2vw, 17px); line-height: 1; }
+.jagd-cell--rest { width: 4.45%; background: #4ca8a4; border: 3px solid #fff4cf; }
+.jagd-cell--rest::after { content: "◆"; color: #e8fff8; font-size: clamp(7px, 1.7vw, 13px); }
+.jagd-cell--fork { outline: 2px dashed #6b421f; outline-offset: 2px; }
+.jagd-cell--shortcut { opacity: 0.96; }
+
+.jagd-tint-gruen { background-color: #e7f1df; }
+.jagd-tint-orange { background-color: #f7e8d2; }
+.jagd-tint-blau { background-color: #dcedf7; }
+.jagd-tint-rosa { background-color: #f6dfe6; }
+.jagd-cell.jagd-tint-gruen,
+.jagd-cell.jagd-tint-orange,
+.jagd-cell.jagd-tint-blau,
+.jagd-cell.jagd-tint-rosa { background-color: #fff8e7; }
+.jagd-cell--start.jagd-tint-gruen { background-color: #348e55; }
+.jagd-cell--start.jagd-tint-orange { background-color: #e09b27; }
+.jagd-cell--start.jagd-tint-blau { background-color: #3798ce; }
+.jagd-cell--start.jagd-tint-rosa { background-color: #c94b5a; }
+.jagd-cell--action.jagd-cell { background-color: #754696; }
+.jagd-cell--rest.jagd-cell { background-color: #4ca8a4; }
+
+.jagd-castle {
+    position: absolute;
+    left: 39%;
+    top: 38%;
+    width: 22%;
+    height: 25%;
+    font-size: 0;
+    background: transparent;
+    border: 0;
+    z-index: 1;
+}
+
+.jagd-token {
+    width: clamp(28px, 6.5cqi, 44px);
+    aspect-ratio: 1;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    filter: drop-shadow(0 3px 3px rgba(38, 21, 8, 0.55));
+    transition: left 0.18s ease, top 0.18s ease;
+    z-index: 5;
+}
+
+.jagd-token::after,
+.jagd-shield-token::after {
+    content: attr(data-number);
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    border: 2px solid #fff8df;
+    background: #5d351c;
+    color: #fff8df;
+    font: 900 0.64rem/1 system-ui, sans-serif;
+    box-shadow: 0 1px 3px rgba(42, 23, 9, 0.5);
+}
+
+.jagd-token::before {
+    content: attr(data-effects);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% - 4px);
+    transform: translateX(-50%);
+    min-width: max-content;
+    padding: 2px 5px;
+    border: 1px solid rgba(74, 47, 25, 0.45);
+    border-radius: 999px;
+    background: rgba(255, 250, 230, 0.96);
+    color: #3c2617;
+    font: 800 clamp(0.55rem, 2.2cqi, 0.72rem)/1.1 system-ui, sans-serif;
+    box-shadow: 0 2px 5px rgba(42, 23, 9, 0.3);
+    pointer-events: none;
+}
+.jagd-token[data-effects=""]::before { display: none; }
+
+.jagd-token--gruen { background-image: url("../images/mirelons-jagd/figur-fuchs-gruen.png"); }
+.jagd-token--orange { background-image: url("../images/mirelons-jagd/figur-loewe-gold.png"); }
+.jagd-token--blau { background-image: url("../images/mirelons-jagd/figur-eule-eisblau.png"); }
+.jagd-token--rosa { background-image: url("../images/mirelons-jagd/figur-hase-rosenrot.png"); }
+
+.jagd-board-camp {
+    position: absolute;
+    width: 13.5%;
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    place-items: center;
+    gap: 0;
+    z-index: 4;
+    pointer-events: none;
+}
+.jagd-board-camp--gruen { left: 5.8%; top: 5.8%; }
+.jagd-board-camp--orange { right: 5.8%; top: 5.8%; }
+.jagd-board-camp--blau { right: 5.8%; bottom: 5.8%; }
+.jagd-board-camp--rosa { left: 5.8%; bottom: 5.8%; }
+.jagd-board-camp .jagd-token {
+    position: relative !important;
+    width: clamp(28px, 6.5cqi, 44px);
+    transition: none;
+    pointer-events: auto;
+}
+
+.jagd-token.is-movable {
+    outline: 0;
+    filter:
+        drop-shadow(0 3px 3px rgba(38, 21, 8, 0.55))
+        drop-shadow(0 0 3px #fff8cf)
+        drop-shadow(0 0 5px #e5ad34);
+    animation: jagd-pulse 0.9s ease-in-out infinite;
+    cursor: pointer;
+    z-index: 8;
+}
+
+@keyframes jagd-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.22); }
+}
+
+.jagd-token.is-frozen { filter: grayscale(0.35) brightness(1.2) drop-shadow(0 0 5px #9be7ff); }
+.jagd-token.is-shielded { box-shadow: 0 0 0 3px #f5c542, 0 0 10px rgba(245, 197, 66, 0.8); }
+.jagd-token.is-bound { box-shadow: 0 0 0 3px #7a4ac1, 0 0 10px rgba(122, 74, 193, 0.72); }
+
+/* --- Spieler-Leiste + Lager --- */
+
+.jagd-player-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.jagd-player-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 2px solid var(--jagd-border);
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.jagd-player-chip.is-current { box-shadow: 0 0 0 3px var(--jagd-gold); }
+.jagd-player-dot { width: 12px; height: 12px; border-radius: 50%; }
+.jagd-tint-gruen .jagd-player-dot { background: var(--jagd-gruen); }
+.jagd-tint-orange .jagd-player-dot { background: var(--jagd-orange); }
+.jagd-tint-blau .jagd-player-dot { background: var(--jagd-blau); }
+.jagd-tint-rosa .jagd-player-dot { background: var(--jagd-rosa); }
+
+.jagd-ai-badge { font-size: 0.75rem; }
+
+.jagd-lager {
+    display: inline-flex;
+    gap: 3px;
+    min-width: 20px;
+    min-height: 18px;
+}
+
+.jagd-lager { display: none; }
+
+/* --- Schlosswege --- */
+
+.jagd-home-row {
+    display: none;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.jagd-home-lane {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 2px solid var(--jagd-border);
+    background: #fff;
+}
+
+.jagd-home-label { font-size: 0.7rem; font-weight: 700; margin-right: 4px; color: var(--jagd-ink-soft); }
+
+.jagd-home-slot {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: #efe0bd;
+    border: 1px solid var(--jagd-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.jagd-home-slot--entrance { border-style: dashed; }
+.jagd-home-slot .jagd-token { position: relative !important; transition: none; }
+
+.jagd-home-slot--board {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 4.25%;
+    height: auto;
+    aspect-ratio: 1;
+    border: 2px solid #fff4cf;
+    border-radius: 28%;
+    box-shadow: 0 2px 4px rgba(58, 36, 16, 0.42);
+    z-index: 3;
+}
+.jagd-home-slot--board.jagd-tint-gruen { background: #348e55; }
+.jagd-home-slot--board.jagd-tint-orange { background: #e09b27; }
+.jagd-home-slot--board.jagd-tint-blau { background: #3798ce; }
+.jagd-home-slot--board.jagd-tint-rosa { background: #c94b5a; }
+.jagd-home-slot--board .jagd-token { width: clamp(28px, 6.5cqi, 44px); flex: 0 0 auto; }
+
+/* --- Regeln & Log --- */
+
+.jagd-rules { background: #fff; border: 2px solid var(--jagd-border); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+.jagd-rules summary { cursor: pointer; font-weight: 700; }
+.jagd-rules ul { margin: 8px 0 0; padding-left: 20px; font-size: 0.85rem; }
+
+.jagd-log-wrap { background: #fff; border: 2px solid var(--jagd-border); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+.jagd-log-wrap h2 { font-size: 0.9rem; margin: 0 0 6px; }
+.jagd-log-wrap p { margin: 0 0 7px; color: var(--jagd-ink-soft); font-size: 0.76rem; }
+.jagd-log { max-height: 140px; overflow-y: auto; font-size: 0.8rem; display: flex; flex-direction: column-reverse; gap: 2px; }
+.jagd-log > div:first-child { font-weight: 700; }
+
+.jagd-game-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.jagd-game-actions a { text-decoration: none; display: inline-block; }
+
+.jagd-sound-toggle {
+    display: block;
+    margin: 0 0 8px auto;
+    min-height: 38px;
+    padding: 7px 13px;
+    border: 2px solid var(--jagd-border);
+    border-radius: 999px;
+    background: var(--jagd-paper);
+    color: var(--jagd-ink);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(58, 36, 16, 0.18);
+}
+.jagd-sound-toggle:hover { background: #fff8dc; }
+.jagd-sound-toggle:focus-visible { outline: 3px solid #edb33c; outline-offset: 2px; }
+
+/* --- Modals --- */
+
+.jagd-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 20, 10, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+}
+
+.jagd-modal[hidden] { display: none; }
+
+.jagd-modal-card {
+    background: var(--jagd-paper);
+    border: 3px solid var(--jagd-border);
+    border-radius: 18px;
+    padding: 22px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+}
+
+.jagd-event-icon { font-size: 2.6rem; display: block; margin: 0 auto 6px; }
+.jagd-event-icon img { display: block; width: 112px; height: 112px; object-fit: contain; margin: 0 auto; }
+.jagd-event-name { margin: 0 0 8px; }
+.jagd-event-text { margin: 0 0 14px; color: var(--jagd-ink-soft); }
+.jagd-shield-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.jagd-shield-option { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.jagd-shield-token {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 44px;
+    background: transparent center/contain no-repeat;
+    filter: drop-shadow(0 2px 2px rgba(38, 21, 8, 0.4));
+}
+.jagd-fork-buttons { display: flex; gap: 10px; justify-content: center; }
+
+/* --- Mobil: keine seitliche Scrollleiste, genug Fingerfläche --- */
+
+@media (max-width: 480px) {
+    .jagd-screen { padding: 14px 8px 50px; }
+    .jagd-board { width: 100%; }
+    .jagd-token { width: clamp(28px, 6.5cqi, 44px); }
+    .jagd-home-slot { width: 18px; height: 18px; }
+    .jagd-dice-3d { width: 68px; height: 68px; }
+    .jagd-color-buttons { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .jagd-dice-3d.is-reroll { animation: none; box-shadow: 0 0 0 5px rgba(235, 174, 53, 0.72); }
+}

@@ -1,6 +1,12 @@
 # Wer ist es? – Karten- und Bildspezifikation
 
-> **Source of Truth.** Vor jeder Änderung am Tierkarten-/Ratespiel und vor jeder Bildarbeit diese Datei lesen. Bei Widerspruch hat diese Feature-Spezifikation Vorrang vor allgemeinen Projektannahmen.
+> **ARCHIVIERT (2026-09-15).** Das Spiel lief nicht zuverlässig und wurde
+> vollständig aus Bärental entfernt (Menü, HTML, JavaScript, CSS). Branos
+> Bereich ist jetzt eine Spielhalle mit Mirelons Jagd und Miro. Diese Datei
+> bleibt nur als historische Referenz stehen, ist keine aktive Spezifikation
+> mehr und nicht mehr verbindlich.
+
+> **Source of Truth (historisch).** Vor jeder Änderung am Tierkarten-/Ratespiel und vor jeder Bildarbeit diese Datei lesen. Bei Widerspruch hat diese Feature-Spezifikation Vorrang vor allgemeinen Projektannahmen.
 
 ## Stand: fertig
 

@@ -1,0 +1,167 @@
+:root {
+    --miro-ink: #3e2918;
+    --miro-paper: #fff5d9;
+    --miro-gold: #e0aa43;
+    --miro-wood: #58331e;
+    --miro-green: #38754b;
+    --miro-orange: #d48632;
+    --miro-blue: #4c8db8;
+    --miro-rose: #bd526e;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--miro-ink);
+    font-family: Georgia, "Times New Roman", serif;
+    background:
+        radial-gradient(circle at 50% 18%, rgba(255,231,164,.32), transparent 35%),
+        linear-gradient(rgba(35,21,13,.15), rgba(35,21,13,.45)),
+        repeating-linear-gradient(92deg, #81512e 0 36px, #754528 36px 39px, #8e5b34 39px 76px);
+}
+button { font: inherit; }
+.miro-preview { margin: 0; padding: 6px 12px; background: #352116; color: #f5dc96; text-align: center; font: 700 .74rem/1.3 system-ui,sans-serif; }
+.miro-setup { min-height: calc(100vh - 28px); display: grid; place-items: center; padding: 28px 16px; }
+.miro-back { position: fixed; left: 16px; top: 42px; color: #fff4d0; font-weight: 800; }
+.miro-setup-card { width: min(100%, 560px); padding: 28px; border: 4px solid #8b572c; border-radius: 26px; text-align: center; background: linear-gradient(145deg,#fff8e4,#ead29b); box-shadow: 0 24px 55px rgba(35,18,8,.45), inset 0 0 0 3px #f7d574; }
+.miro-logo-mark { width: 74px; aspect-ratio: 1; margin: -64px auto 8px; display: grid; place-items: center; border: 5px solid #b47828; border-radius: 50%; background: #1e624c; color: #ffe38b; font-size: 2.4rem; box-shadow: 0 8px 18px #51301966; }
+.miro-setup h1 { margin: 5px 0; font-size: 2.7rem; }
+.miro-setup fieldset { border: 0; margin: 22px 0 14px; padding: 0; display: grid; gap: 8px; }
+.miro-setup legend { margin-bottom: 9px; font-weight: 900; }
+.miro-player-config label { min-height:48px; display:grid; grid-template-columns:100px 1fr; align-items:center; gap:10px; padding:6px 9px; border:2px solid #b98342; border-radius:12px; background:#fff9e9; text-align:left; }
+.miro-player-config label > span { font-weight:900; color:#6b421f; }
+.miro-player-config label > strong { padding:8px 10px; }
+.miro-player-config select { width:100%; min-height:36px; padding:6px 10px; border:2px solid #774723; border-radius:9px; background:#fffdf6; color:var(--miro-ink); font:800 1rem Georgia,serif; cursor:pointer; }
+.miro-mode,.miro-primary,.miro-secondary,.miro-roomcode { min-height: 46px; padding: 10px 14px; border: 2px solid #774723; border-radius: 13px; cursor: pointer; color: var(--miro-ink); background: #fffaf0; font-weight: 800; }
+.miro-mode.is-active { background: #f3c75e; box-shadow: inset 0 0 0 2px #fff1b3; }
+.miro-primary { background: #dca63e; color: #33200e; }
+.miro-roomcode { display: block; width: 100%; margin-top: 9px; opacity: .5; cursor: not-allowed; }
+
+.miro-game { min-height: calc(100vh - 28px); padding: 12px clamp(8px,2vw,26px) 24px; overflow: hidden; }
+.miro-hud { max-width: 1180px; margin: 0 auto 8px; display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 10px; padding: 9px 14px; border: 3px solid #80502c; border-radius: 16px; background: rgba(255,245,217,.94); box-shadow: 0 6px 18px #2413094d; }
+.miro-hud.is-turn-change { animation:miro-turn-pulse .72s ease-out; }
+@keyframes miro-turn-pulse { 45% { transform:translateY(2px) scale(1.012); box-shadow:0 0 0 5px #f2c96088,0 8px 24px #24130966; } }
+.miro-hud > div:first-child { display: flex; gap: 9px; align-items: center; }
+#miro-direction { display: grid; place-items: center; width: 30px; aspect-ratio: 1; border-radius: 50%; background: #ead38b; font: 900 1.25rem system-ui; transition: transform .35s; }
+#miro-direction.is-reverse { transform: rotateY(180deg); }
+.miro-active-color { display: flex; gap: 7px; align-items: center; font: .78rem system-ui; }
+.miro-active-color strong { padding: 5px 10px; border-radius: 999px; color: white; text-shadow: 0 1px 2px #0008; }
+#miro-rules, #miro-leave { border: 2px solid #80502c; border-radius: 999px; padding: 7px 11px; background: white; cursor: pointer; font-weight: 800; }
+.miro-opponents { position:absolute; left:8%; right:8%; top:-54px; min-height:74px; display:flex; justify-content:center; gap:clamp(18px,7vw,90px); z-index:6; pointer-events:none; }
+.miro-opponent { padding:7px 10px; border:2px solid transparent; border-radius:14px; text-align:center; color:#fff6d8; text-shadow:0 2px 3px #271208; transition:transform .25s ease,background .25s ease,border-color .25s ease,box-shadow .25s ease; }
+.miro-opponent-hand { width:180px; height:47px; display:flex; justify-content:center; transform-origin:center; }
+.miro-mini-card { --peek:0px; width:31px; height:46px; margin-left:-17px; border:2px solid #c48b38; border-radius:5px; background:url("../images/miro/kartenrueckseite.png") center/cover; box-shadow:0 2px 4px #1f100a88; transform:rotate(calc((var(--i) - var(--mid)) * 3deg)) translateY(var(--peek)); transition:transform .28s ease,filter .28s ease; }
+.miro-mini-card:first-child { margin-left: 0; }
+.miro-mini-card.is-considering { --peek:-13px; filter:brightness(1.3) drop-shadow(0 0 7px #ffe47d); }
+.miro-opponent.is-thinking::after { content:"schaut die Karten durch …"; display:block; margin-top:4px; color:#ffe69a; font:700 .68rem system-ui; }
+.miro-opponents[data-count="1"] .miro-opponent-hand { transform:rotate(180deg); }
+.miro-opponent.is-current { border-color:#d9bc6f99; background:#6d481d4d; box-shadow:0 0 12px #ffd96855; transform:scale(1.02); }
+.miro-opponent.is-current strong { color:#ffe9a0; }
+.miro-opponents[data-count="2"],.miro-opponents[data-count="3"],.miro-opponents[data-count="4"] { inset:0; min-height:100%; display:block; }
+.miro-opponents[data-count="2"] .miro-opponent,.miro-opponents[data-count="3"] .miro-opponent,.miro-opponents[data-count="4"] .miro-opponent { position:absolute; width:180px; }
+.miro-opponents[data-count="2"] .miro-opponent:first-child { left:-12px; top:43%; }
+.miro-opponents[data-count="2"] .miro-opponent:nth-child(2) { right:-12px; top:43%; }
+.miro-opponents[data-count="2"] .miro-opponent:first-child .miro-opponent-hand { transform:rotate(90deg); }
+.miro-opponents[data-count="2"] .miro-opponent:nth-child(2) .miro-opponent-hand { transform:rotate(-90deg); }
+.miro-opponents[data-count="3"] .miro-opponent:first-child { left:-12px; top:43%; }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(2) { left:50%; top:-55px; transform:translateX(-50%); }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(3) { right:-12px; top:43%; }
+.miro-opponents[data-count="3"] .miro-opponent:first-child .miro-opponent-hand { transform:rotate(90deg); }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(2) .miro-opponent-hand { transform:rotate(180deg); }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(3) .miro-opponent-hand { transform:rotate(-90deg); }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(2).is-current { transform:translateX(-50%) scale(1.02); }
+.miro-opponents[data-count="4"] .miro-opponent:first-child { left:50%; top:-55px; transform:translateX(-50%); }
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(2) { left:-12px; top:43%; }
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(3) { right:-12px; top:43%; }
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(4) { left:50%; bottom:-40px; transform:translateX(-50%); }
+
+.miro-table { position: relative; width: min(100%, 1120px); min-height: clamp(570px,76vh,760px); margin: 64px auto 0; border: 9px solid #673b21; border-radius: 34% / 12%; background: radial-gradient(ellipse,#527d52 0 24%,#31583d 68%,#203b2d); box-shadow: inset 0 0 0 4px #a96e35, inset 0 0 85px #071c1499, 0 20px 38px #1f100a88; }
+.miro-table::after { content:""; position:absolute; inset:15px; border:1px solid #d7b86c55; border-radius:inherit; pointer-events:none; }
+.miro-direction-ring { --direction-turn:0deg; position:absolute; inset:0; z-index:5; pointer-events:none; }
+.miro-direction-ring.is-reverse { --direction-turn:180deg; }
+.miro-flow-arrow { position:absolute; display:grid; place-items:center; width:52px; height:31px; border:1px solid #e7cc7e99; border-radius:999px; color:#f5dda0cc; background:#234a3673; box-shadow:0 3px 8px #071c1455; font:900 1.55rem/1 system-ui; text-shadow:0 2px 2px #172213; opacity:.78; transition:transform .4s ease; }
+.miro-flow-arrow--top-left { --arrow-turn:0deg; left:34%; top:21%; transform:translate(-50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
+.miro-flow-arrow--top-right { --arrow-turn:0deg; left:66%; top:21%; transform:translate(-50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
+.miro-flow-arrow--right { --arrow-turn:90deg; right:14%; top:66%; transform:translate(50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
+.miro-flow-arrow--left { --arrow-turn:-90deg; left:14%; top:66%; transform:translate(-50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
+.miro-pile-zone { position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; gap: 8px; color: #f8e5ac; font: 800 .75rem system-ui; z-index: 3; }
+.miro-pile-zone--draw { left: 17%; }
+.miro-pile-zone--discard { right: 17%; }
+.miro-game.is-coin-complete .miro-pile-zone--draw { left:42%; transform:translate(-50%,-50%); transition:left .55s ease,transform .55s ease; }
+.miro-game.is-coin-complete .miro-pile-zone--discard { left:58%; right:auto; transform:translate(-50%,-50%); transition:left .55s ease,transform .55s ease; }
+.miro-deck,.miro-discard { position: relative; width: clamp(82px,10vw,112px); aspect-ratio: 2/3; border: 0; border-radius: 10px; }
+.miro-deck { cursor: pointer; background: url("../images/miro/kartenrueckseite.png") center/cover; box-shadow: -3px 3px 0 #e5c270,-6px 6px 0 #70502f,-9px 9px 0 #d6ab55,0 14px 25px #10201899; transition: transform .18s; }
+.miro-deck:not(:disabled):hover { transform: translateY(-8px) rotate(-2deg); }
+.miro-deck:disabled { opacity: .62; cursor: default; }
+.miro-count { position:absolute; right:-12px; bottom:-10px; min-width:29px; height:29px; display:grid; place-items:center; padding:0 5px; border:2px solid #fff0b2; border-radius:50%; background:#4e2c18; color:white; font:900 .72rem system-ui; }
+.miro-discard { perspective: 600px; }
+.miro-discard .miro-card { position: absolute; inset: 0; width: 100%; }
+.miro-discard .miro-card:nth-last-child(2) { transform: rotate(-5deg) translate(-2px,3px); }
+.miro-discard .miro-card.is-new { animation:miro-discard-in .62s cubic-bezier(.2,.8,.2,1); }
+@keyframes miro-discard-in { from { transform: translate(-180px,130px) rotate(-22deg) scale(1.18); opacity:.2; } }
+.miro-center-stage { position:absolute; inset:18% 31%; display:grid; place-items:center; pointer-events:none; }
+.miro-coin-stage { width: clamp(88px,12vw,132px); aspect-ratio:1; position:relative; transition: opacity .4s; }
+.miro-coin-stage canvas { width:100%; height:100%; }
+.miro-coin-fallback { position:absolute; inset:12%; display:grid; place-items:center; border:8px double #ffe29a; border-radius:50%; background:radial-gradient(circle,#e9bd55,#8e5921); color:#fff0a6; font-size:2.5rem; }
+.miro-coin-stage.has-model .miro-coin-fallback { display:none; }
+.miro-coin-stage.is-done { opacity:.52; }
+.miro-coin-explain { position:absolute; top:calc(50% + 70px); width:min(330px,70vw); padding:10px 13px; border:2px solid #d8ae58; border-radius:13px; background:#fff4d9f2; color:#422817; text-align:center; box-shadow:0 9px 22px #190e0877; pointer-events:auto; font:700 .76rem/1.35 system-ui,sans-serif; }
+.miro-coin-explain p { margin:0 0 8px; }
+.miro-coin-explain .miro-primary { min-height:36px; padding:6px 12px; }
+.miro-startdice-players { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:8px; }
+.miro-startdice-chip { display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 9px; border:2px solid #d8ae58; border-radius:10px; background:#fff9ea; font-size:.68rem; font-weight:800; color:#422817; }
+.miro-startdice-chip span { font-size:.95rem; }
+.miro-startdice-chip.is-active { border-color:#e8a934; box-shadow:0 0 0 3px #f8d98a99; }
+.miro-startdice-chip.is-out { opacity:.55; }
+#miro-startdice-btn { margin:0 auto; }
+.miro-effect { position:absolute; left:50%; top:12%; transform:translateX(-50%); min-height:24px; color:#fff0b8; font:800 .82rem system-ui; text-align:center; text-shadow:0 2px 3px #112418; }
+.miro-fx { position:absolute; left:50%; top:50%; width:120px; height:120px; transform:translate(-50%,-50%) scale(.2); opacity:0; z-index:8; pointer-events:none; filter:drop-shadow(0 0 16px #ffe47d); }
+.miro-fx img { width:100%; height:100%; object-fit:contain; }
+.miro-fx.is-active { animation:miro-magic-burst 1.05s ease-out; }
+@keyframes miro-magic-burst { 0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(-14deg)} 38%{opacity:1;transform:translate(-50%,-50%) scale(1.25) rotate(5deg)} 100%{opacity:0;transform:translate(-50%,-68%) scale(.85)} }
+.miro-flight-card,.miro-draw-flight { position:fixed!important; z-index:80!important; margin:0!important; pointer-events:none!important; transition:left .72s cubic-bezier(.22,.7,.2,1),top .72s cubic-bezier(.22,.7,.2,1),transform .72s ease,opacity .72s ease; }
+.miro-draw-flight { width:96px; aspect-ratio:2/3; border:3px solid #d7aa50; border-radius:10px; background-position:center; background-size:cover; box-shadow:0 12px 24px #1d0e0888; }
+
+.miro-player-area { width:min(100%,1080px); min-height:235px; margin:-250px auto 0; position:relative; z-index:10; padding:7px 10px 12px; border:0; background:transparent; box-shadow:none; }
+.miro-player-area::before { display:none; }
+.miro-player-area.is-current .miro-hand-title { width:max-content; margin-inline:auto; padding:3px 11px; border:1px solid #d9bc6f88; border-radius:999px; color:#ffedaa; background:#5d421f55; filter:drop-shadow(0 0 4px #ffd96866); }
+.miro-game:not(.is-coin-complete) .miro-player-area { visibility:hidden; }
+.miro-game.is-turn-waiting .miro-hand { pointer-events:none; opacity:.9; }
+.miro-game.is-action-settling .miro-hand,.miro-game.is-action-settling .miro-deck { pointer-events:none; }
+.miro-hand-title { display:flex; justify-content:center; gap:9px; color:#fff0b8; text-shadow:0 2px 3px #112418; font:800 .8rem system-ui; }
+.miro-hand { height: clamp(174px,24vw,252px); display:flex; align-items:flex-end; justify-content:center; perspective:900px; padding:8px 46px 0; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scrollbar-color:#b77c35 transparent; }
+.miro-card { --card-color:#777; position:relative; flex:0 0 auto; width:clamp(92px,10vw,126px); aspect-ratio:2/3; margin-left:clamp(-38px,-3vw,-22px); padding:7px; border:3px solid #6b421f; border-radius:12px; overflow:hidden; color:white; background:linear-gradient(145deg,color-mix(in srgb,var(--card-color),white 17%),var(--card-color)); box-shadow:0 8px 14px #30180b55,inset 0 0 0 3px #f8d876; transform-origin:50% 130%; transform:rotate(calc((var(--i) - var(--mid)) * 3deg)) translateY(var(--fan-drop,0px)); transition:transform .2s,filter .2s; cursor:pointer; }
+.miro-card:first-child { margin-left:0; }
+.miro-hand .miro-card:hover,.miro-hand .miro-card:focus-visible,.miro-card.is-playable { filter:drop-shadow(0 0 7px #ffe27a); }
+.miro-hand .miro-card:hover,.miro-hand .miro-card:focus-visible { transform:translateY(-25px) rotate(0) scale(1.08); z-index:20; outline:none; }
+.miro-hand .miro-card.is-selected { transform:translateY(-27px) rotate(0) scale(1.05); z-index:21; filter:drop-shadow(0 0 6px #fff0a088); box-shadow:0 0 0 2px #ffe9a0cc,0 12px 18px #21110877,inset 0 0 0 3px #f8d876; }
+.miro-card:not(.is-playable) { cursor:default; }
+.miro-card.is-rejected { animation:miro-card-reject .34s ease; }
+@keyframes miro-card-reject { 25%{transform:translateX(-8px) rotate(-2deg)} 55%{transform:translateX(8px) rotate(2deg)} 80%{transform:translateX(-4px)} }
+.miro-card--wild { --card-color:#4f4164; background:conic-gradient(from 45deg,var(--miro-green),var(--miro-blue),var(--miro-rose),var(--miro-orange),var(--miro-green)); }
+.miro-card-corner { position:absolute; left:9px; top:7px; font:900 clamp(.9rem,2vw,1.25rem)/1 system-ui; text-shadow:0 2px 2px #0008; }
+.miro-card-corner--bottom { left:auto; top:auto; right:9px; bottom:7px; transform:rotate(180deg); }
+.miro-card-center { position:absolute; inset:16% 11%; display:grid; place-items:center; border-radius:42%; background:rgba(255,248,220,.88); color:var(--card-color); box-shadow:inset 0 0 12px #5d351c44; }
+.miro-card-center strong { font:900 clamp(2.2rem,6vw,4.4rem)/1 Georgia; text-shadow:0 2px 0 white; }
+.miro-card-center img { width:92%; height:92%; object-fit:contain; }
+.miro-card-label { position:absolute; left:7%; right:7%; bottom:8%; padding:3px; border-radius:999px; background:#fff4d9e8; color:#432817; font:800 clamp(.52rem,1.25vw,.68rem)/1.1 system-ui; text-align:center; }
+.miro-secondary { display:block; margin:7px auto 0; min-height:38px; }
+
+.miro-modal { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:16px; background:#201109aa; backdrop-filter:blur(5px); }
+.miro-modal-card { position:relative; width:min(100%,520px); max-height:90vh; overflow:auto; padding:24px; border:4px solid #81502a; border-radius:20px; background:linear-gradient(#fff8e5,#ead39b); box-shadow:0 25px 60px #160b07aa,inset 0 0 0 3px #f7dc87; text-align:center; }
+.miro-choice-options { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; }
+.miro-choice-options button { min-width:92px; min-height:44px; border:2px solid #714220; border-radius:12px; background:white; cursor:pointer; font-weight:800; }
+.miro-choice-options .miro-card { margin:0; min-width:105px; height:158px; }
+.miro-close { position:absolute; right:10px; top:8px; width:38px; height:38px; border:0; background:transparent; font-size:2rem; cursor:pointer; }
+.miro-rules-card { text-align:left; }
+.miro-rules-card h2 { text-align:center; }
+.miro-rules-card h3 { margin:17px 0 5px; color:#60391f; }
+.miro-rules-card ul { margin:0; padding-left:22px; }
+.miro-rules-card li { margin:8px 0; }
+.miro-rules-card p { margin:7px 0; line-height:1.5; }
+.miro-win-card > div { font-size:4rem; }
+
+@media(max-width:700px){
+    .miro-hud{grid-template-columns:1fr auto}.miro-active-color{grid-row:2;grid-column:1/-1;justify-content:center}.miro-table{min-height:600px;margin-top:58px;border-radius:28px}.miro-pile-zone--draw{left:10%;top:43%}.miro-pile-zone--discard{right:10%;top:43%}.miro-game.is-coin-complete .miro-pile-zone--draw{left:38%;top:43%}.miro-game.is-coin-complete .miro-pile-zone--discard{left:64%;top:43%}.miro-center-stage{inset:5% 26% auto;height:150px}.miro-effect{top:29%}.miro-player-area{margin-top:-225px;min-height:215px}.miro-hand{padding-inline:20px;height:195px;justify-content:flex-start}.miro-card{width:94px;margin-left:-28px}.miro-card:first-child{margin-left:auto}.miro-card:last-child{margin-right:auto}.miro-setup fieldset{grid-template-columns:1fr}.miro-opponents{top:-49px;left:2%;right:2%;gap:10px}.miro-opponents[data-count="2"] .miro-opponent:first-child,.miro-opponents[data-count="3"] .miro-opponent:nth-child(2){left:-8px}.miro-opponents[data-count="2"] .miro-opponent:nth-child(2),.miro-opponents[data-count="3"] .miro-opponent:nth-child(3){right:-8px}.miro-mini-card{width:25px;height:38px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}

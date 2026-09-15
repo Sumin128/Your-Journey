@@ -2133,19 +2133,6 @@ function registerWordGameWin(difficulty) {
 
 
 /* =====================================================
-   WER-IST-ES BEI BRANOS
-   Wird von JS/baerental.js aufgerufen, wenn das geheime
-   Tier richtig erraten wurde.
-   ===================================================== */
-
-function registerAnimalGuessWin() {
-
-    awardHighscorePoints();
-
-}
-
-
-/* =====================================================
    MEMORY BEI TESSA
    Wird von JS/memory.js aufgerufen, wenn eine Memory-
    Runde fertig gespielt wurde (alle Paare gefunden).

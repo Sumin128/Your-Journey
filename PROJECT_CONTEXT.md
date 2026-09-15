@@ -8,7 +8,6 @@
 - Bestehende Funktionen nicht unnötig neu erfinden; zuerst vorhandene Bausteine und Datenflüsse prüfen und erweitern, wenn das fachlich passt.
 - Keine Commits oder Pushes ohne ausdrücklichen Auftrag.
 - Bei Änderungen immer prüfen, ob Datenschutzerklärung, Impressum oder sonstige Nutzerinformationen angepasst werden müssen.
-- Für das Kartenraten-Spiel ist [`docs/wer-ist-es.md`](docs/wer-ist-es.md) die verbindliche Spezifikation.
 
 ## Tatsächlich vorhandene Architektur
 
@@ -21,7 +20,7 @@ Mirelon ist derzeit eine statische Website ohne erkennbaren Build-Schritt:
 - Die Startseite lädt Supabase JS aus einem CDN sowie unter anderem `JS/player.js`, `JS/auth.js`, `JS/sidebar.js`, `JS/bugreport.js`, `JS/sounds.js`, `JS/data.js`, `JS/index.js` und `JS/map-sparkles.js`.
 - Der zentrale Browser-Spielstand liegt in `JS/player.js`. Ohne angemeldetes Konto wird der Gast-Spielstand in `localStorage` unter `player` gespeichert.
 - `JS/auth.js` ergänzt optionalen Konto-Sync mit Supabase. Bei angemeldetem Konto wird nicht in den lokalen Gast-Speicherplatz geschrieben; Account-Daten werden aus der Cloud geladen bzw. serverseitig synchronisiert. Ein Gastfortschritt kann nur bewusst und einmalig übernommen werden; der lokale Gast-Spielstand wird dabei nicht gelöscht.
-- Bärental enthält das Tierkarten-/Ratespiel: `JS/animals.js` enthält die Kartendaten, `JS/baerental.js` führt Fragen, Filterung und Rateablauf aus.
+- Bärental ist Branos Spielhalle: `JS/baerental.js` steuert Willkommen → Spielmenü → eingebettetes Spiel → zurück zum Menü. Eingebettet sind Mirelons Jagd (`JS/jagd-*.js`, `CSS/jagd.css`) und Miro (`JS/miro-*.js`, `CSS/miro.css`); das frühere Tierkarten-/Ratespiel „Wer ist es?" (`JS/animals.js`) ist entfernt und wird nicht mehr geladen.
 - Die SQL-Dateien `supabase_schema.sql`, `supabase_migration_security_player_data.sql` und `supabase_migration_guest_progress_claim.sql` dokumentieren die Datenbank- und Schutzlogik.
 
 ## Spielstände und Server-Schutz
@@ -33,7 +32,7 @@ Mirelon ist derzeit eine statische Website ohne erkennbaren Build-Schritt:
 ## Dokumentationsstruktur
 
 - `PROJECT_CONTEXT.md`: Einstiegspunkt und projektweite, verifizierte Leitplanken.
-- `docs/wer-ist-es.md`: Source of Truth für das Tierkarten-/Ratespiel und künftige Tier-Superhelden-Karten.
+- `docs/wer-ist-es.md`: archiviert – das Spiel wurde entfernt, siehe Kopfzeile der Datei.
 - `AGENTS.md`: knapper Wegweiser für Agenten und Tools; verweist verpflichtend auf diese Datei.
 
 Diese Dokumentation beschreibt den geprüften aktuellen Stand. Bei späteren Änderungen nur Fakten ergänzen, die in Code, Konfiguration oder ausdrücklich freigegebener Spezifikation belegt sind.

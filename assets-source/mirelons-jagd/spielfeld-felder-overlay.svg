@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" role="img" aria-labelledby="title desc">
+  <title id="title">Mirelons Jagd – 48 Spielfelder</title>
+  <desc id="desc">Transparente Spielregel-Ebene mit 48 Rundwegfeldern, vier Startfeldern, acht Aktionsfeldern, acht Rastfeldern und vier farbigen Zielwegen.</desc>
+  <defs>
+    <filter id="shadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#3b2518" flood-opacity=".42"/>
+    </filter>
+    <g id="normal">
+      <circle r="22" fill="#fff8e7" stroke="#704422" stroke-width="5"/>
+      <circle r="16" fill="none" stroke="#e7c987" stroke-width="2" opacity=".72"/>
+    </g>
+    <g id="action">
+      <circle r="24" fill="#754696" stroke="#f1c758" stroke-width="6"/>
+      <path d="M0-13 4-5 13-4 6 2 8 12 0 7-8 12-6 2-13-4-4-5Z" fill="#fff4be"/>
+    </g>
+    <g id="safe">
+      <circle r="23" fill="#4ca8a4" stroke="#fff4cf" stroke-width="6"/>
+      <path d="M0-13 11-8 9 4Q7 13 0 17Q-7 13-9 4L-11-8Z" fill="#e8fff8" stroke="#236c70" stroke-width="2"/>
+    </g>
+    <g id="start-green"><circle r="27" fill="#348e55" stroke="#fff5cd" stroke-width="7"/><circle r="13" fill="#b8e38c"/></g>
+    <g id="start-gold"><circle r="27" fill="#e09b27" stroke="#fff5cd" stroke-width="7"/><circle r="13" fill="#ffe08a"/></g>
+    <g id="start-blue"><circle r="27" fill="#3798ce" stroke="#fff5cd" stroke-width="7"/><circle r="13" fill="#a8e8ff"/></g>
+    <g id="start-red"><circle r="27" fill="#c94b5a" stroke="#fff5cd" stroke-width="7"/><circle r="13" fill="#ffabb5"/></g>
+    <g id="goal-green"><circle r="21" fill="#dff2c7" stroke="#348e55" stroke-width="6"/></g>
+    <g id="goal-gold"><circle r="21" fill="#fff0bd" stroke="#d58b1f" stroke-width="6"/></g>
+    <g id="goal-blue"><circle r="21" fill="#d8f4ff" stroke="#318ec1" stroke-width="6"/></g>
+    <g id="goal-red"><circle r="21" fill="#ffe0e3" stroke="#bf4050" stroke-width="6"/></g>
+  </defs>
+
+  <g transform="translate(627 627)" filter="url(#shadow)">
+    <g transform="rotate(90)">
+    <!-- 48 Rundwegfelder, Start bei Nordwest und im Uhrzeigersinn -->
+    <g transform="rotate(-135)"><use href="#start-green" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-127.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-120)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-112.5)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-105)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-97.5)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-90)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-82.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-75)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-67.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-60)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-52.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-45)"><use href="#start-gold" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-37.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-30)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-22.5)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-15)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(-7.5)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(0)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(7.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(15)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(22.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(30)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(37.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(45)"><use href="#start-blue" transform="translate(0 -315)"/></g>
+    <g transform="rotate(52.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(60)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(67.5)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(75)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(82.5)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(90)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(97.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(105)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(112.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(120)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(127.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(135)"><use href="#start-red" transform="translate(0 -315)"/></g>
+    <g transform="rotate(142.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(150)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(157.5)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(165)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(172.5)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(180)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(187.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(195)"><use href="#action" transform="translate(0 -315)"/></g>
+    <g transform="rotate(202.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+    <g transform="rotate(210)"><use href="#safe" transform="translate(0 -315)"/></g>
+    <g transform="rotate(217.5)"><use href="#normal" transform="translate(0 -315)"/></g>
+
+    <!-- Vier Zielwege mit je vier Plätzen; bei 2–3 Figuren bleiben hintere Plätze leer. -->
+    <g transform="rotate(-135)"><use href="#goal-green" transform="translate(0 -252)"/><use href="#goal-green" transform="translate(0 -204)"/><use href="#goal-green" transform="translate(0 -156)"/><use href="#goal-green" transform="translate(0 -108)"/></g>
+    <g transform="rotate(-45)"><use href="#goal-gold" transform="translate(0 -252)"/><use href="#goal-gold" transform="translate(0 -204)"/><use href="#goal-gold" transform="translate(0 -156)"/><use href="#goal-gold" transform="translate(0 -108)"/></g>
+    <g transform="rotate(45)"><use href="#goal-blue" transform="translate(0 -252)"/><use href="#goal-blue" transform="translate(0 -204)"/><use href="#goal-blue" transform="translate(0 -156)"/><use href="#goal-blue" transform="translate(0 -108)"/></g>
+    <g transform="rotate(135)"><use href="#goal-red" transform="translate(0 -252)"/><use href="#goal-red" transform="translate(0 -204)"/><use href="#goal-red" transform="translate(0 -156)"/><use href="#goal-red" transform="translate(0 -108)"/></g>
+    </g>
+  </g>
+</svg>
