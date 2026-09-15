@@ -21,6 +21,16 @@
     var preferredColor = "gruen";
     var rerollReady = false;
 
+    /* Online-Multiplayer-Haken (siehe JS/jagd-multiplayer-adapter.js) -
+       lokal/gegen Computer unverändert, siehe JS/miro-ui.js für dasselbe
+       Muster. */
+    function isOnlineGuest() {
+        return Boolean(window.JagdOnline && window.JagdOnline.active && !window.JagdOnline.isHost());
+    }
+    function isOnlineActive() {
+        return Boolean(window.JagdOnline && window.JagdOnline.active);
+    }
+
     var CELL_ICON = { action: "", rest: "" };
 
     document.addEventListener("DOMContentLoaded", init);
@@ -185,6 +195,20 @@
         buildTrays();
         renderAllTokens();
         E.startTurn(state);
+        renderTurnUI();
+    }
+
+    // Von JS/jagd-multiplayer-adapter.js genutzt: der Gastgeber hat den
+    // Anfangszustand schon erzeugt (bzw. ein Client übernimmt einen
+    // bestätigten Zwischenstand nach Verbindungsaufbau/-abbruch) - hier
+    // nur aufbauen und zeichnen, nichts neu würfeln/zurücksetzen.
+    function startWithState(givenState) {
+        state = givenState;
+        els.modeselect.hidden = true;
+        els.game.hidden = false;
+        buildBoardDom();
+        buildTrays();
+        renderAllTokens();
         renderTurnUI();
     }
 
@@ -375,6 +399,9 @@
         });
 
         var canRoll = player.type === "human" && !state.rolledThisTurn;
+        // Online: nur der eigene Sitzplatz darf würfeln, nie ein fremder
+        // Mensch (anders als lokal, wo alle Menschen ein Gerät teilen).
+        if (canRoll && isOnlineActive() && player.id !== window.JagdOnline.mySeat) { canRoll = false; }
         els.diceBtn.disabled = !canRoll;
         els.diceBtn.classList.toggle("is-reroll", canRoll && rerollReady);
         els.diceBtn.setAttribute("aria-label", state.bonusMovePending
@@ -384,7 +411,7 @@
             els.turnBanner.textContent = "🎲 Eine 6! " + player.name + " darf noch einmal würfeln";
         }
 
-        if (player.type === "ai" && !state.rolledThisTurn) {
+        if (player.type === "ai" && !state.rolledThisTurn && !isOnlineGuest()) {
             setTimeout(aiTakeTurn, AI.THINK_DELAY_MS);
         }
     }
@@ -452,6 +479,11 @@
 
     function onRollClick() {
         if (els.diceBtn.disabled) { return; }
+        if (isOnlineGuest()) {
+            els.diceBtn.disabled = true;
+            window.JagdOnline.requestAction({ step: "roll" });
+            return;
+        }
         els.diceBtn.disabled = true;
         rerollReady = false;
         els.diceBtn.classList.remove("is-reroll");
@@ -510,6 +542,11 @@
         if (!tokenEls[tokenId].classList.contains("is-movable")) { return; }
         var token = state.tokens[tokenId];
         var kind = token.zone === "lager" ? "enter" : "move";
+        if (isOnlineGuest()) {
+            clearHighlights();
+            window.JagdOnline.requestAction({ step: kind, tokenId: tokenId });
+            return;
+        }
         executeAction({ tokenId: tokenId, kind: kind });
     }
 
@@ -685,6 +722,7 @@
         if (E.checkWin(state, playerId)) {
             state.winnerId = playerId;
             showWinScreen(playerId);
+            syncAfterHostAction();
             return;
         }
         advanceAfterMove(state.diceValue === 6);
@@ -704,6 +742,13 @@
             renderAllTokens();
         }
         renderTurnUI();
+        syncAfterHostAction();
+    }
+
+    // Läuft eine Online-Partie und sind wir der Gastgeber: neuen Zustand
+    // speichern und verteilen. Lokal/gegen Computer: no-op.
+    function syncAfterHostAction() {
+        if (isOnlineActive() && window.JagdOnline.isHost()) { window.JagdOnline.hostSync(); }
     }
 
     function aiTakeTurn() {
@@ -723,4 +768,22 @@
         addLog(player.name + " gewinnt die Partie!");
     }
 
+    // Schmale Schnittstelle für JS/jagd-multiplayer-adapter.js. Kein
+    // Redesign - nur was der Adapter für Online-Partien braucht.
+    window.JagdUI = {
+        getState: function () { return state; },
+        setState: function (newState) { state = newState; },
+        startWithState: startWithState,
+        refresh: function () { renderAllTokens(); renderTurnUI(); },
+        // Nach einem empfangenen Zustands-Update: steht die eigene Figur
+        // gerade am Zug und wurde schon gewürfelt, aber noch nicht
+        // gezogen, die eigenen ziehbaren Figuren wieder hervorheben
+        // (jeder Client darf das selbst berechnen - Mirelons Jagd hat
+        // keine geheime Information).
+        highlightIfMyTurn: function (mySeat) {
+            if (state.winnerId !== null || state.currentPlayerId !== mySeat || !state.rolledThisTurn) { return; }
+            clearHighlights();
+            highlightMovable(E.getMovableTokens(state, mySeat, state.diceValue));
+        }
+    };
 })();

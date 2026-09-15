@@ -16,6 +16,14 @@
     box-sizing: border-box;
 }
 
+/* #bear-main ist ein Flex-Container (siehe unten); ohne eigene Breite
+   schrumpft ein Kind sonst auf seinen Inhalt statt die verfügbare
+   Fläche zu nutzen - betrifft konkret Miros Spieltisch (miro.css
+   rechnet mit width:100% seines Containers). */
+#bear-miro-embed {
+    width: 100%;
+}
+
 
 /* =====================================================
    WILLKOMMENSBEREICH

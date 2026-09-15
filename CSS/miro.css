@@ -48,10 +48,13 @@ button { font: inherit; }
 .miro-active-color { display: flex; gap: 7px; align-items: center; font: .78rem system-ui; }
 .miro-active-color strong { padding: 5px 10px; border-radius: 999px; color: white; text-shadow: 0 1px 2px #0008; }
 #miro-rules, #miro-leave { border: 2px solid #80502c; border-radius: 999px; padding: 7px 11px; background: white; cursor: pointer; font-weight: 800; }
-.miro-opponents { position:absolute; left:8%; right:8%; top:-54px; min-height:74px; display:flex; justify-content:center; gap:clamp(18px,7vw,90px); z-index:6; pointer-events:none; }
+.miro-opponents { position:absolute; left:6%; right:6%; top:-85px; min-height:160px; display:flex; justify-content:center; gap:clamp(18px,7vw,90px); z-index:6; pointer-events:none; }
 .miro-opponent { padding:7px 10px; border:2px solid transparent; border-radius:14px; text-align:center; color:#fff6d8; text-shadow:0 2px 3px #271208; transition:transform .25s ease,background .25s ease,border-color .25s ease,box-shadow .25s ease; }
-.miro-opponent-hand { width:180px; height:47px; display:flex; justify-content:center; transform-origin:center; }
-.miro-mini-card { --peek:0px; width:31px; height:46px; margin-left:-17px; border:2px solid #c48b38; border-radius:5px; background:url("../images/miro/kartenrueckseite.png") center/cover; box-shadow:0 2px 4px #1f100a88; transform:rotate(calc((var(--i) - var(--mid)) * 3deg)) translateY(var(--peek)); transition:transform .28s ease,filter .28s ease; }
+/* Verdeckte Computer-Karten: rund 85% der Größe der eigenen Handkarten
+   (.miro-card ~clamp(92px,10vw,126px)), damit sie deutlich lesbar
+   wirken statt als winzige Rückseiten. */
+.miro-opponent-hand { width:230px; height:140px; display:flex; align-items:flex-end; justify-content:center; transform-origin:center; }
+.miro-mini-card { --peek:0px; width:clamp(78px,8.5vw,104px); aspect-ratio:2/3; margin-left:clamp(-68px,-6.4vw,-52px); border:3px solid #c48b38; border-radius:8px; background:url("../images/miro/kartenrueckseite.png") center/cover; box-shadow:0 3px 6px #1f100a88; transform:rotate(calc((var(--i) - var(--mid)) * 3deg)) translateY(var(--peek)); transition:transform .28s ease,filter .28s ease; }
 .miro-mini-card:first-child { margin-left: 0; }
 .miro-mini-card.is-considering { --peek:-13px; filter:brightness(1.3) drop-shadow(0 0 7px #ffe47d); }
 .miro-opponent.is-thinking::after { content:"schaut die Karten durch …"; display:block; margin-top:4px; color:#ffe69a; font:700 .68rem system-ui; }
@@ -59,24 +62,34 @@ button { font: inherit; }
 .miro-opponent.is-current { border-color:#d9bc6f99; background:#6d481d4d; box-shadow:0 0 12px #ffd96855; transform:scale(1.02); }
 .miro-opponent.is-current strong { color:#ffe9a0; }
 .miro-opponents[data-count="2"],.miro-opponents[data-count="3"],.miro-opponents[data-count="4"] { inset:0; min-height:100%; display:block; }
-.miro-opponents[data-count="2"] .miro-opponent,.miro-opponents[data-count="3"] .miro-opponent,.miro-opponents[data-count="4"] .miro-opponent { position:absolute; width:180px; }
-.miro-opponents[data-count="2"] .miro-opponent:first-child { left:-12px; top:43%; }
-.miro-opponents[data-count="2"] .miro-opponent:nth-child(2) { right:-12px; top:43%; }
-.miro-opponents[data-count="2"] .miro-opponent:first-child .miro-opponent-hand { transform:rotate(90deg); }
-.miro-opponents[data-count="2"] .miro-opponent:nth-child(2) .miro-opponent-hand { transform:rotate(-90deg); }
-.miro-opponents[data-count="3"] .miro-opponent:first-child { left:-12px; top:43%; }
-.miro-opponents[data-count="3"] .miro-opponent:nth-child(2) { left:50%; top:-55px; transform:translateX(-50%); }
-.miro-opponents[data-count="3"] .miro-opponent:nth-child(3) { right:-12px; top:43%; }
-.miro-opponents[data-count="3"] .miro-opponent:first-child .miro-opponent-hand { transform:rotate(90deg); }
-.miro-opponents[data-count="3"] .miro-opponent:nth-child(2) .miro-opponent-hand { transform:rotate(180deg); }
-.miro-opponents[data-count="3"] .miro-opponent:nth-child(3) .miro-opponent-hand { transform:rotate(-90deg); }
-.miro-opponents[data-count="3"] .miro-opponent:nth-child(2).is-current { transform:translateX(-50%) scale(1.02); }
-.miro-opponents[data-count="4"] .miro-opponent:first-child { left:50%; top:-55px; transform:translateX(-50%); }
-.miro-opponents[data-count="4"] .miro-opponent:nth-child(2) { left:-12px; top:43%; }
-.miro-opponents[data-count="4"] .miro-opponent:nth-child(3) { right:-12px; top:43%; }
+.miro-opponents[data-count="2"] .miro-opponent,.miro-opponents[data-count="3"] .miro-opponent,.miro-opponents[data-count="4"] .miro-opponent { position:absolute; width:230px; }
+/* Seitlich sitzende Gegner (links/rechts): die Kartenreihe wird um 90°
+   gedreht, ihr sichtbarer Platzbedarf tauscht dabei Höhe/Breite -
+   margin-bottom schiebt Name/Kartenzahl unter den gedrehten Fächer,
+   statt mitten hindurch zu laufen ((230px-140px)/2 Überstand). */
+.miro-opponents[data-count="2"] .miro-opponent:first-child,
+.miro-opponents[data-count="3"] .miro-opponent:first-child,
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(2) { left:-18px; top:38%; }
+.miro-opponents[data-count="2"] .miro-opponent:nth-child(2),
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(3),
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(3) { right:-18px; top:38%; }
+.miro-opponents[data-count="2"] .miro-opponent:first-child .miro-opponent-hand,
+.miro-opponents[data-count="3"] .miro-opponent:first-child .miro-opponent-hand,
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(2) .miro-opponent-hand { transform:rotate(90deg); margin-bottom:45px; }
+.miro-opponents[data-count="2"] .miro-opponent:nth-child(2) .miro-opponent-hand,
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(3) .miro-opponent-hand,
+.miro-opponents[data-count="4"] .miro-opponent:nth-child(3) .miro-opponent-hand { transform:rotate(-90deg); margin-bottom:45px; }
+/* Gegner "gegenüber" (oben): 180° gedreht, Platzbedarf bleibt gleich
+   groß - kein zusätzlicher Ausgleich für das Namensschild nötig. */
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(2),
+.miro-opponents[data-count="4"] .miro-opponent:first-child { left:50%; top:-85px; transform:translateX(-50%); }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(2) .miro-opponent-hand,
+.miro-opponents[data-count="4"] .miro-opponent:first-child .miro-opponent-hand { transform:rotate(180deg); }
+.miro-opponents[data-count="3"] .miro-opponent:nth-child(2).is-current,
+.miro-opponents[data-count="4"] .miro-opponent:first-child.is-current { transform:translateX(-50%) scale(1.02); }
 .miro-opponents[data-count="4"] .miro-opponent:nth-child(4) { left:50%; bottom:-40px; transform:translateX(-50%); }
 
-.miro-table { position: relative; width: min(100%, 1120px); min-height: clamp(570px,76vh,760px); margin: 64px auto 0; border: 9px solid #673b21; border-radius: 34% / 12%; background: radial-gradient(ellipse,#527d52 0 24%,#31583d 68%,#203b2d); box-shadow: inset 0 0 0 4px #a96e35, inset 0 0 85px #071c1499, 0 20px 38px #1f100a88; }
+.miro-table { position: relative; width: min(100%, 1360px); height: clamp(330px,32vw,480px); margin: 112px auto 0; border: 9px solid #673b21; border-radius: 34% / 16%; background: radial-gradient(ellipse,#527d52 0 24%,#31583d 68%,#203b2d); box-shadow: inset 0 0 0 4px #a96e35, inset 0 0 85px #071c1499, 0 20px 38px #1f100a88; }
 .miro-table::after { content:""; position:absolute; inset:15px; border:1px solid #d7b86c55; border-radius:inherit; pointer-events:none; }
 .miro-direction-ring { --direction-turn:0deg; position:absolute; inset:0; z-index:5; pointer-events:none; }
 .miro-direction-ring.is-reverse { --direction-turn:180deg; }
@@ -85,12 +98,15 @@ button { font: inherit; }
 .miro-flow-arrow--top-right { --arrow-turn:0deg; left:66%; top:21%; transform:translate(-50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
 .miro-flow-arrow--right { --arrow-turn:90deg; right:14%; top:66%; transform:translate(50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
 .miro-flow-arrow--left { --arrow-turn:-90deg; left:14%; top:66%; transform:translate(-50%,-50%) rotate(calc(var(--arrow-turn) + var(--direction-turn))); }
-.miro-pile-zone { position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; gap: 8px; color: #f8e5ac; font: 800 .75rem system-ui; z-index: 3; }
+.miro-pile-zone { --card-w: clamp(82px,10vw,112px); position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; gap: 8px; color: #f8e5ac; font: 800 .75rem system-ui; z-index: 3; }
 .miro-pile-zone--draw { left: 17%; }
 .miro-pile-zone--discard { right: 17%; }
-.miro-game.is-coin-complete .miro-pile-zone--draw { left:42%; transform:translate(-50%,-50%); transition:left .55s ease,transform .55s ease; }
-.miro-game.is-coin-complete .miro-pile-zone--discard { left:58%; right:auto; transform:translate(-50%,-50%); transition:left .55s ease,transform .55s ease; }
-.miro-deck,.miro-discard { position: relative; width: clamp(82px,10vw,112px); aspect-ratio: 2/3; border: 0; border-radius: 10px; }
+/* In der Tischmitte (nach dem Startwürfeln) mindestens eine ganze
+   Kartenbreite Abstand zwischen Zieh- und Ablagestapel - nie enger,
+   egal wie breit die Karten gerade responsiv sind. */
+.miro-game.is-coin-complete .miro-pile-zone--draw { left:50%; right:auto; transform:translate(calc(-100% - (var(--card-w) * .5)),-50%); transition:left .55s ease,transform .55s ease; }
+.miro-game.is-coin-complete .miro-pile-zone--discard { left:50%; right:auto; transform:translate(calc(var(--card-w) * .5),-50%); transition:left .55s ease,transform .55s ease; }
+.miro-deck,.miro-discard { position: relative; width: var(--card-w); aspect-ratio: 2/3; border: 0; border-radius: 10px; }
 .miro-deck { cursor: pointer; background: url("../images/miro/kartenrueckseite.png") center/cover; box-shadow: -3px 3px 0 #e5c270,-6px 6px 0 #70502f,-9px 9px 0 #d6ab55,0 14px 25px #10201899; transition: transform .18s; }
 .miro-deck:not(:disabled):hover { transform: translateY(-8px) rotate(-2deg); }
 .miro-deck:disabled { opacity: .62; cursor: default; }
@@ -106,16 +122,22 @@ button { font: inherit; }
 .miro-coin-fallback { position:absolute; inset:12%; display:grid; place-items:center; border:8px double #ffe29a; border-radius:50%; background:radial-gradient(circle,#e9bd55,#8e5921); color:#fff0a6; font-size:2.5rem; }
 .miro-coin-stage.has-model .miro-coin-fallback { display:none; }
 .miro-coin-stage.is-done { opacity:.52; }
-.miro-coin-explain { position:absolute; top:calc(50% + 70px); width:min(330px,70vw); padding:10px 13px; border:2px solid #d8ae58; border-radius:13px; background:#fff4d9f2; color:#422817; text-align:center; box-shadow:0 9px 22px #190e0877; pointer-events:auto; font:700 .76rem/1.35 system-ui,sans-serif; }
-.miro-coin-explain p { margin:0 0 8px; }
-.miro-coin-explain .miro-primary { min-height:36px; padding:6px 12px; }
-.miro-startdice-players { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:8px; }
-.miro-startdice-chip { display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 9px; border:2px solid #d8ae58; border-radius:10px; background:#fff9ea; font-size:.68rem; font-weight:800; color:#422817; }
-.miro-startdice-chip span { font-size:.95rem; }
-.miro-startdice-chip.is-active { border-color:#e8a934; box-shadow:0 0 0 3px #f8d98a99; }
-.miro-startdice-chip.is-out { opacity:.55; }
+/* Würfel schwebt frei in der Tischmitte - keine Box mehr drumherum.
+   Der Hinweis sitzt dezent darüber; beides blendet am Ende der Runde
+   sanft aus (siehe .is-coin-leaving), bevor die Stapel nachrücken. */
+/* z-index über den Stapelzonen (z-index:3) - auf sehr schmalen
+   Tischen (siehe bekannte Einschränkung unten) überlappt sich sonst
+   sichtbar mit dem noch nicht verschobenen Ablagestapel. */
+.miro-startdice-stage { position:absolute; z-index:4; top:calc(50% + 70px); left:50%; transform:translateX(-50%); width:min(260px,70vw); display:flex; flex-direction:column; align-items:center; gap:10px; pointer-events:auto; transition:opacity .4s ease; }
+.miro-startdice-hint { margin:0; padding:3px 14px; color:#fff0b8; font:800 .78rem system-ui; text-align:center; text-shadow:0 2px 4px #190e08cc; }
 #miro-startdice-btn { margin:0 auto; }
-.miro-effect { position:absolute; left:50%; top:12%; transform:translateX(-50%); min-height:24px; color:#fff0b8; font:800 .82rem system-ui; text-align:center; text-shadow:0 2px 3px #112418; }
+.miro-game.is-coin-leaving .miro-startdice-stage,
+.miro-game.is-coin-leaving .miro-coin-badge { opacity:0; }
+.miro-coin-badge { display:inline-flex; align-items:center; justify-content:center; margin-left:6px; padding:1px 8px; border-radius:999px; background:#f8d98a; color:#422817; font:800 .72rem system-ui; box-shadow:0 2px 5px #190e0855; transition:opacity .4s ease; }
+.miro-coin-badge.is-pending { background:#00000030; color:#fff0b8; }
+.miro-coin-badge.is-winner { background:#7ee08e; box-shadow:0 0 0 3px #b8f5c299; animation:miroCoinWinnerPulse .6s ease 2; }
+@keyframes miroCoinWinnerPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.15); } }
+.miro-effect { position:absolute; left:50%; top:104px; transform:translateX(-50%); min-height:24px; color:#fff0b8; font:800 .82rem system-ui; text-align:center; text-shadow:0 2px 3px #112418; }
 .miro-fx { position:absolute; left:50%; top:50%; width:120px; height:120px; transform:translate(-50%,-50%) scale(.2); opacity:0; z-index:8; pointer-events:none; filter:drop-shadow(0 0 16px #ffe47d); }
 .miro-fx img { width:100%; height:100%; object-fit:contain; }
 .miro-fx.is-active { animation:miro-magic-burst 1.05s ease-out; }
@@ -123,10 +145,14 @@ button { font: inherit; }
 .miro-flight-card,.miro-draw-flight { position:fixed!important; z-index:80!important; margin:0!important; pointer-events:none!important; transition:left .72s cubic-bezier(.22,.7,.2,1),top .72s cubic-bezier(.22,.7,.2,1),transform .72s ease,opacity .72s ease; }
 .miro-draw-flight { width:96px; aspect-ratio:2/3; border:3px solid #d7aa50; border-radius:10px; background-position:center; background-size:cover; box-shadow:0 12px 24px #1d0e0888; }
 
-.miro-player-area { width:min(100%,1080px); min-height:235px; margin:-250px auto 0; position:relative; z-index:10; padding:7px 10px 12px; border:0; background:transparent; box-shadow:none; }
+.miro-player-area { width:min(100%,1080px); min-height:235px; margin:-110px auto 0; position:relative; z-index:10; padding:7px 10px 12px; border:0; background:transparent; box-shadow:none; }
 .miro-player-area::before { display:none; }
 .miro-player-area.is-current .miro-hand-title { width:max-content; margin-inline:auto; padding:3px 11px; border:1px solid #d9bc6f88; border-radius:999px; color:#ffedaa; background:#5d421f55; filter:drop-shadow(0 0 4px #ffd96866); }
-.miro-game:not(.is-coin-complete) .miro-player-area { visibility:hidden; }
+/* Vor dem Startwürfeln-Ende bleiben nur die eigenen Handkarten und der
+   "Zug beenden"-Knopf verborgen - die Namensleiste mit dem eigenen
+   Würfelergebnis (siehe miro-coin-badge) soll schon sichtbar sein. */
+.miro-game:not(.is-coin-complete) .miro-hand,
+.miro-game:not(.is-coin-complete) #miro-pass { visibility:hidden; }
 .miro-game.is-turn-waiting .miro-hand { pointer-events:none; opacity:.9; }
 .miro-game.is-action-settling .miro-hand,.miro-game.is-action-settling .miro-deck { pointer-events:none; }
 .miro-hand-title { display:flex; justify-content:center; gap:9px; color:#fff0b8; text-shadow:0 2px 3px #112418; font:800 .8rem system-ui; }
@@ -163,5 +189,34 @@ button { font: inherit; }
 .miro-win-card > div { font-size:4rem; }
 
 @media(max-width:700px){
-    .miro-hud{grid-template-columns:1fr auto}.miro-active-color{grid-row:2;grid-column:1/-1;justify-content:center}.miro-table{min-height:600px;margin-top:58px;border-radius:28px}.miro-pile-zone--draw{left:10%;top:43%}.miro-pile-zone--discard{right:10%;top:43%}.miro-game.is-coin-complete .miro-pile-zone--draw{left:38%;top:43%}.miro-game.is-coin-complete .miro-pile-zone--discard{left:64%;top:43%}.miro-center-stage{inset:5% 26% auto;height:150px}.miro-effect{top:29%}.miro-player-area{margin-top:-225px;min-height:215px}.miro-hand{padding-inline:20px;height:195px;justify-content:flex-start}.miro-card{width:94px;margin-left:-28px}.miro-card:first-child{margin-left:auto}.miro-card:last-child{margin-right:auto}.miro-setup fieldset{grid-template-columns:1fr}.miro-opponents{top:-49px;left:2%;right:2%;gap:10px}.miro-opponents[data-count="2"] .miro-opponent:first-child,.miro-opponents[data-count="3"] .miro-opponent:nth-child(2){left:-8px}.miro-opponents[data-count="2"] .miro-opponent:nth-child(2),.miro-opponents[data-count="3"] .miro-opponent:nth-child(3){right:-8px}.miro-mini-card{width:25px;height:38px}}
+    .miro-hud{grid-template-columns:1fr auto}.miro-active-color{grid-row:2;grid-column:1/-1;justify-content:center}
+    /* Tisch bleibt auf dem schmalen Bildschirm proportional kleiner
+       (siehe Basisregel oben, clamp-Untergrenze greift) - hier nur
+       Rand und Ecken ans Mobilformat anpassen. Zieh-/Ablagestapel
+       brauchen keine eigene Positionsregel mehr: dieselbe
+       calc(--card-w)-Zentrierung wie auf Desktop passt sich von
+       selbst an schmalere Karten an. */
+    .miro-table{margin-top:70px;min-height:600px;border-radius:28px}
+    .miro-center-stage{inset:5% 26% auto;height:150px}
+    .miro-effect{top:165px;width:82%;font-size:.68rem;line-height:1.25}
+    .miro-player-area{margin-top:-225px;min-height:215px}
+    .miro-hand{padding-inline:20px;height:195px;justify-content:flex-start}
+    .miro-card{width:94px;margin-left:-28px}
+    .miro-card:first-child{margin-left:auto}
+    .miro-card:last-child{margin-right:auto}
+    .miro-setup fieldset{grid-template-columns:1fr}
+    /* Auf schmalen Bildschirmen reicht der Platz nicht für seitlich
+       gedrehte Gegner ohne Kollision mit Stapeln/Handkarten - alle
+       Gegner reihen sich stattdessen oben an (wie bei nur einem
+       Gegner), unrotiert. Kartenrücken bleiben trotzdem deutlich
+       größer als vorher (Basisregel: min. 78px). */
+    .miro-opponents{top:-66px;min-height:155px;left:6%;right:6%;gap:8px}
+    .miro-opponents[data-count="2"],.miro-opponents[data-count="3"],.miro-opponents[data-count="4"]{inset:auto;top:-66px;left:6%;right:6%;min-height:155px;display:flex}
+    .miro-opponent strong{font-size:.74rem}
+    .miro-opponents[data-count="2"] .miro-opponent,.miro-opponents[data-count="3"] .miro-opponent,.miro-opponents[data-count="4"] .miro-opponent{position:static;width:auto}
+    .miro-opponent-hand{width:120px;height:126px}
+    .miro-opponents[data-count="2"] .miro-opponent-hand,
+    .miro-opponents[data-count="3"] .miro-opponent-hand,
+    .miro-opponents[data-count="4"] .miro-opponent-hand{transform:none;margin-bottom:0}
+}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}

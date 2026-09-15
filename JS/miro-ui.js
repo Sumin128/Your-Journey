@@ -15,6 +15,23 @@
     var selectedOwnerId = null;
     var humanTurnLocked = false;
     var humanTurnTimer = null;
+
+    /* =====================================================
+       ONLINE-MULTIPLAYER-HAKEN (siehe JS/miro-multiplayer-adapter.js)
+       Lokal und gegen Computer bleibt alles wie bisher: window.MiroOnline
+       existiert dann nicht bzw. .active ist false, isOnlineGuest() ist
+       überall false, kein Verhaltensunterschied. Nur wenn eine Online-
+       Partie läuft UND dieser Client nicht der Gastgeber ist, werden
+       eigene Klicks nicht mehr direkt auf die Engine angewendet,
+       sondern als Aktionswunsch an den Gastgeber geschickt.
+       ===================================================== */
+    function isOnlineGuest() {
+        return Boolean(window.MiroOnline && window.MiroOnline.active && !window.MiroOnline.isHost());
+    }
+    function isOnlineActive() {
+        return Boolean(window.MiroOnline && window.MiroOnline.active);
+    }
+
     // Startwürfeln: jeder Spieler würfelt einmal, höchste Zahl beginnt,
     // bei Gleichstand würfeln nur die Betroffenen erneut (siehe
     // runStartDiceTurn()/resolveStartDiceRound()). Ersetzt den früheren
@@ -22,13 +39,14 @@
     var startDiceContenders = [];   // Spieler-IDs, die in DIESER (Wieder-)Runde noch würfeln müssen
     var startDiceResults = {};      // Spieler-ID -> Wert nur für die aktuelle Runde (Gleichstandsprüfung)
     var startDiceAllResults = {};   // Spieler-ID -> letzter gewürfelter Wert, bleibt auch nach Ausscheiden sichtbar
-    var startDicePendingHumanId = null;
+    var startDiceActiveId = null;   // Sitzplatz, der gerade dran ist (Markierung + Tipp-Freigabe)
+    var startDiceWinnerId = null;   // kurz gesetzt für die Sieger-Hervorhebung, bevor alles ausblendet
     var els = {};
 
     document.addEventListener("DOMContentLoaded", init);
 
     function init() {
-        ["setup", "game", "start", "turn", "direction", "direction-ring", "color", "opponents", "effect", "fx", "draw", "deck-count", "discard", "hand", "hand-count", "pass", "choice", "choice-title", "choice-text", "choice-options", "rules", "rules-modal", "rules-close", "win", "win-title", "startdice", "startdice-hint", "startdice-players", "startdice-btn", "startdice-face"].forEach(function (name) {
+        ["setup", "game", "start", "turn", "direction", "direction-ring", "color", "opponents", "effect", "fx", "draw", "deck-count", "discard", "hand", "hand-count", "hand-coin-badge", "pass", "choice", "choice-title", "choice-text", "choice-options", "rules", "rules-modal", "rules-close", "win", "win-title", "startdice", "startdice-hint", "startdice-btn", "startdice-face"].forEach(function (name) {
             els[toCamel(name)] = document.getElementById("miro-" + name);
         });
         els.start.addEventListener("click", startGame);
@@ -89,7 +107,7 @@
         els.setup.hidden = false;
     }
 
-    function startGame() {
+    function resetLocalUiState() {
         clearTimeout(aiTimer);
         clearInterval(aiScanTimer);
         clearTimeout(humanTurnTimer);
@@ -98,6 +116,10 @@
         selectedOwnerId = null;
         humanTurnLocked = false;
         actionAnimating = false;
+    }
+
+    function startGame() {
+        resetLocalUiState();
         state = E.createGame(configsForMode(), { seed: Date.now() });
         els.setup.hidden = true;
         els.game.hidden = false;
@@ -106,63 +128,144 @@
         beginStartDice();
     }
 
+    // Von JS/miro-multiplayer-adapter.js genutzt: der Gastgeber hat den
+    // Anfangszustand bereits fertig erzeugt UND das Startwürfeln ist schon
+    // vorbei (Beitritt mitten im Spiel) - keine lokale Würfel-Vorschaltung.
+    function startWithState(initialState) {
+        resetLocalUiState();
+        state = initialState;
+        els.setup.hidden = true;
+        els.game.hidden = false;
+        els.startdice.hidden = true;
+        els.game.classList.add("is-coin-complete");
+        render();
+        scheduleAI();
+    }
+
+    // Von JS/miro-multiplayer-adapter.js genutzt: der Gastgeber hat einen
+    // frischen Zustand (Phase "coin", Hände schon gemischt) erzeugt, oder
+    // ein Gast tritt bei, während das Startwürfeln noch läuft. Beide
+    // Fälle starten hier in die ganz normale, interaktive Würfelrunde -
+    // online wie lokal läuft danach dieselbe Funktion (runStartDiceTurn()).
+    function startCoinPhaseState(initialState) {
+        resetLocalUiState();
+        state = initialState;
+        els.setup.hidden = true;
+        els.game.hidden = false;
+        els.startdice.hidden = false;
+        els.game.classList.remove("is-coin-complete", "is-coin-leaving");
+        startDiceContenders = state.players.map(function (p) { return p.id; });
+        startDiceResults = {};
+        startDiceAllResults = {};
+        startDiceActiveId = null;
+        startDiceWinnerId = null;
+        render();
+        runStartDiceTurn();
+    }
+
     /* =====================================================
        STARTWÜRFELN (ersetzt den früheren Münzwurf)
        Jeder Spieler würfelt einmal, die höchste Zahl beginnt. Bei
        Gleichstand würfeln nur die betroffenen Spieler erneut. Nutzt
        denselben 3D-Würfel/dieselbe Würfellogik wie Mirelons Jagd
        (JS/jagd-dice-3d.mjs, hier über JS/miro-startdice-3d.mjs).
+
+       Der Würfel liegt direkt auf dem Tisch (keine Box mehr) - das
+       Ergebnis jedes Spielers erscheint stattdessen neben seinem
+       Namen (renderOpponents()/renderOwnCoinBadge()), der aktive
+       Sitzplatz wird über dieselbe .is-current-Markierung wie im
+       laufenden Spiel hervorgehoben.
+
+       Online (siehe runStartDiceTurnOnline()/JS/miro-multiplayer-
+       adapter.js): die Reihenfolge/Gleichstandslogik läuft weiterhin
+       auf JEDEM Gerät identisch mit (rein deterministisch aus den
+       bereits bekannten Würfelwerten), aber einen NEUEN Würfelwert
+       erzeugt ausschließlich der Gastgeber (hostRollStartDiceForSeat)
+       und verteilt ihn per Broadcast (applyStartDiceResult) - kein
+       Client würfelt für einen fremden oder gar den eigenen Wurf
+       selbst, wenn er nicht der Gastgeber ist.
        ===================================================== */
 
     function beginStartDice() {
         startDiceContenders = state.players.map(function (p) { return p.id; });
         startDiceResults = {};
         startDiceAllResults = {};
-        renderStartDicePlayers();
+        startDiceActiveId = null;
+        startDiceWinnerId = null;
         runStartDiceTurn();
     }
 
-    function renderStartDicePlayers() {
-        els.startdicePlayers.innerHTML = "";
-        state.players.forEach(function (player) {
-            var stillIn = startDiceContenders.indexOf(player.id) !== -1;
-            var chip = document.createElement("div");
-            chip.className = "miro-startdice-chip" +
-                (!stillIn ? " is-out" : "") +
-                (stillIn && startDicePendingHumanId === player.id ? " is-active" : "");
-            // Der zuletzt gewürfelte Wert bleibt sichtbar, auch wenn der
-            // Spieler bei einem Gleichstand-Rewurf nicht mehr mitwürfelt.
-            var value = startDiceAllResults[player.id];
-            chip.innerHTML = "<strong>" + (player.type === "ai" ? "🤖 " : "🧑 ") + escapeHtml(player.name) + "</strong>" +
-                "<span>" + (typeof value === "number" ? value : "…") + "</span>";
-            els.startdicePlayers.appendChild(chip);
-        });
+    function updateStartDiceUi() {
+        var player = state.players[startDiceActiveId];
+        var isMyTurn = player.type === "human" && (!isOnlineActive() || startDiceActiveId === window.MiroOnline.mySeat);
+        if (player.type === "ai") { els.startdiceHint.textContent = player.name + " würfelt …"; }
+        else if (isMyTurn) { els.startdiceHint.textContent = "Du bist dran – tippe auf den Würfel"; }
+        else { els.startdiceHint.textContent = player.name + " ist an der Reihe …"; }
+        els.startdiceBtn.disabled = !isMyTurn;
+        renderOpponents();
+        renderOwnCoinBadge();
     }
 
     function runStartDiceTurn() {
         var nextId = startDiceContenders.filter(function (id) { return startDiceResults[id] === undefined; })[0];
         if (nextId === undefined) { resolveStartDiceRound(); return; }
-        var player = state.players[nextId];
-        renderStartDicePlayers();
-        if (player.type === "ai") {
-            els.startdiceHint.textContent = player.name + " würfelt …";
+        startDiceActiveId = nextId;
+        updateStartDiceUi();
+        if (isOnlineActive()) { runStartDiceTurnOnline(nextId, state.players[nextId]); return; }
+        if (state.players[nextId].type === "ai") {
             els.startdiceBtn.disabled = true;
             setTimeout(function () {
                 playStartDiceRoll(nextId, 1 + Math.floor(Math.random() * 6), runStartDiceTurn);
             }, 700 + Math.random() * 500);
-        } else {
-            els.startdiceHint.textContent = escapeHtml(player.name) + ", tippe den Würfel!";
-            els.startdiceBtn.disabled = false;
-            startDicePendingHumanId = nextId;
+        }
+    }
+
+    // Nur die Zug-Weiterleitung: wer gerade dran wäre, würfelt online
+    // niemals selbst lokal (außer für den eigenen Sitzplatz, siehe
+    // onStartDiceTap) - der Gastgeber ist die einzige Quelle neuer
+    // Zufallswerte (KI-Würfe hier, entfernte Menschen über deren
+    // Aktionswunsch "startdice_roll" in JS/miro-multiplayer-adapter.js).
+    function runStartDiceTurnOnline(nextId, player) {
+        if (nextId === window.MiroOnline.mySeat) { els.startdiceBtn.disabled = false; return; }
+        els.startdiceBtn.disabled = true;
+        if (!window.MiroOnline.isHost()) { return; }
+        if (player.type === "ai") {
+            setTimeout(function () { hostRollStartDiceForSeat(nextId); }, 700 + Math.random() * 500);
         }
     }
 
     function onStartDiceTap() {
-        if (startDicePendingHumanId === null) { return; }
-        var id = startDicePendingHumanId;
-        startDicePendingHumanId = null;
+        if (startDiceActiveId === null || els.startdiceBtn.disabled) { return; }
+        if (isOnlineActive()) {
+            if (startDiceActiveId !== window.MiroOnline.mySeat) { return; }
+            els.startdiceBtn.disabled = true;
+            if (window.MiroOnline.isHost()) { hostRollStartDiceForSeat(startDiceActiveId); }
+            else { window.MiroOnline.requestAction({ type: "startdice_roll" }); }
+            return;
+        }
+        if (state.players[startDiceActiveId].type !== "human") { return; }
+        var id = startDiceActiveId;
         els.startdiceBtn.disabled = true;
         playStartDiceRoll(id, 1 + Math.floor(Math.random() * 6), runStartDiceTurn);
+    }
+
+    // Gastgeber-only: erzeugt EINMALIG den autoritativen Wert für einen
+    // fälligen Wurf (eigener Sitzplatz oder KI), verteilt ihn an alle
+    // übrigen Geräte und wendet ihn lokal genauso an wie ein Gast das
+    // per applyStartDiceResult() tut - identischer Ablauf überall.
+    function hostRollStartDiceForSeat(seat) {
+        if (startDiceActiveId !== seat || (startDiceResults[seat] !== undefined)) { return; }
+        var value = 1 + Math.floor(Math.random() * 6);
+        if (window.MiroOnline.hostBroadcastStartDice) { window.MiroOnline.hostBroadcastStartDice(seat, value); }
+        playStartDiceRoll(seat, value, runStartDiceTurn);
+    }
+
+    // Von JS/miro-multiplayer-adapter.js für JEDEN Client (Gastgeber
+    // eingeschlossen, für sein eigenes Echo) beim Empfang eines
+    // "startdice_result"-Broadcasts aufgerufen.
+    function applyStartDiceResult(seat, value) {
+        if (!state || state.phase !== "coin" || startDiceActiveId !== seat || startDiceResults[seat] !== undefined) { return; }
+        playStartDiceRoll(seat, value, runStartDiceTurn);
     }
 
     function playStartDiceRoll(playerId, value, done) {
@@ -171,35 +274,74 @@
         if (window.JagdSound) { window.JagdSound.roll(); }
         if (window.MiroStartDice3D) { window.MiroStartDice3D.roll(value); }
         else { els.startdiceFace.textContent = String(value); }
-        renderStartDicePlayers();
+        renderOpponents();
+        renderOwnCoinBadge();
         setTimeout(done, 900);
     }
 
     function resolveStartDiceRound() {
         var best = Math.max.apply(null, startDiceContenders.map(function (id) { return startDiceResults[id]; }));
         var tied = startDiceContenders.filter(function (id) { return startDiceResults[id] === best; });
+        startDiceActiveId = null;
         if (tied.length > 1) {
             els.startdiceHint.textContent = "Gleichstand bei " + best + "! " +
                 tied.map(function (id) { return state.players[id].name; }).join(" & ") + " würfeln erneut.";
             startDiceContenders = tied;
             startDiceResults = {};
+            renderOpponents();
+            renderOwnCoinBadge();
             setTimeout(runStartDiceTurn, 1400);
             return;
         }
         var starterId = tied[0];
+        startDiceWinnerId = starterId;
         els.startdiceHint.textContent = "✨ " + state.players[starterId].name + " wurde gewählt und beginnt!";
+        renderOpponents();
+        renderOwnCoinBadge();
+        // Online darf nur der Gastgeber die Engine weiterschalten - Gäste
+        // warten auf die bestätigte state_update-Übertragung (siehe
+        // applyConfirmedState() im Adapter), statt selbst die Phase zu
+        // wechseln.
+        if (isOnlineActive() && !window.MiroOnline.isHost()) { return; }
         setTimeout(function () {
             E.startFromCoin(state, starterId);
+            finishCoinPhase();
+            if (isOnlineActive()) { window.MiroOnline.hostSync(); }
+        }, 1200);
+    }
+
+    // Reihenfolge laut Vorgabe: erst Würfel/Hinweis/Ergebnisse sanft
+    // ausblenden - ERST DANACH rücken Zieh- und Ablagestapel in die
+    // Tischmitte (über die bestehende .is-coin-complete-CSS-Transition).
+    function finishCoinPhase() {
+        els.game.classList.add("is-coin-leaving");
+        setTimeout(function () {
+            els.startdice.hidden = true;
+            els.game.classList.remove("is-coin-leaving");
+            startDiceActiveId = null;
+            startDiceWinnerId = null;
             render();
             emitState("initiative");
-            els.startdice.hidden = true;
             els.game.classList.add("is-coin-complete");
             scheduleAI();
-        }, 1200);
+        }, 450);
+    }
+
+    function renderOwnCoinBadge() {
+        if (!els.handCoinBadge) { return; }
+        var seatedPlayer = viewPlayer();
+        if (!state || state.phase !== "coin" || !seatedPlayer) { els.handCoinBadge.hidden = true; return; }
+        var value = startDiceAllResults[seatedPlayer.id];
+        els.handCoinBadge.hidden = false;
+        els.handCoinBadge.className = "miro-coin-badge" +
+            (typeof value !== "number" ? " is-pending" : "") +
+            (startDiceWinnerId === seatedPlayer.id ? " is-winner" : "");
+        els.handCoinBadge.textContent = typeof value === "number" ? "🎲 " + value : "…";
     }
 
     function onDraw() {
         if (!canHumanAct()) { return; }
+        if (isOnlineGuest()) { window.MiroOnline.requestAction({ type: "draw" }); return; }
         try {
             var travelTime = animateDrawToPlayer(state.currentPlayerId, 1);
             E.drawForTurn(state, state.currentPlayerId);
@@ -210,6 +352,7 @@
 
     function onPass() {
         if (!canHumanAct()) { return; }
+        if (isOnlineGuest()) { window.MiroOnline.requestAction({ type: "pass" }); return; }
         try {
             if (state.phase === "chain") { E.finishChain(state, state.currentPlayerId); }
             else { return; }
@@ -219,6 +362,7 @@
 
     function onCard(cardId) {
         if (!canHumanAct()) { return; }
+        if (isOnlineGuest()) { window.MiroOnline.requestAction({ type: "play", cardId: cardId }); return; }
         try {
             var playedCard = state.players[state.currentPlayerId].hand.filter(function (card) { return card.id === cardId; })[0];
             animatePlayedCard(cardId);
@@ -227,6 +371,7 @@
             afterAction("play", settleTime);
         } catch (error) { showError(error); }
     }
+
 
     function afterAction(type, settleTime) {
         clearTimeout(actionTimer);
@@ -284,13 +429,18 @@
         renderOpponents();
         renderDiscard(actionType === "play");
         renderHand();
+        renderOwnCoinBadge();
         var seatedPlayer = viewPlayer();
-        document.querySelector(".miro-player-area").classList.toggle("is-current", Boolean(seatedPlayer && seatedPlayer.id === state.currentPlayerId));
+        var activeId = state.phase === "coin" ? startDiceActiveId : state.currentPlayerId;
+        document.querySelector(".miro-player-area").classList.toggle("is-current", Boolean(seatedPlayer && seatedPlayer.id === activeId));
         els.effect.textContent = effectText();
     }
 
     function effectText() {
-        if (state.phase === "coin") { return "Der Würfel entscheidet …"; }
+        // Während des Startwürfelns steht der spezifischere Hinweis schon
+        // direkt über dem Würfel (siehe updateStartDiceUi) - keine zweite,
+        // sich überlappende Statuszeile hier.
+        if (state.phase === "coin") { return ""; }
         if (state.phase === "chain") { return "✨ Zauberkette! Du darfst eine weitere Zahlenkarte legen."; }
         if (state.phase === "trade") { return "🔀 Wähle Tauschpartner, Abgabekarte und neue Farbe."; }
         if (state.phase === "treasure") { return "💎 Wähle einen der beiden Schätze."; }
@@ -301,11 +451,12 @@
         els.opponents.innerHTML = "";
         var visibleCount = 0;
         var seatedPlayer = viewPlayer();
+        var activeId = state.phase === "coin" ? startDiceActiveId : state.currentPlayerId;
         state.players.forEach(function (player) {
             if (seatedPlayer && player.id === seatedPlayer.id) { return; }
             visibleCount++;
             var wrap = document.createElement("div");
-            wrap.className = "miro-opponent" + (player.id === state.currentPlayerId ? " is-current" : "");
+            wrap.className = "miro-opponent" + (player.id === activeId ? " is-current" : "");
             wrap.dataset.playerId = player.id;
             var hand = document.createElement("div");
             hand.className = "miro-opponent-hand";
@@ -316,7 +467,17 @@
             });
             wrap.appendChild(hand);
             var label = document.createElement("strong"); label.textContent = player.name + " · " + player.hand.length + " Karten";
-            wrap.appendChild(label); els.opponents.appendChild(wrap);
+            wrap.appendChild(label);
+            if (state.phase === "coin") {
+                var rollValue = startDiceAllResults[player.id];
+                var badge = document.createElement("span");
+                badge.className = "miro-coin-badge" +
+                    (typeof rollValue !== "number" ? " is-pending" : "") +
+                    (startDiceWinnerId === player.id ? " is-winner" : "");
+                badge.textContent = typeof rollValue === "number" ? "🎲 " + rollValue : "…";
+                wrap.appendChild(badge);
+            }
+            els.opponents.appendChild(wrap);
         });
         els.opponents.dataset.count = visibleCount;
     }
@@ -402,6 +563,12 @@
 
     function viewPlayer() {
         if (!state) { return null; }
+        // Online: jeder Browser zeigt IMMER den eigenen Sitzplatz unten -
+        // anders als lokal (Hotseat) darf die Ansicht hier nicht auf den
+        // gerade aktiven Spieler springen (das wäre fremde Handkarten).
+        if (isOnlineActive() && typeof window.MiroOnline.mySeat === "number") {
+            return state.players[window.MiroOnline.mySeat] || null;
+        }
         var current = state.currentPlayerId === null ? null : state.players[state.currentPlayerId];
         if (current && current.type === "human") { return current; }
         return state.players.filter(function (player) { return player.type === "human"; })[0] || null;
@@ -520,6 +687,7 @@
             button.style.borderColor = D.COLORS[key].hex;
             button.addEventListener("click", function () {
                 if (onChosen) { onChosen(key); return; }
+                if (isOnlineGuest()) { window.MiroOnline.requestAction({ type: "color", color: key }); return; }
                 try { E.chooseColor(state, state.currentPlayerId, key); afterAction("color"); } catch (error) { showError(error); }
             });
             els.choiceOptions.appendChild(button);
@@ -545,7 +713,15 @@
             node.addEventListener("click", function () {
                 tradeDraft.giveCardId = card.id;
                 showColorChoice(function (color) {
-                    try { E.resolveTrade(state, state.currentPlayerId, tradeDraft.targetId, tradeDraft.giveCardId, color); tradeDraft = null; afterAction("trade"); }
+                    if (isOnlineGuest()) {
+                        window.MiroOnline.requestAction({ type: "trade", targetId: tradeDraft.targetId, giveCardId: tradeDraft.giveCardId, color: color });
+                        tradeDraft = null;
+                        return;
+                    }
+                    try {
+                        E.resolveTrade(state, state.currentPlayerId, tradeDraft.targetId, tradeDraft.giveCardId, color);
+                        tradeDraft = null; afterAction("trade");
+                    }
                     catch (error) { showError(error); }
                 });
             });
@@ -558,6 +734,7 @@
         state.pending.cards.forEach(function (card) {
             var node = cardNode(card, true); node.classList.add("is-playable");
             node.addEventListener("click", function () {
+                if (isOnlineGuest()) { window.MiroOnline.requestAction({ type: "treasure", keepCardId: card.id }); return; }
                 try { E.resolveTreasure(state, state.currentPlayerId, card.id); afterAction("treasure"); }
                 catch (error) { showError(error); }
             });
@@ -573,6 +750,9 @@
     function scheduleAI() {
         clearTimeout(aiTimer);
         stopAIThinking();
+        // Online: nur der Gastgeber rechnet Computerzüge - alle anderen
+        // warten auf dessen bestätigtes Ergebnis (siehe Adapter).
+        if (isOnlineGuest()) { return; }
         var player = state && state.currentPlayerId !== null && state.players[state.currentPlayerId];
         if (!player || player.type !== "ai" || state.winnerId !== null) { return; }
         var considersCards = state.phase === "play" || state.phase === "chain";
@@ -626,7 +806,16 @@
     }
 
     function canHumanAct() {
-        return state && state.currentPlayerId !== null && state.players[state.currentPlayerId].type === "human" && state.winnerId === null && !humanTurnLocked && !actionAnimating;
+        if (!state || state.currentPlayerId === null || state.players[state.currentPlayerId].type !== "human" ||
+            state.winnerId !== null || humanTurnLocked || actionAnimating) {
+            return false;
+        }
+        // Online: ein Browser darf nur für seinen EIGENEN Sitzplatz
+        // handeln, nie für den Zug eines anderen Menschen.
+        if (isOnlineActive() && state.currentPlayerId !== window.MiroOnline.mySeat) {
+            return false;
+        }
+        return true;
     }
 
     function showWinner() {
@@ -646,4 +835,21 @@
     }
 
     function escapeHtml(value) { return String(value).replace(/[&<>\"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;" }[c]; }); }
+
+    // Schmale Schnittstelle für JS/miro-multiplayer-adapter.js. Kein
+    // Redesign der Engine/Darstellung - nur Zugriff auf das, was der
+    // Adapter für Online-Partien braucht (Zustand setzen/lesen, neu
+    // zeichnen, mit einem fertigen Zustand statt lokalem Würfeln
+    // starten, zurück zur Spieler-Auswahl).
+    window.MiroUI = {
+        getState: function () { return state; },
+        setState: function (newState) { state = newState; },
+        render: function (type) { render(type); },
+        startWithState: startWithState,
+        startCoinPhaseState: startCoinPhaseState,
+        hostRollStartDiceForSeat: hostRollStartDiceForSeat,
+        applyStartDiceResult: applyStartDiceResult,
+        backToSetup: backToSetup,
+        showWinner: showWinner
+    };
 })();
