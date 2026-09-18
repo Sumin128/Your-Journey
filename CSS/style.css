@@ -6285,6 +6285,10 @@ justify-content:center;
 
     text-align: left;
 
+    /* Kleiner Abstand, damit Impressum- und Datenschutz-Box sich nicht
+       berühren (main ist bereits ein Spalten-Flex, siehe Basisregel). */
+    gap: 20px;
+
 }
 
 .legal-section {
