@@ -427,14 +427,19 @@
     100% { opacity: 0; transform: translateY(-46px) scale(1.2); }
 }
 
+/* Etwas kleiner und mit mehr Abstand zur Bildschirmkante als auf
+   Desktop - auf schmalen Karten (z. B. den Charakterseiten-Panels)
+   ragte der Begleiter sonst sichtbar in den Kartenrand hinein. Bleibt
+   im Gleichschritt mit #bug-reporter (siehe style.css), der direkt
+   darunter sitzt. */
 @media (max-width: 480px) {
     #pet-companion {
-        right: 12px;
-        bottom: 84px;
+        right: 30px;
+        bottom: 88px;
     }
     #pc-actor {
-        width: 64px;
-        height: 64px;
+        width: 58px;
+        height: 58px;
     }
 }
 

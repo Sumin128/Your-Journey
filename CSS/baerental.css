@@ -90,29 +90,6 @@
    ZETTEL
    ===================================================== */
 
-.bear-intro {
-    padding: 45px;
-
-    color: #3c2a18;
-
-    background:
-        linear-gradient(
-            145deg,
-            #f5e5b8,
-            #dcc38a
-        );
-
-    border: 2px solid #8a6635;
-    border-radius: 12px;
-
-    box-shadow:
-        0 12px 25px rgba(0, 0, 0, 0.22);
-
-    font-size: 18px;
-    line-height: 1.6;
-}
-
-
 .bear-small-title {
     display: block;
 
@@ -122,19 +99,6 @@
     font-weight: bold;
 
     color: #78562c;
-}
-
-
-.bear-intro h1 {
-    margin: 0 0 25px;
-
-    font-size: 48px;
-    color: #513519;
-}
-
-
-.bear-intro p {
-    margin: 0 0 18px;
 }
 
 
@@ -255,10 +219,6 @@
         height: 400px;
     }
 
-    .bear-intro h1 {
-        font-size: 38px;
-    }
-
 }
 
 /* =====================================================
@@ -268,7 +228,7 @@
 .bear-intro {
     position: relative;
 
-    padding: 45px 50px;
+    padding: clamp(22px, 6vw, 45px) clamp(20px, 7vw, 50px);
 
     color: #3c2717;
 
@@ -316,8 +276,12 @@
     margin: 0 0 28px;
 
     text-align: center;
+    overflow-wrap: break-word;
 
-    font-size: 42px;
+    /* Responsiv statt fester 42px - "Bärental" ist ein einzelnes Wort
+       ohne Umbruchstelle und lief auf schmalen Bildschirmen (z. B.
+       375px) über den Kartenrand hinaus statt umzubrechen. */
+    font-size: clamp(24px, 7vw, 42px);
     font-style: italic;
 
     color: #4d2d18;
@@ -328,6 +292,11 @@
     position: relative;
 
     margin: 0 0 20px;
+
+    /* Lesefreundlicher Fließtext statt zentriert (zentrierter Text
+       bricht auf schmalen Bildschirmen nach fast jedem Wort um und
+       wirkt wie eine Gedichtzeile statt einem lesbaren Absatz). */
+    text-align: left;
 }
 
 /* =====================================================
