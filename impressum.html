@@ -98,8 +98,6 @@
 
             <h1>Datenschutzerklärung</h1>
 
-            
-
             <h2>1. Verantwortlicher</h2>
 
             <p>
@@ -110,109 +108,465 @@
                 E-Mail: info@mirelon.de
             </p>
 
-            <h2>2. Lokale Speicherung (localStorage)</h2>
+            <h2>2. Nutzung ohne Konto und lokale Speicherung</h2>
 
             <p>
-                Dein Spielername, Avatar und Spielfortschritt werden ausschließlich
-                lokal in deinem Browser gespeichert (localStorage). Diese Daten
-                verlassen dein Gerät nicht und werden nicht an einen Server
-                übertragen – es sei denn, du entscheidest dich später bewusst für
-                ein Konto und die Übernahme dieses Spielstands (siehe Punkt 3).
-            </p>
-
-            <h2>3. Optionales Konto (Supabase)</h2>
-
-            <p>
-                Eine Registrierung ist freiwillig und nicht 
-                erforderlich, um zu spielen. Wer sich dennoch
-                 registriert, erstellt damit ein Konto bei unserem 
-                 Datenbank-Anbieter <em><strong>Supabase</strong></em>
-                  (Supabase Inc., Server-Standort Frankfurt am Main, Deutschland/EU).
-                   Gespeichert werden dabei ausschließlich E-Mail-Adresse, ein Passwort (verschlüsselt),
-                    der Spielfortschritt (Münzen, Erfolge, Inventar, Avatar-Wahl, Sidebar-Design sowie der
-                    Zustand des virtuellen Begleiters „Zauber-Gefährte" – Name, gewählte Tierart und
-                    Pflegewerte), technische
-                    Zeitangaben zur Missbrauchsvermeidung (z. B. wann zuletzt eine Belohnung gutgeschrieben wurde)
-                    sowie mit
-                    dem Malwerkzeug selbst erstellte Bilder – keine weiteren personenbezogenen Daten, insbesondere
-                     keine hochgeladenen Fotos. Die im Malwerkzeug erstellten Bilder
-                      werden als Bilddatei über Supabase Storage (ebenfalls Server-Standort Frankfurt am Main)
-                       gespeichert, damit sie beim nächsten Besuch wieder angezeigt werden können. Es werden keine
-                        Fotos oder Kamerabilder hochgeladen, sondern ausschließlich mit dem Werkzeug selbst gezeichnete
-                         Bilder. Die Registrierung richtet sich an Erziehungsberechtigte, die damit
-                         ein Konto für ihr Kind anlegen; beim Registrieren wird eine entsprechende
-                          Einwilligung abgefragt.
+                Mirelon kann grundsätzlich ohne Registrierung genutzt werden.
+                Spielername, Avatar, Einstellungen und Spielfortschritt eines
+                Gastes werden im lokalen Speicher des Browsers (<code>localStorage</code>)
+                gespeichert.
             </p>
 
             <p>
-                Wurde vorher ohne Konto (als Gast) gespielt, fragen wir bei der
-                Registrierung einmalig, ob der bisherige, bis dahin nur lokal
-                gespeicherte Gast-Spielstand (siehe Punkt 2) in das neue Konto
-                übernommen werden soll – das ist die einzige Ausnahme von der in
-                Punkt 2 beschriebenen rein lokalen Speicherung. Diese Übertragung
-                erfolgt nur nach ausdrücklicher Bestätigung, ausschließlich für
-                ein neues, noch leeres Konto und nur einmalig – lehnt man ab,
-                bleibt der Gast-Spielstand unverändert lokal auf dem Gerät
-                erhalten und wird nicht übertragen.
+                Dieser lokale Gast-Spielstand wird nicht automatisch an Supabase
+                übertragen. Eine Übertragung an einen Server erfolgt jedoch, wenn
+                eine servergestützte Funktion bewusst verwendet wird. Dazu zählen
+                insbesondere das Absenden einer Meldung über den Bug-Melder sowie
+                – nach einer Anmeldung – der Raumcode-Mehrspielermodus und die
+                freiwillige Übernahme des bisherigen Gast-Spielstands in ein
+                Konto.
             </p>
 
-            <h2>4. Bug-Melder</h2>
-
             <p>
-                Über den Bug-Melder (🐞) eingereichte Meldungen (Kategorie, Text,
-                aufgerufene Seite sowie technische Angaben zu Browser und
-                Gerät) werden in einer Tabelle bei unserem in Punkt 3
-                genannten Datenbank-Anbieter <em><strong>Supabase</strong></em>
-                (Server-Standort Frankfurt am Main, Deutschland/EU) gespeichert.
-                Es findet keine Übertragung an weitere Drittanbieter statt.
+                Die lokal gespeicherten Daten bleiben auf dem jeweiligen Gerät
+                erhalten, bis sie über die Einstellungen, durch das Löschen der
+                Browserdaten oder auf andere Weise entfernt werden.
             </p>
 
-            <h2>5. Hosting (Vercel)</h2>
+            <h2>3. Optionales Konto und Supabase</h2>
 
             <p>
-                Diese Seite wird über <strong>Vercel Inc.</strong> gehostet. Beim
-                Aufruf der Seite verarbeitet Vercel technisch bedingt
-                Server-Log-Daten (z. B. IP-Adresse, Zeitpunkt des Zugriffs). Details
-                siehe
-                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">
-                    Vercel-Datenschutzerklärung
+                Eine Registrierung ist freiwillig und für die grundlegende
+                Nutzung der Spiele nicht erforderlich.
+            </p>
+
+            <p>
+                Bei einer Registrierung wird ein Konto bei unserem technischen
+                Dienstleister <strong>Supabase Inc.</strong> angelegt. Das
+                verwendete Supabase-Projekt befindet sich in der Serverregion
+                Frankfurt am Main, Deutschland/EU.
+            </p>
+
+            <p>
+                Im Zusammenhang mit einem Konto werden insbesondere folgende
+                Daten verarbeitet:
+            </p>
+
+            <ul>
+                <li>E-Mail-Adresse und Supabase-Benutzerkennung,</li>
+                <li>das durch Supabase geschützte Passwort beziehungsweise die zur Anmeldung erforderlichen Authentifizierungsdaten,</li>
+                <li>Spielername und Avatar,</li>
+                <li>Spielfortschritt, Münzen, Erfahrungspunkte und Erfolge,</li>
+                <li>Inventar, freigeschaltete Inhalte und Schloss-Einrichtung,</li>
+                <li>gewählte Designs und Einstellungen,</li>
+                <li>Sidebar- und Oberflächeneinstellungen,</li>
+                <li>Zustand des virtuellen Begleiters „Zauber-Gefährte", beispielsweise Name, Tierart und Pflegewerte,</li>
+                <li>gespeicherte Spielstände und Bestenlistenwerte,</li>
+                <li>technische Zeitangaben zur Missbrauchsvermeidung und zur Begrenzung von Belohnungen,</li>
+                <li>selbst erstellte Zeichnungen,</li>
+                <li>technische Konto- und Synchronisierungsdaten.</li>
+            </ul>
+
+            <p>
+                Das Passwort wird durch Supabase verarbeitet und ist für uns
+                nicht im Klartext einsehbar.
+            </p>
+
+            <p>
+                Die Registrierung richtet sich an Erziehungsberechtigte, die ein
+                Konto für ihr Kind anlegen. Beim Registrieren wird eine
+                entsprechende Bestätigung durch die erziehungsberechtigte Person
+                verlangt.
+            </p>
+
+            <p>
+                Weitere Informationen zur Datenverarbeitung durch Supabase
+                findest du unter:
+                <a href="https://supabase.com/privacy" target="_blank" rel="noopener">
+                    https://supabase.com/privacy
                 </a>.
             </p>
 
-            <h2>6. Cookies</h2>
+            <h2>4. Übernahme eines Gast-Spielstands</h2>
 
             <p>
-                Diese Seite setzt keine Tracking-Cookies. Es wird ausschließlich
-                localStorage für Spielfunktionen genutzt (siehe Punkt 2).
+                Wurde Mirelon zuvor ohne Konto genutzt, wird bei der
+                Registrierung einmalig gefragt, ob der bis dahin lokal
+                gespeicherte Gast-Spielstand in das neue Konto übernommen werden
+                soll.
             </p>
 
-
-            <h2>7. Freiwillige Unterstützung (PayPal)</h2>
+            <p>
+                Die Übertragung erfolgt nur nach ausdrücklicher Bestätigung,
+                ausschließlich für ein neues beziehungsweise noch nicht
+                eingerichtetes Konto und nur einmalig.
+            </p>
 
             <p>
-                Du hast die Möglichkeit, dieses Projekt freiwillig und ohne jede
-                Gegenleistung über einen PayPal-Link zu unterstützen. Bei Nutzung
-                dieses Links wirst du auf die Website von PayPal (Europe) S.à r.l.
-                et Cie, S.C.A., Luxemburg, weitergeleitet, wo die Zahlung direkt
-                zwischen dir und PayPal abgewickelt wird. Dabei erhält PayPal die
-                von dir dort eingegebenen Daten (z. B. Name, E-Mail-Adresse,
-                Zahlungsdaten); wir selbst erhalten davon keine Daten außer der
-                Information, dass eine Zahlung eingegangen ist. Die Nutzung dieses
-                Links ist vollkommen freiwillig und für die Nutzung der App nicht
-                erforderlich. Weitere Informationen findest du in der
-                Datenschutzerklärung von PayPal:
+                Wird die Übernahme abgelehnt, bleibt der Gast-Spielstand lokal
+                auf dem Gerät erhalten und wird nicht an das Konto übertragen.
+            </p>
+
+            <h2>5. Raumcode-Mehrspielermodus</h2>
+
+            <p>
+                Der Raumcode-Mehrspielermodus steht derzeit nur angemeldeten
+                Nutzern zur Verfügung. Für die Erstellung und Durchführung einer
+                Partie werden bei Supabase insbesondere folgende Daten
+                gespeichert:
+            </p>
+
+            <ul>
+                <li>Supabase-Benutzerkennung,</li>
+                <li>im Spiel angezeigter Spielername,</li>
+                <li>gewählte Spielfarbe,</li>
+                <li>Sitzplatz, Bereitschafts- und Verbindungsstatus,</li>
+                <li>Raumcode und Spieltyp,</li>
+                <li>Gastgeber des Raums,</li>
+                <li>Status und Ablaufzeit des Raums,</li>
+                <li>der zur Synchronisierung und Wiederherstellung erforderliche Spielzustand,</li>
+                <li>technische Spielereignisse zur Vermeidung doppelter Aktionen,</li>
+                <li>Zeitangaben zu Erstellung und Aktualisierung des Raums.</li>
+            </ul>
+
+            <p>
+                Zur Live-Synchronisierung der Partie wird
+                <strong>Supabase Realtime</strong> verwendet. Die dafür
+                eingesetzten Raumkanäle sind privat und auf Mitglieder des
+                jeweiligen Raums beschränkt.
+            </p>
+
+            <p>
+                Private Spielinformationen, beispielsweise Handkarten, werden
+                nur im technisch erforderlichen Umfang verarbeitet. Andere
+                Spieler erhalten nicht den vollständigen privaten Spielzustand
+                eines Mitspielers.
+            </p>
+
+            <p>
+                Mehrspieler-Räume sind nur für die Durchführung und
+                kurzfristige Wiederherstellung einer Partie vorgesehen.
+                Abgelaufene oder beendete Räume werden bei einem technischen
+                Bereinigungslauf gelöscht. Die automatische regelmäßige
+                Ausführung dieser Bereinigung befindet sich derzeit noch in
+                Vorbereitung.
+            </p>
+
+            <h2>6. Selbst erstellte Zeichnungen</h2>
+
+            <p>
+                Mit dem Malwerkzeug selbst erstellte Bilder können bei
+                angemeldeten Konten über <strong>Supabase Storage</strong>
+                gespeichert werden, damit sie beim nächsten Besuch wieder
+                angezeigt werden können.
+            </p>
+
+            <p>
+                Dabei werden ausschließlich mit dem Mirelon-Malwerkzeug
+                erstellte Bilder gespeichert. Mirelon lädt keine
+                Kameraaufnahmen oder Fotos vom Gerät hoch.
+            </p>
+
+            <p>
+                Gespeicherte Zeichnungen bleiben erhalten, bis sie durch den
+                Nutzer gelöscht werden, das Konto gelöscht wird oder ihre
+                Speicherung aus technischen oder rechtlichen Gründen nicht mehr
+                erforderlich ist.
+            </p>
+
+            <h2>7. Bug-Melder</h2>
+
+            <p>
+                Über den Bug-Melder eingereichte Meldungen werden bei Supabase
+                gespeichert. Dies gilt auch, wenn der Bug-Melder ohne
+                angemeldetes Konto verwendet wird.
+            </p>
+
+            <p>
+                Dabei werden folgende Daten übertragen:
+            </p>
+
+            <ul>
+                <li>ausgewählte Kategorie,</li>
+                <li>eingegebener Meldungstext,</li>
+                <li>aufgerufene Seite beziehungsweise Seitenadresse,</li>
+                <li>Browserkennung,</li>
+                <li>Geräte- beziehungsweise Plattformangabe,</li>
+                <li>Zeitpunkt der Meldung.</li>
+            </ul>
+
+            <p>
+                Eine E-Mail-Adresse wird durch den Bug-Melder nicht automatisch
+                übertragen.
+            </p>
+
+            <p>
+                Die Daten werden zur Prüfung, Fehlerbehebung und Verbesserung
+                von Mirelon verarbeitet. Bug-Meldungen bleiben derzeit
+                gespeichert, bis sie nach der Bearbeitung manuell gelöscht
+                werden. Eine automatische feste Löschfrist ist noch nicht
+                eingerichtet.
+            </p>
+
+            <p>
+                Bitte gib im freien Textfeld keine Namen, Adressen, Kontaktdaten
+                oder andere unnötigen personenbezogenen Informationen an.
+            </p>
+
+            <h2>8. Hosting durch Vercel</h2>
+
+            <p>
+                Diese Website wird über <strong>Vercel Inc.</strong>
+                bereitgestellt. Beim Aufruf der Website verarbeitet Vercel
+                technisch erforderliche Verbindungs- und Serverdaten. Dazu
+                können insbesondere gehören:
+            </p>
+
+            <ul>
+                <li>IP-Adresse,</li>
+                <li>Datum und Uhrzeit des Zugriffs,</li>
+                <li>aufgerufene Seite oder Datei,</li>
+                <li>Browser- und Geräteinformationen,</li>
+                <li>technische Protokoll- und Sicherheitsdaten.</li>
+            </ul>
+
+            <p>
+                Die Verarbeitung ist für die sichere und zuverlässige
+                Bereitstellung der Website erforderlich.
+            </p>
+
+            <p>
+                Weitere Informationen findest du in der Datenschutzerklärung von
+                Vercel:
+                <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">
+                    https://vercel.com/legal/privacy-policy
+                </a>.
+            </p>
+
+            <h2>9. JavaScript-Bibliothek über jsDelivr</h2>
+
+            <p>
+                Die für die Verbindung mit Supabase benötigte
+                JavaScript-Bibliothek wird derzeit über das
+                Content-Delivery-Network <strong>jsDelivr</strong>, betrieben
+                durch Volentio JSD Limited, geladen.
+            </p>
+
+            <p>
+                Beim Abruf dieser Datei stellt der Browser eine Verbindung zu
+                <code>cdn.jsdelivr.net</code> her. Dabei können insbesondere die
+                IP-Adresse, Browsertyp und Browserversion, die angeforderte
+                Datei, die verweisende Domain sowie Datum und Uhrzeit des
+                Abrufs verarbeitet werden.
+            </p>
+
+            <p>
+                Weitere Informationen findest du in der Datenschutzerklärung von
+                jsDelivr:
+                <a href="https://www.jsdelivr.com/terms/privacy-policy" target="_blank" rel="noopener">
+                    https://www.jsdelivr.com/terms/privacy-policy
+                </a>.
+            </p>
+
+            <h2>10. Cookies und Browserspeicher</h2>
+
+            <p>
+                Mirelon setzt keine Werbe- oder Tracking-Cookies ein.
+            </p>
+
+            <p>
+                Für Spielfunktionen und Einstellungen wird technisch
+                erforderlicher Browserspeicher verwendet, insbesondere
+                <code>localStorage</code> und teilweise <code>sessionStorage</code>.
+                Bei angemeldeten Konten werden dort außerdem technisch
+                erforderliche Sitzungs- und Anmeldeinformationen von Supabase
+                gespeichert.
+            </p>
+
+            <p>
+                Die Speicherung ist erforderlich, damit der ausdrücklich
+                gewünschte Spiel-, Einstellungs- und Anmeldezustand auf dem
+                Gerät erhalten bleibt. Rechtsgrundlage für den Zugriff auf
+                technisch erforderlichen Browserspeicher ist § 25 Absatz 2
+                Nummer 2 TDDDG.
+            </p>
+
+            <h2>11. Freiwillige Unterstützung über PayPal</h2>
+
+            <p>
+                Mirelon kann freiwillig und ohne Gegenleistung über einen
+                PayPal-Link unterstützt werden.
+            </p>
+
+            <p>
+                Bei Verwendung dieses Links wirst du auf die Website von
+                <strong>PayPal (Europe) S.à r.l. et Cie, S.C.A.</strong>,
+                Luxemburg, weitergeleitet. Die Zahlung wird unmittelbar
+                zwischen dir und PayPal abgewickelt.
+            </p>
+
+            <p>
+                PayPal verarbeitet die dort eingegebenen Daten, beispielsweise
+                Name, E-Mail-Adresse und Zahlungsdaten, in eigener
+                Verantwortung. Wir erhalten grundsätzlich nur die Information
+                über den Eingang einer Zahlung und die von PayPal dazu
+                bereitgestellten Zahlungsinformationen.
+            </p>
+
+            <p>
+                Die Unterstützung ist freiwillig und für die Nutzung von
+                Mirelon nicht erforderlich.
+            </p>
+
+            <p>
+                Weitere Informationen findest du in der Datenschutzerklärung von
+                PayPal:
                 <a href="https://www.paypal.com/de/webapps/mpp/ua/privacy-full" target="_blank" rel="noopener">
                     https://www.paypal.com/de/webapps/mpp/ua/privacy-full
                 </a>.
             </p>
 
-            <h2>8. Deine Rechte</h2>
+            <h2>12. Zwecke und Rechtsgrundlagen</h2>
 
             <p>
-                Du hast das Recht auf Auskunft, Berichtigung, Löschung und
-                Einschränkung der Verarbeitung deiner personenbezogenen Daten sowie
-                ein Beschwerderecht bei einer Aufsichtsbehörde. Wende dich dazu an
-                die oben genannte Kontakt-E-Mail.
+                Die Verarbeitung personenbezogener Daten erfolgt je nach
+                Funktion insbesondere zu folgenden Zwecken:
+            </p>
+
+            <ul>
+                <li>Bereitstellung der Website und ihrer Spielfunktionen,</li>
+                <li>Einrichtung und Verwaltung freiwilliger Konten,</li>
+                <li>Synchronisierung von Spielständen,</li>
+                <li>Durchführung und Wiederherstellung von Mehrspielerpartien,</li>
+                <li>Speicherung selbst erstellter Zeichnungen,</li>
+                <li>Bearbeitung freiwillig eingesandter Fehlermeldungen,</li>
+                <li>Gewährleistung von Sicherheit und Missbrauchsschutz,</li>
+                <li>Fehleranalyse und technische Verbesserung von Mirelon.</li>
+            </ul>
+
+            <p>
+                Soweit die Verarbeitung zur Bereitstellung einer ausdrücklich
+                gewünschten Funktion oder eines Kontos erforderlich ist, erfolgt
+                sie auf Grundlage von Art. 6 Absatz 1 Buchstabe b DSGVO.
+            </p>
+
+            <p>
+                Die Verarbeitung technisch erforderlicher Verbindungs-,
+                Sicherheits- und Fehlerdaten erfolgt auf Grundlage von Art. 6
+                Absatz 1 Buchstabe f DSGVO. Das berechtigte Interesse besteht im
+                sicheren, funktionsfähigen und missbrauchsfreien Betrieb von
+                Mirelon.
+            </p>
+
+            <p>
+                Soweit eine Verarbeitung ausdrücklich auf einer Einwilligung
+                beruht, ist Art. 6 Absatz 1 Buchstabe a DSGVO die
+                Rechtsgrundlage. Eine erteilte Einwilligung kann jederzeit mit
+                Wirkung für die Zukunft widerrufen werden.
+            </p>
+
+            <h2>13. Empfänger und mögliche Drittlandverarbeitung</h2>
+
+            <p>
+                Für den Betrieb von Mirelon werden insbesondere folgende
+                Empfänger beziehungsweise technische Dienstleister eingesetzt:
+            </p>
+
+            <ul>
+                <li>Supabase Inc. für Konten, Datenbank, Dateispeicherung und Mehrspieler-Synchronisierung,</li>
+                <li>Vercel Inc. für Hosting und Auslieferung der Website,</li>
+                <li>Volentio JSD Limited beziehungsweise die von jsDelivr eingesetzten CDN-Anbieter für die Auslieferung der Supabase-JavaScript-Bibliothek,</li>
+                <li>PayPal bei freiwilliger Nutzung des Unterstützungslinks.</li>
+            </ul>
+
+            <p>
+                Einzelne Anbieter oder deren Unterauftragnehmer können ihren
+                Sitz außerhalb der Europäischen Union oder des Europäischen
+                Wirtschaftsraums haben. In diesen Fällen kann eine Verarbeitung
+                außerhalb der EU beziehungsweise des EWR nicht vollständig
+                ausgeschlossen werden. Die Anbieter verwenden hierfür nach
+                eigenen Angaben die jeweils erforderlichen datenschutzrechtlichen
+                Garantien, beispielsweise Angemessenheitsbeschlüsse oder
+                EU-Standardvertragsklauseln.
+            </p>
+
+            <h2>14. Speicherdauer und Löschung</h2>
+
+            <p>
+                Personenbezogene Daten werden nur so lange gespeichert, wie sie
+                für den jeweiligen Zweck erforderlich sind oder gesetzliche
+                Aufbewahrungspflichten bestehen.
+            </p>
+
+            <p>
+                Insbesondere gilt:
+            </p>
+
+            <ul>
+                <li>lokale Gastdaten bleiben bis zur Löschung der Browserdaten oder einer Löschung über Mirelon auf dem Gerät,</li>
+                <li>Kontodaten und synchronisierte Spielstände bleiben grundsätzlich bis zur Löschung des Kontos oder einem entsprechenden Löschverlangen gespeichert,</li>
+                <li>Zeichnungen bleiben bis zur Löschung durch den Nutzer oder zur Löschung des Kontos gespeichert,</li>
+                <li>Mehrspieler-Räume bleiben bis zu einem technischen Bereinigungslauf gespeichert,</li>
+                <li>Bug-Meldungen bleiben derzeit bis zu ihrer manuellen Löschung nach der Bearbeitung gespeichert,</li>
+                <li>technische Protokolldaten werden entsprechend den Speicherfristen der jeweiligen technischen Anbieter verarbeitet.</li>
+            </ul>
+
+            <p>
+                Gesetzliche Aufbewahrungspflichten und technisch notwendige
+                Sicherungskopien können im Einzelfall zu einer längeren
+                Speicherung führen.
+            </p>
+
+            <h2>15. Deine Rechte</h2>
+
+            <p>
+                Du hast im Rahmen der gesetzlichen Voraussetzungen insbesondere
+                folgende Rechte:
+            </p>
+
+            <ul>
+                <li>Recht auf Auskunft über die gespeicherten personenbezogenen Daten,</li>
+                <li>Recht auf Berichtigung unrichtiger Daten,</li>
+                <li>Recht auf Löschung,</li>
+                <li>Recht auf Einschränkung der Verarbeitung,</li>
+                <li>Recht auf Datenübertragbarkeit,</li>
+                <li>Recht auf Widerspruch gegen bestimmte Verarbeitungen,</li>
+                <li>Recht auf Widerruf einer erteilten Einwilligung mit Wirkung für die Zukunft.</li>
+            </ul>
+
+            <p>
+                Zur Ausübung dieser Rechte kannst du dich an folgende Adresse
+                wenden:
+            </p>
+
+            <p>
+                E-Mail: info@mirelon.de
+            </p>
+
+            <p>
+                Du hast außerdem das Recht, dich bei einer
+                Datenschutzaufsichtsbehörde zu beschweren. Zuständig ist
+                insbesondere die Datenschutzaufsichtsbehörde des Bundeslandes
+                Nordrhein-Westfalen:
+            </p>
+
+            <p>
+                Landesbeauftragte für Datenschutz und Informationsfreiheit
+                Nordrhein-Westfalen<br>
+                <a href="https://www.ldi.nrw.de/" target="_blank" rel="noopener">
+                    https://www.ldi.nrw.de/
+                </a>
+            </p>
+
+            <h2>16. Änderungen dieser Datenschutzerklärung</h2>
+
+            <p>
+                Diese Datenschutzerklärung wird angepasst, wenn sich Funktionen,
+                eingesetzte Dienstleister oder gesetzliche Anforderungen ändern.
+            </p>
+
+            <p>
+                Stand: September 2026
             </p>
 
         </section>
