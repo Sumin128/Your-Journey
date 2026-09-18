@@ -11,7 +11,7 @@
 
 (function () {
 
-    const SCENE = "images/faros_fuchsbau3.png";
+    const SCENE = "images/faros_fuchsbau3.webp";
 
     // x / y in Prozent des Bildes, r = Radius in Prozent der Breite.
     // Bewusst Dinge gewählt, die im Bild nur einmal deutlich vorkommen.

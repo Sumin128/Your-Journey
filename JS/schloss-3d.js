@@ -525,7 +525,7 @@ function initSchloss3D(canvas) {
     // ausgeblendet, wenn die GLB-Hülle ihren eigenen Boden mitbringt.
     const floorW = ROOM_WIDTH + 14, floorD = ROOM_DEPTH + 24;
     // Bodentextur kommt aus dem Stil (shell.floor). Default: Waldholz.
-    const floorCfg = shell.floor || { tex: "wald-holzboden-storybook.png", divX: 4.2, divY: 3.0, roughness: 0.85 };
+    const floorCfg = shell.floor || { tex: "wald-holzboden-storybook.webp", divX: 4.2, divY: 3.0, roughness: 0.85 };
     const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(floorW, floorD),
         new THREE.MeshStandardMaterial({
@@ -2869,19 +2869,19 @@ function initSchloss3D(canvas) {
         // denselben Bildern, damit Architektur und Möbel wie aus einer
         // Welt wirken. Block-/Dielenmass ist so gewählt, dass es ruhig
         // und handgemalt liest, nicht als gekacheltes Muster.
-        const wallBackMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", ROOM_WIDTH / 3.4, ROOM_HEIGHT / 3.4), roughness: 0.95 });
-        const wallSideMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", ROOM_DEPTH / 3.4, ROOM_HEIGHT / 3.4), roughness: 0.95 });
-        const frameMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", 0.5, 0.6), roughness: 0.95 });
+        const wallBackMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.webp", ROOM_WIDTH / 3.4, ROOM_HEIGHT / 3.4), roughness: 0.95 });
+        const wallSideMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.webp", ROOM_DEPTH / 3.4, ROOM_HEIGHT / 3.4), roughness: 0.95 });
+        const frameMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.webp", 0.5, 0.6), roughness: 0.95 });
         // Deckenbalken + Fussleisten + Kaminsturz: dieselbe neue gemalte
         // Balkenholz-Textur, damit die Holz-Architektur eine Sprache spricht.
-        const beamMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.png", 0.5, 3.0), roughness: 0.8 });
-        const baseboardMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.png", 3.0, 0.4), roughness: 0.8 });
-        const mantelMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.png", 1.6, 0.5), roughness: 0.8 });
+        const beamMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.webp", 0.5, 3.0), roughness: 0.8 });
+        const baseboardMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.webp", 3.0, 0.4), roughness: 0.8 });
+        const mantelMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-deckenbalken-storybook.webp", 1.6, 0.5), roughness: 0.8 });
         // Tuerblatt: gemalte Rundbogen-Tuer (Eisenbaender + Ring schon im
         // Bild), transparenter Rand -> alphaTest, damit nur die Tuerform
         // steht und dahinter die Steinlaibung sichtbar bleibt.
-        const doorLeafMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-tuer-storybook.png", 1, 1, true), transparent: true, alphaTest: 0.5, roughness: 0.75 });
-        const firestoneMat = new THREE.MeshStandardMaterial({ map: roomTex("kamin-innenstein-storybook.png", 0.9, 0.9), roughness: 1 });
+        const doorLeafMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-tuer-storybook.webp", 1, 1, true), transparent: true, alphaTest: 0.5, roughness: 0.75 });
+        const firestoneMat = new THREE.MeshStandardMaterial({ map: roomTex("kamin-innenstein-storybook.webp", 0.9, 0.9), roughness: 1 });
 
         const WALL_Z = -ROOM_DEPTH / 2;
         const HW = ROOM_WIDTH / 2;
@@ -2949,7 +2949,7 @@ function initSchloss3D(canvas) {
         const SIDE_D = 20, SIDE_H = 8;
         [-1, 1].forEach(function (s) {
             const sideMat = new THREE.MeshStandardMaterial({
-                map: roomTex("wald-steinwand-storybook.png", SIDE_D / 3.4, SIDE_H / 3.4),
+                map: roomTex("wald-steinwand-storybook.webp", SIDE_D / 3.4, SIDE_H / 3.4),
                 roughness: 0.95
             });
             const w = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_D, SIDE_H), sideMat);
@@ -2965,7 +2965,7 @@ function initSchloss3D(canvas) {
         // auf breiten Layouts gedeckt sind. ===
         const ceiling = new THREE.Mesh(
             new THREE.PlaneGeometry(ROOM_WIDTH + 22, ROOM_DEPTH + 34),
-            new THREE.MeshBasicMaterial({ map: roomTex("wald-decke-kalkputz-storybook.png", 4.2, 5.4), color: 0xe3d4b4 })
+            new THREE.MeshBasicMaterial({ map: roomTex("wald-decke-kalkputz-storybook.webp", 4.2, 5.4), color: 0xe3d4b4 })
         );
         ceiling.rotation.x = Math.PI / 2;
         ceiling.position.set(0, CEILING_Y, 6);
@@ -3045,7 +3045,7 @@ function initSchloss3D(canvas) {
         // genug zurückgesetzt, dass die drei Fensterbögen einen echten
         // Tiefenausschnitt zeigen. Eine zweite, näher stehende Kopie mit
         // leicht abgedunkeltem Vordergrund gibt zusätzlich Räumlichkeit.
-        const panoTex = roomTex("waldpanorama-storybook.png", 1, 1, true);
+        const panoTex = roomTex("waldpanorama-storybook.webp", 1, 1, true);
         const viewFar = new THREE.Mesh(
             new THREE.PlaneGeometry(winW + 5.5, (winW + 5.5) * 941 / 1672),
             new THREE.MeshBasicMaterial({ map: panoTex })
@@ -3055,13 +3055,13 @@ function initSchloss3D(canvas) {
 
         const viewNear = new THREE.Mesh(
             new THREE.PlaneGeometry(winW + 2.6, (winW + 2.6) * 941 / 1672),
-            new THREE.MeshBasicMaterial({ map: roomTex("waldpanorama-storybook.png", 1, 1, true), transparent: true, opacity: 0.55, color: 0xdfe8d4 })
+            new THREE.MeshBasicMaterial({ map: roomTex("waldpanorama-storybook.webp", 1, 1, true), transparent: true, opacity: 0.55, color: 0xdfe8d4 })
         );
         viewNear.position.set(winCx, winMidY - 0.3, WALL_Z - 1.1);
         group.add(viewNear);
 
         // aeussere Laibung: dunkle Flaechen, laufen NACH HINTEN (nicht in den Raum)
-        const outerMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.png", 0.6, 0.9), roughness: 1 });
+        const outerMat = new THREE.MeshStandardMaterial({ map: roomTex("wald-steinwand-storybook.webp", 0.6, 0.9), roughness: 1 });
         const oRev = 0.7;
         [
             { g: [winW + 0.06, 0.05, oRev], p: [winCx, WIN.y1, WALL_Z - oRev / 2] },
@@ -3105,7 +3105,7 @@ function initSchloss3D(canvas) {
         dustAnchor.set(winCx, winMidY, WALL_Z + 0.6);
 
         // === HOHE HOLZTUER MIT SCHLANKEM STEINBOGEN (linke Wand) ===
-        // Tuerblatt = eine gemalte Rundbogen-Tuer (wald-tuer-storybook.png,
+        // Tuerblatt = eine gemalte Rundbogen-Tuer (wald-tuer-storybook.webp,
         // Eisenbaender/Ring schon im Bild). Dahinter eine Steinflaeche, die
         // die Laibung fuellt -> kein weisser/schwarzer Spalt. Davor nur ein
         // schlanker Steinbogen + zwei schmale Pfosten. Als spaeterer
@@ -3227,12 +3227,12 @@ function initSchloss3D(canvas) {
         const FP = { x1: 2.0, w: 1.7, y1: 0.05, yTop: 1.4 };
         const FP_R = FP.w / 2, FP_SPRING = FP.yTop - FP_R, fpCx = FP.x1 + FP_R;
 
-        const sandBack = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", ROOM_WIDTH / 3.0, ROOM_HEIGHT / 3.0), roughness: 0.96 });
-        const sandTrim = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", 0.6, 0.7), roughness: 0.95 });
-        const sandReveal = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", 0.55, 0.9), roughness: 1 });
-        const akazie = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.png", 1.1, 0.5), roughness: 0.72, metalness: 0.04 });
-        const akazieBeam = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.png", 2.6, 0.4), roughness: 0.78 });
-        const _fkTex = roomTex("kamin-innenstein-storybook.png", 1.0, 1.0);
+        const sandBack = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.webp", ROOM_WIDTH / 3.0, ROOM_HEIGHT / 3.0), roughness: 0.96 });
+        const sandTrim = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.webp", 0.6, 0.7), roughness: 0.95 });
+        const sandReveal = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.webp", 0.55, 0.9), roughness: 1 });
+        const akazie = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.webp", 1.1, 0.5), roughness: 0.72, metalness: 0.04 });
+        const akazieBeam = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.webp", 2.6, 0.4), roughness: 0.78 });
+        const _fkTex = roomTex("kamin-innenstein-storybook.webp", 1.0, 1.0);
         const fireBrick = new THREE.MeshStandardMaterial({
             map: _fkTex, color: 0x9a6f4c, roughness: 1, side: THREE.DoubleSide,
             emissiveMap: _fkTex, emissive: new THREE.Color(0x6b2f10), emissiveIntensity: 0.3
@@ -3269,7 +3269,7 @@ function initSchloss3D(canvas) {
         // === Seitenwände (weit über die Raumtiefe hinaus, wie Waldstil) ===
         const SIDE_D = 20, SIDE_H = 8;
         [-1, 1].forEach(function (s) {
-            const m = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", SIDE_D / 3.2, SIDE_H / 3.0), roughness: 0.96 });
+            const m = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.webp", SIDE_D / 3.2, SIDE_H / 3.0), roughness: 0.96 });
             const w = new THREE.Mesh(new THREE.PlaneGeometry(SIDE_D, SIDE_H), m);
             w.rotation.y = -s * Math.PI / 2;
             w.position.set(s * HW, SIDE_H / 2, WALL_Z + SIDE_D / 2 - 0.4);
@@ -3280,7 +3280,7 @@ function initSchloss3D(canvas) {
         // === Decke: heller Lehmputz + zwei Akazienbalken + Stern-Medaillon ===
         const ceil = new THREE.Mesh(
             new THREE.PlaneGeometry(ROOM_WIDTH + 22, ROOM_DEPTH + 34),
-            new THREE.MeshBasicMaterial({ map: roomTex("wuestenschloss-decke-lehmputz.png", 3.6, 4.6), color: 0xf1e2c4 })
+            new THREE.MeshBasicMaterial({ map: roomTex("wuestenschloss-decke-lehmputz.webp", 3.6, 4.6), color: 0xf1e2c4 })
         );
         ceil.rotation.x = Math.PI / 2;
         ceil.position.set(0, CEILING_Y, 6);
@@ -3327,13 +3327,13 @@ function initSchloss3D(canvas) {
 
         const viewFar = new THREE.Mesh(
             new THREE.PlaneGeometry(winW + 6.0, (winW + 6.0) * PANO_ASP),
-            new THREE.MeshBasicMaterial({ map: roomTex("wuestenpanorama-storybook.png", 1, 1, true) })
+            new THREE.MeshBasicMaterial({ map: roomTex("wuestenpanorama-storybook.webp", 1, 1, true) })
         );
         viewFar.position.set(winCx, winMidY + 0.7, WALL_Z - 2.7);
         group.add(viewFar);
         const viewNear = new THREE.Mesh(
             new THREE.PlaneGeometry(winW + 2.4, (winW + 2.4) * PANO_ASP),
-            new THREE.MeshBasicMaterial({ map: roomTex("wuestenpanorama-storybook.png", 1, 1, true), transparent: true, opacity: 0.5, color: 0xf3ddba })
+            new THREE.MeshBasicMaterial({ map: roomTex("wuestenpanorama-storybook.webp", 1, 1, true), transparent: true, opacity: 0.5, color: 0xf3ddba })
         );
         viewNear.position.set(winCx, winMidY - 0.4, WALL_Z - 1.15);
         group.add(viewNear);
@@ -3394,7 +3394,7 @@ function initSchloss3D(canvas) {
         const planeCy = visBottom - doorContentBottom * planeH + planeH / 2;
 
         const doorMat = new THREE.MeshStandardMaterial({
-            map: roomTex("wuestenschloss-tuer-akazie.png", 1, 1, true),
+            map: roomTex("wuestenschloss-tuer-akazie.webp", 1, 1, true),
             transparent: true, alphaTest: 0.5, depthWrite: true,
             side: THREE.FrontSide, roughness: 0.62, metalness: 0.06
         });
@@ -3447,8 +3447,8 @@ function initSchloss3D(canvas) {
         cavFloor.receiveShadow = true;
         group.add(cavFloor);
 
-        const kaminSand = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-kamin-sandstein.png", 0.8, 0.8), roughness: 0.94, color: 0xe6c79a });
-        const kaminSandDk = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-kamin-sandstein.png", 0.5, 0.5), roughness: 0.94, color: 0xd8b688 });
+        const kaminSand = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-kamin-sandstein.webp", 0.8, 0.8), roughness: 0.94, color: 0xe6c79a });
+        const kaminSandDk = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-kamin-sandstein.webp", 0.5, 0.5), roughness: 0.94, color: 0xd8b688 });
         const archBand = new THREE.Mesh(new THREE.TorusGeometry(FP_R + 0.07, 0.11, 8, 46, Math.PI), kaminSand);
         archBand.position.set(fpCx, FP_SPRING, WALL_Z + 0.03);
         archBand.castShadow = !isMobile;
@@ -3477,7 +3477,7 @@ function initSchloss3D(canvas) {
         hstep.receiveShadow = true;
         group.add(hstep);
 
-        const dbeamMat = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.png", 2.0, 0.3), roughness: 0.68, metalness: 0.05 });
+        const dbeamMat = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-holz-akazie.webp", 2.0, 0.3), roughness: 0.68, metalness: 0.05 });
         const beamH = 0.16, beamBot = FP.yTop + 0.12, beamTop = beamBot + beamH;
         const mantelBeam = new THREE.Mesh(new THREE.BoxGeometry(FP.w + 0.36, beamH, 0.2), dbeamMat);
         mantelBeam.position.set(fpCx, beamBot + beamH / 2, WALL_Z + 0.1);
@@ -3485,7 +3485,7 @@ function initSchloss3D(canvas) {
         mantelBeam.receiveShadow = true;
         group.add(mantelBeam);
 
-        const breastMat = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.png", 1.7, 0.3), roughness: 0.96 });
+        const breastMat = new THREE.MeshStandardMaterial({ map: roomTex("wuestenschloss-wand-sandstein.webp", 1.7, 0.3), roughness: 0.96 });
         let bry = beamTop;
         [
             { w: FP.w + 0.14, h: 0.16, z: 0.05 },

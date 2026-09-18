@@ -78,7 +78,7 @@ const SCHLOSS_THEMES = [
             windowLight: { color: 0xffe4bd, intensity: 1.4 },
             fireLight: { color: 0xff9a44, intensity: 1.35 },
             windowSky: ["#f4dcae", "#e7b57e", "#c98a54"],
-            floor: { tex: "wuestenschloss-boden-terracotta.png", divX: 1.9, divY: 1.9, roughness: 0.82 }
+            floor: { tex: "wuestenschloss-boden-terracotta.webp", divX: 1.9, divY: 1.9, roughness: 0.82 }
         }
     },
     { id: "rosa", name: "Rosa-Zauber", icon: "🌸", available: false, shell: null },

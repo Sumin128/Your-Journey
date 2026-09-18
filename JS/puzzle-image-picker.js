@@ -23,12 +23,12 @@
     // Die gleichen Bilder wie auf der Galerie-Seite (galerie.html).
     const SITE_IMAGES = [
         { label: "Übersichtskarte", src: "images/startseite_v4.jpg" },
-        { label: "Kuros Nest", src: "images/kuros_nest_final.png" },
-        { label: "Tessas Hasenschule", src: "images/hasenschule.png" },
-        { label: "Faros Fuchsbau", src: "images/faros_fuchsbau3.png" },
-        { label: "Bärental", src: "images/baerenthal.png" },
-        { label: "Luis", src: "images/luis_chameleon.png" },
-        { label: "Luis' Hütte", src: "images/luis_huette.png" },
+        { label: "Kuros Nest", src: "images/kuros_nest_final.webp" },
+        { label: "Tessas Hasenschule", src: "images/hasenschule.webp" },
+        { label: "Faros Fuchsbau", src: "images/faros_fuchsbau3.webp" },
+        { label: "Bärental", src: "images/baerenthal.webp" },
+        { label: "Luis", src: "images/luis_chameleon.webp" },
+        { label: "Luis' Hütte", src: "images/luis_huette.webp" },
     ];
 
     function createThumb(src, label, isGalleryImage) {

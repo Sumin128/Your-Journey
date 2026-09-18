@@ -15,7 +15,7 @@ const STORY_EVENTS = {
 
     castle_unlock: {
         character: "Faro",
-        avatar: "images/faro1.png",
+        avatar: "images/faro1.webp",
         title: "⭐ Stufe 3 erreicht!",
         text: "Dein Schloss ist bereit! Ein neuer Ort wartet auf dich – richte ihn so ein, wie du möchtest.\n\nTamo der Biber hat seine Werkstatt eröffnet und hilft dir mit neuen Möbeln.",
         confirmLabel: "Zum Schloss",

@@ -55,11 +55,11 @@
        einmal vorab laden, damit das erste Stempeln nicht auf das
        Bild warten muss. */
     const STAMP_IMAGE_SOURCES = {
-        kuro: "images/Kuro_close.png",
-        tessa: "images/tessa_hase.png",
-        faro: "images/faro1.png",
-        branos: "images/branos.png",
-        luis: "images/chameleon_luis_green.png"
+        kuro: "images/Kuro_close.webp",
+        tessa: "images/tessa_hase.webp",
+        faro: "images/faro1.webp",
+        branos: "images/branos.webp",
+        luis: "images/chameleon_luis_green.webp"
     };
 
     const stampImages = {};

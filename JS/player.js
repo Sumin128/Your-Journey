@@ -2343,12 +2343,12 @@ function registerPuzzleCompletion(galleryImageLabel, pieceCount, rotationMode) {
 // showCharacterBubble()/CHARACTER_BUBBLE_DEFAULT_AVATARS weiter
 // unten), damit es keine zweite, abweichende Zuordnung gibt.
 const LUIS_THEME_IMAGES = {
-    baumrinde: "images/chameleon_luis_brown.png",
-    smaragdwald: "images/chameleon_luis_green.png",
-    zuckerwatte: "images/chameleon_luis_zuckerwatte.png",
-    azurblau: "images/chameleon_luis_blue.png",
-    rot: "images/chameleon_luis_red.png",
-    orange: "images/chameleon_luis_orange.png"
+    baumrinde: "images/chameleon_luis_brown.webp",
+    smaragdwald: "images/chameleon_luis_green.webp",
+    zuckerwatte: "images/chameleon_luis_zuckerwatte.webp",
+    azurblau: "images/chameleon_luis_blue.webp",
+    rot: "images/chameleon_luis_red.webp",
+    orange: "images/chameleon_luis_orange.webp"
 };
 
 const puzzleLuisThemeIds = Object.keys(LUIS_THEME_IMAGES);

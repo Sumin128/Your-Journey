@@ -1821,6 +1821,11 @@ main {
 
     flex:1;
 
+    /* Ohne das erbt der Begrüßungstext text-align:center vom
+       main-Grundelement (siehe style.css "main{...text-align:center}")
+       und bricht auf schmalen Bildschirmen nach fast jedem Wort um. */
+    text-align:left;
+
 }
 
 #tessa-dialog h1{
@@ -2738,7 +2743,7 @@ span.shop-hotspot-icon.shop-hotspot-icon--emoji {
 
     padding-left:126px;
 
-    background-image: url("../images/hasenschule.png");
+    background-image: url("../images/hasenschule.webp");
     background-size: cover;
     background-position: var(--bg-position-desktop, center);
     background-repeat: no-repeat;
@@ -3326,6 +3331,11 @@ flex-direction:column;
 
 justify-content:center;
 
+    /* Ohne das erbt der Begrüßungstext text-align:center vom
+       main-Grundelement (siehe style.css "main{...text-align:center}")
+       und bricht auf schmalen Bildschirmen nach fast jedem Wort um. */
+    text-align:left;
+
 }
 
 #faro-dialog h1{
@@ -3360,7 +3370,7 @@ justify-content:center;
 
     align-items: center;
 
-    background-image: url("../images/faros_fuchsbau3.png");
+    background-image: url("../images/faros_fuchsbau3.webp");
     background-size: cover;
     background-position: var(--bg-position-desktop, center);
     background-repeat: no-repeat;
@@ -3942,7 +3952,7 @@ justify-content:center;
 
     padding: clamp(20px, 4vw, 48px);
 
-    background-image: url("../images/kuros_nest_final.png");
+    background-image: url("../images/kuros_nest_final.webp");
 
     background-size: cover;
 
@@ -4537,13 +4547,6 @@ justify-content:center;
     #kuro-box {
 
         flex-direction: column;
-
-    }
-
-
-    #kuro-text {
-
-        text-align: center;
 
     }
 
@@ -5948,6 +5951,22 @@ justify-content:center;
 
     margin-top: 14px;
 
+}
+
+/* Etwas kleiner und mit mehr Abstand zur Bildschirmkante als auf
+   Desktop - auf schmalen Karten (z. B. den Charakterseiten-Panels)
+   ragte der Melder sonst sichtbar in den Kartenrand hinein. Bleibt im
+   Gleichschritt mit #pet-companion (siehe CSS/tamagotchi.css), der
+   direkt darüber sitzt. */
+@media (max-width: 480px) {
+    #bug-reporter {
+        right: 30px;
+        bottom: 30px;
+    }
+    #bug-reporter-toggle {
+        width: 46px;
+        height: 46px;
+    }
 }
 
 
