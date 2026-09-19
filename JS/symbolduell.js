@@ -110,6 +110,15 @@
     let usedPairs = new Set();
     let matchId = "";
 
+    // Falsch-Klick-Strafe: Tessa braucht für DIESE Suche 1s weniger pro
+    // falschem Klick (nie unter eine kleine Mindestrestzeit). Wird bei
+    // jeder neuen Runde in startRound() zurückgesetzt, wirkt also nie
+    // über die aktuelle Suche hinaus.
+    const WRONG_GUESS_PENALTY_MS = 1000;
+    const MIN_REMAINING_MS = 300;
+    let roundStartTime = 0;
+    let roundDelay = 0;
+
     validateDeck(deck);
 
     function buildDeck() {
@@ -253,11 +262,26 @@
         const delay = testMode && new URLSearchParams(location.search).get("symbolduellTest") === "1"
             ? 450
             : randomInt(10000, 15000);
+        roundStartTime = Date.now();
+        roundDelay = delay;
         thinking.style.setProperty("--thinking-duration", delay + "ms");
         thinking.classList.remove("is-running");
         void thinking.offsetWidth;
         thinking.classList.add("is-running");
         botTimer = window.setTimeout(tessaFindsMatch, delay);
+    }
+
+    // Bei einem falschen Klick kommt Tessa der Lösung ein Stück näher:
+    // ihre verbleibende Zeit für DIESE Suche sinkt um WRONG_GUESS_PENALTY_MS,
+    // nie unter MIN_REMAINING_MS. roundDelay/roundStartTime gehören nur der
+    // aktuellen Runde und werden in startRound() jedes Mal neu gesetzt.
+    function penalizeWrongGuess() {
+        const elapsed = Date.now() - roundStartTime;
+        roundDelay = Math.max(elapsed + MIN_REMAINING_MS, roundDelay - WRONG_GUESS_PENALTY_MS);
+        const remaining = roundDelay - elapsed;
+        window.clearTimeout(botTimer);
+        botTimer = window.setTimeout(tessaFindsMatch, remaining);
+        thinking.style.setProperty("--thinking-duration", roundDelay + "ms");
     }
 
     function onSymbolClick(event) {
@@ -272,6 +296,7 @@
             void button.offsetWidth;
             button.classList.add("is-wrong");
             message.textContent = "Das Symbol ist nur auf einer Karte – such weiter!";
+            penalizeWrongGuess();
             return;
         }
 
