@@ -357,6 +357,13 @@ function showStagePicker(){
   c.appendChild(el("h2","center","Übungsmodus – welche Stufe?"));
   c.appendChild(el("p","center","Best-Punktzahl Übung: <b>"+DATA().bestScore.uebung+"</b>"));
 
+  // Freischalt-Erklärung zentral aus den echten Konstanten berechnet,
+  // damit der Text nie von der tatsächlichen Logik abweicht.
+  const neededCorrect = Math.ceil(MASTERY_RATIO * PROBLEMS_DEFAULT);
+  c.appendChild(el("p","center stage-unlock-hint",
+    "Schaffe mindestens "+neededCorrect+" von "+PROBLEMS_DEFAULT+
+    " Aufgaben richtig, um die nächste Stufe freizuschalten."));
+
   // Stufenauswahl als kleiner Hüpf-Pfad statt Liste: Tessa sitzt auf
   // der höchsten freigeschalteten Stufe, jede Station ist antippbar.
   const pathWrap = el("div","stage-path");
@@ -364,10 +371,18 @@ function showStagePicker(){
   const bunny = el("div","path-bunny",tessaImgTag("idle"));
   for(let s=1;s<=5;s++){
     const pct = ((s-1)/4*100).toFixed(2)+"%";
+    const isLocked = s > DATA().unlockedStage;
     const b = el("button","stage-stop"+(DATA().stageWins[s]>=1?" is-done":"")+(s===DATA().unlockedStage?" is-current":""));
     b.style.left = pct;
-    b.disabled = s > DATA().unlockedStage;
-    b.innerHTML = STAGES[s].icon+'<small>'+STAGES[s].short+(s>DATA().unlockedStage ? " 🔒" : "")+'</small>';
+    b.disabled = isLocked;
+    let html = '<span class="stage-stop-icon">'+STAGES[s].icon+'</span>';
+    html += '<small class="stage-stop-label">'+STAGES[s].short+(isLocked ? " 🔒" : "")+'</small>';
+    if(isLocked){
+      // Zusätzlich zum Schloss-Symbol ein konkreter, lesbarer Hinweis,
+      // welche Stufe zuerst gemeistert werden muss.
+      html += '<small class="stage-stop-hint">Meistere zuerst '+STAGES[s-1].short+'</small>';
+    }
+    b.innerHTML = html;
     b.addEventListener("click", ()=> startUebung(s));
     pathWrap.appendChild(b);
     if(s === DATA().unlockedStage) bunny.style.left = pct;
