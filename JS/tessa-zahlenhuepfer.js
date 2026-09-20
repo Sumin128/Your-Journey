@@ -619,11 +619,27 @@ function renderProblemLine(p){
 }
 
 /* Setzt Tessa UND ihren (eigenständigen, am Boden bleibenden)
-   Schatten auf dieselbe Position. */
-function positionBunny(value, range){
+   Schatten auf dieselbe Position. instant=true unterdrückt kurzzeitig
+   die CSS-transition(left) - für den Rücksprung auf die Ausgangszahl
+   einer NEUEN Aufgabe, wo kein sichtbares Gleiten vom alten Zielfeld
+   der vorherigen Aufgabe stattfinden darf (kein "altes Ziel blitzt
+   kurz auf"). Der animierte Sprung zum Ergebnis (nach einer Antwort)
+   läuft weiterhin normal mit Übergang über hopOneStep(). */
+function positionBunny(value, range, instant){
   const pct = (value/range*100).toFixed(3)+"%";
-  document.getElementById("zh-bunny").style.left = pct;
-  document.getElementById("zh-bunny-shadow").style.left = pct;
+  const bunny = document.getElementById("zh-bunny");
+  const shadow = document.getElementById("zh-bunny-shadow");
+  if(instant){
+    bunny.style.transition = "none";
+    shadow.style.transition = "none";
+  }
+  bunny.style.left = pct;
+  shadow.style.left = pct;
+  if(instant){
+    void bunny.offsetWidth; // Reflow erzwingen, bevor die transition wieder greift
+    bunny.style.transition = "";
+    shadow.style.transition = "";
+  }
 }
 
 function renderNumberline(p, decorative){
@@ -632,8 +648,12 @@ function renderNumberline(p, decorative){
   line.innerHTML = "";
   if(!p){
     wrap.style.width = "100%";
-    document.getElementById("zh-bunny").style.left = "50%";
-    document.getElementById("zh-bunny-shadow").style.left = "50%";
+    const bunny = document.getElementById("zh-bunny");
+    const shadow = document.getElementById("zh-bunny-shadow");
+    bunny.style.transition = "none"; shadow.style.transition = "none";
+    bunny.style.left = "50%"; shadow.style.left = "50%";
+    void bunny.offsetWidth;
+    bunny.style.transition = ""; shadow.style.transition = "";
     setBunnyFrame("idle");
     return;
   }
@@ -659,7 +679,10 @@ function renderNumberline(p, decorative){
     }
     line.appendChild(dot);
   }
-  positionBunny(p.a, range);
+  // Neue Aufgabe: Tessa startet IMMER auf der Ausgangszahl (p.a), nie
+  // beim Ergebnis - und zwar ohne Gleit-Übergang vom Zielfeld der
+  // vorherigen Aufgabe (siehe positionBunny()-Kommentar).
+  positionBunny(p.a, range, true);
 }
 
 /* ---------- Schritt-für-Schritt-Rechenweg ----------
@@ -799,15 +822,16 @@ function nextProblem(){
     if(G.current.verhuepfer){
       // Tessa sitzt beim Verhüpfer schon (falsch) auf der Behauptung,
       // nicht auf dem Startwert - genau das soll dem Kind auffallen.
-      // Kein Rechenweg-Vorführen in diesem Fall.
-      positionBunny(G.current.wrongClaim, G.current.range);
-    } else if(G.showCarrots){
-      // Karotten sind für diese Aufgabe/Stufe ohnehin sichtbar: der
-      // Rechenweg wird als Lernhilfe einmal komplett vorgeführt,
-      // bevor das Kind die Zahl im Zahlenweg antippt.
+      // Auch das ohne Gleit-Übergang vom vorherigen Zielfeld.
+      positionBunny(G.current.wrongClaim, G.current.range, true);
       renderCarrots();
-      runSolutionDemo(G.current, { withCarrots:true });
     } else {
+      // Tessa bleibt auf der Ausgangszahl stehen, bis geantwortet
+      // wird - kein automatisches Vorführen mehr beim Erscheinen der
+      // Aufgabe (das gab vorher fälschlich schon das Ergebnis preis,
+      // bevor das Kind überhaupt getippt hat). Der Rechenweg wird erst
+      // in resolve() nach der Antwort einmal gezeigt (richtig: Bestä-
+      // tigung, falsch: Erklärung) - siehe dort.
       renderCarrots();
     }
   }
@@ -953,8 +977,10 @@ function resolve(ok, dotEl, bubbleEl, forcedMsg){
     explainBox.classList.remove("hidden");
   }
   // Vormachen startet immer bei p.a (auch nach einem Verhüpfer, wo
-  // Tessa gerade noch auf der falschen Behauptung stand).
-  positionBunny(p.a, p.range);
+  // Tessa gerade noch auf der falschen Behauptung stand) - instant,
+  // damit der Rücksprung nicht wie ein (nicht mitgezählter) erster
+  // Rechenschritt der gleich folgenden Demo aussieht.
+  positionBunny(p.a, p.range, true);
   setBunnyFrame(ok ? "jump" : "oops");
   runSolutionDemo(p, {
     withCarrots: G.showCarrots,
