@@ -425,7 +425,7 @@ function stageIntroText(stageNum){
 
 function showStageIntro(){
   const box = document.getElementById("zh-tessa");
-  box.innerHTML = '<span class="fx">'+tessaImgTag("idle")+'</span><p>'+stageIntroText(G.stage)+'</p>';
+  box.innerHTML = '<p>'+stageIntroText(G.stage)+'</p>';
   renderNumberline(null);
   const go = el("button","btn btn--wide","Los geht's →");
   go.style.marginTop = "10px";
@@ -452,7 +452,7 @@ function startBlitz(){
   };
   renderRoundShell();
   document.getElementById("zh-tessa").innerHTML =
-    '<span class="fx">⚡</span><p>Kopfrechnen-Sprint! Tippe die richtige Zahl in der Blase. '+
+    '<p>⚡ Kopfrechnen-Sprint! Tippe die richtige Zahl in der Blase. '+
     'Ein Fehler wird verziehen (🍃), dann ist Schluss.</p>';
   renderNumberline(null);
   document.getElementById("zh-line-outer").classList.add("hidden");
@@ -496,7 +496,7 @@ function renderRoundShell(){
         '<div class="nl-moss" id="zh-moss-l"></div>'+
         '<div class="nl-moss right" id="zh-moss-r"></div>'+
         '<div class="nl-bunny-shadow" id="zh-bunny-shadow"></div>'+
-        '<div class="nl-bunny" id="zh-bunny">'+tessaImgTag("idle")+'</div>'+
+        '<div class="nl-bunny" id="zh-bunny"><div class="nl-bunny-arc">'+tessaImgTag("idle")+'</div></div>'+
       '</div>'+
     '</div>'+
     '<div id="zh-answers"></div>'+
@@ -783,7 +783,7 @@ function nextProblem(){
   const tessaMsg = G.current.verhuepfer
     ? "Hoppla - ist Tessa hier wirklich richtig gelandet?"+verhuepferFlag
     : "Wo landet Tessa?";
-  tessa.innerHTML = '<span class="fx">'+tessaImgTag(G.current.verhuepfer ? "oops" : "idle")+'</span><p>'+tessaMsg+'</p>';
+  tessa.innerHTML = '<p>'+tessaMsg+'</p>';
   setBunnyFrame(G.current.verhuepfer ? "oops" : "idle");
 
   if(G.mode === "blitz"){
@@ -924,7 +924,7 @@ function resolve(ok, dotEl, bubbleEl, forcedMsg){
     // - ein einzelner Hopser zur richtigen Zahl statt der vollen
     // Schritt-für-Schritt-Erklärung der Übungsrunde.
     const msg = forcedMsg || (ok ? "Richtig! ✨" : "Fast – die richtige Antwort ist "+p.c+".");
-    tessa.innerHTML = '<span class="fx">'+tessaImgTag(ok ? "cheer" : "oops")+'</span><p>'+msg+'</p>';
+    tessa.innerHTML = '<p>'+msg+'</p>';
     if(G.showLine){
       if(!dotEl) renderNumberline(p, true);
       later(()=> hopOneStep(p.c, p.range), 120);
@@ -945,10 +945,10 @@ function resolve(ok, dotEl, bubbleEl, forcedMsg){
   document.getElementById("zh-answers").innerHTML = "";
   const explainBox = document.getElementById("zh-explain");
   if(ok){
-    tessa.innerHTML = '<span class="fx">'+tessaImgTag("jump")+'</span><p>Richtig! Schauen wir uns den Weg nochmal an ...</p>';
+    tessa.innerHTML = '<p>Richtig! Schauen wir uns den Weg nochmal an ...</p>';
     explainBox.classList.add("hidden");
   } else {
-    tessa.innerHTML = '<span class="fx">'+tessaImgTag("oops")+'</span><p>Fast! Hier ist der richtige Weg:</p>';
+    tessa.innerHTML = '<p>Fast! Hier ist der richtige Weg:</p>';
     explainBox.textContent = explainSteps(p);
     explainBox.classList.remove("hidden");
   }

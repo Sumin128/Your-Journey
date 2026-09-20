@@ -85,8 +85,6 @@
   background:#fffdf6; border:2px solid var(--border); border-radius:14px;
   padding:10px 12px; margin-bottom:12px; min-height:56px;
 }
-.zh-game .tessa-line .fx{font-size:1.6rem; line-height:1}
-.zh-game .tessa-line .fx img{display:block; width:44px; height:auto}
 .zh-game .tessa-line p{margin:0; font-size:.95rem}
 
 /* Verständliche Fehlerhilfe: kurzer Erklärtext, danach wird der
@@ -115,16 +113,16 @@
    Trittsteine sind min. 44x44px (Tippfläche), Dekoration (Moos)
    lebt nur im Rand-Padding links/rechts vom Zahlenbereich, nie über
    einer Zahl. */
-.zh-game .numberline-outer{overflow-x:auto; margin:0 0 6px; padding-bottom:6px}
-.zh-game .numberline-wrap{position:relative; height:150px; margin:0 auto}
+.zh-game .numberline-outer{overflow-x:auto; margin:10px 0 6px; padding-bottom:6px}
+.zh-game .numberline-wrap{position:relative; height:190px; margin:0 auto}
 .zh-game .numberline{
-  position:absolute; left:44px; right:44px; top:110px; height:10px;
+  position:absolute; left:44px; right:44px; top:122px; height:10px;
   background:linear-gradient(180deg,#c9a86b,#a9803f);
   border-radius:8px;
   box-shadow:inset 0 -2px 3px rgba(78,42,17,.35), inset 0 2px 2px rgba(255,255,255,.35);
 }
 .zh-game .nl-moss{
-  position:absolute; top:106px; left:2px; width:16px; height:16px; pointer-events:none;
+  position:absolute; top:118px; left:2px; width:16px; height:16px; pointer-events:none;
   background:radial-gradient(circle at 35% 35%, #8fbf6a, #567c3a 70%);
   border-radius:60% 40% 55% 45%/45% 55% 40% 60%;
   box-shadow:0 1px 2px rgba(60,40,16,.25);
@@ -152,21 +150,34 @@
 }
 @media (prefers-reduced-motion:reduce){ .zh-game .nl-dot.is-landing{animation:none} }
 
-/* Tessa steht IMMER oberhalb ihres Feldes (nie über der Zahl) - der
-   Schatten ist ein eigenes Element, das am Boden bleibt: nur die
-   innere .nl-bunny-sprite bekommt den Sprungbogen (transform), der
-   äußere Container übernimmt ausschließlich die Links-Position/
-   Zentrierung, damit sich beide Transforms nicht überschreiben. */
+/* Tessa steht IMMER oberhalb ihres Feldes, nie über der Zahl, und
+   IMMER vollständig sichtbar (Kopf bis Fuß) - dafür bekommt sie eine
+   feste Box (Breite UND Höhe), die für JEDE Pose groß genug ist
+   (Posen haben unterschiedliche Seitenverhältnisse: idle ist schmal/
+   hoch, land ist breit/flach). Das Bild selbst skaliert innerhalb
+   dieser Box per object-fit:contain, nie zugeschnitten. Kein
+   overflow:hidden auf Tessa oder ihren Eltern - die Box-Höhe und der
+   .numberline-wrap sind bewusst großzügig bemessen, damit auch der
+   Sprungbogen (-16px) niemals nach oben herausragt/abgeschnitten wird.
+
+   Struktur: .nl-bunny (Positionierung/Größe der Box, Links-Zentrierung
+   über transform) > .nl-bunny-arc (Sprungbogen-Animation, volle
+   Boxgröße) > .nl-bunny-sprite (das <img>, object-fit:contain) -
+   getrennt, damit sich die beiden transform-Quellen (Position vs.
+   Sprungbogen) nicht gegenseitig überschreiben. Der Schatten ist ein
+   eigenes, nicht animiertes Element, das am Boden bleibt. */
 .zh-game .nl-bunny{
-  position:absolute; top:64px; transform:translate(-50%,-100%);
-  width:40px; transition:left .55s cubic-bezier(.3,.6,.3,1);
+  position:absolute; top:135px; transform:translate(-50%,-100%);
+  width:52px; height:112px; overflow:visible;
+  transition:left .55s cubic-bezier(.3,.6,.3,1);
   pointer-events:none; z-index:2;
 }
-.zh-game .nl-bunny-sprite{display:block; width:100%; height:auto}
-.zh-game .nl-bunny.is-hopping .nl-bunny-sprite{ animation:zhHopArc .5s ease-in-out }
+.zh-game .nl-bunny-arc{ width:100%; height:100%; overflow:visible }
+.zh-game .nl-bunny.is-hopping .nl-bunny-arc{ animation:zhHopArc .5s ease-in-out }
 @keyframes zhHopArc{ 0%{transform:translateY(0)} 45%{transform:translateY(-16px)} 100%{transform:translateY(0)} }
+.zh-game .nl-bunny-sprite{ display:block; width:100%; height:100%; object-fit:contain }
 .zh-game .nl-bunny-shadow{
-  position:absolute; top:100px; transform:translate(-50%,-50%);
+  position:absolute; top:145px; transform:translate(-50%,-50%);
   width:26px; height:9px; border-radius:50%;
   background:rgba(60,40,16,.32); filter:blur(.5px);
   transition:left .55s cubic-bezier(.3,.6,.3,1);
@@ -174,7 +185,7 @@
 }
 @media (prefers-reduced-motion:reduce){
   .zh-game .nl-bunny, .zh-game .nl-bunny-shadow{ transition:none }
-  .zh-game .nl-bunny.is-hopping .nl-bunny-sprite{ animation:none }
+  .zh-game .nl-bunny.is-hopping .nl-bunny-arc{ animation:none }
 }
 
 /* --- Karotten-Zählhilfe --- */
