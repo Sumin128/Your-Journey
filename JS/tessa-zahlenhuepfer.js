@@ -633,6 +633,29 @@ function renderProblemLine(p){
     '<span class="q">?</span>';
 }
 
+/* Tessa/Schatten müssen exakt im selben Koordinatensystem wie die
+   Zahlensteine (.nl-dot) stehen. .numberline ist gegenüber
+   .numberline-wrap um left:44px/right:44px eingerückt - eine eigene
+   Prozentrechnung relativ zur GESAMTEN .numberline-wrap (wie zuvor)
+   driftet an den Rändern auseinander (bei 0 zu weit links, beim
+   Maximalwert zu weit rechts, dazwischen nur zufällig ungefähr
+   richtig). Deshalb hier die ECHTE, gerenderte Mittelpunktposition
+   des zugehörigen Zahlensteins abfragen (getBoundingClientRect) statt
+   eine zweite, eigene Positionsformel zu pflegen, die immer wieder
+   auseinanderlaufen kann, sobald sich an .numberline/.nl-dot etwas
+   ändert. */
+function bunnyLeftPx(value, range){
+  const wrap = document.getElementById("zh-line-wrap");
+  const dot = document.querySelector('.nl-dot[data-value="'+value+'"]');
+  if(dot){
+    const wrapRect = wrap.getBoundingClientRect();
+    const dotRect = dot.getBoundingClientRect();
+    return (dotRect.left + dotRect.width/2 - wrapRect.left) + "px";
+  }
+  // Fallback, falls der Zielstein ausnahmsweise nicht im DOM steht.
+  return (value/range*100).toFixed(3)+"%";
+}
+
 /* Setzt Tessa UND ihren (eigenständigen, am Boden bleibenden)
    Schatten auf dieselbe Position. instant=true unterdrückt kurzzeitig
    die CSS-transition(left) - für den Rücksprung auf die Ausgangszahl
@@ -641,15 +664,15 @@ function renderProblemLine(p){
    kurz auf"). Der animierte Sprung zum Ergebnis (nach einer Antwort)
    läuft weiterhin normal mit Übergang über hopOneStep(). */
 function positionBunny(value, range, instant){
-  const pct = (value/range*100).toFixed(3)+"%";
+  const left = bunnyLeftPx(value, range);
   const bunny = document.getElementById("zh-bunny");
   const shadow = document.getElementById("zh-bunny-shadow");
   if(instant){
     bunny.style.transition = "none";
     shadow.style.transition = "none";
   }
-  bunny.style.left = pct;
-  shadow.style.left = pct;
+  bunny.style.left = left;
+  shadow.style.left = left;
   if(instant){
     void bunny.offsetWidth; // Reflow erzwingen, bevor die transition wieder greift
     bunny.style.transition = "";
