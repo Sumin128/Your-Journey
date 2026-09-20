@@ -188,7 +188,16 @@
   .zh-game .nl-bunny.is-hopping .nl-bunny-arc{ animation:none }
 }
 
-/* --- Karotten-Zählhilfe --- */
+/* --- Karotten-Zählhilfe ---
+   Vor der Antwort ist die VOLLSTÄNDIGE Rechenmenge sichtbar, aber klar
+   in Ausgangsmenge ("Schon da"/"Bleibt") und Veränderung ("Kommt
+   dazu"/"Geht weg") getrennt - nicht nur farblich, sondern zusätzlich
+   über Rahmenform (durchgezogen/gestrichelt) UND ein kleines +/--
+   Abzeichen. Erst NACH der Antwort löst jeder Hüpfschritt genau ein
+   ausstehendes Element auf (siehe resolveNextPendingCarrot() in
+   JS) - die Elemente selbst bleiben dieselben DOM-Knoten, nur ihre
+   Zustandsklasse wechselt, damit sich nichts vor der Antwort von
+   selbst bewegt. */
 .zh-game .carrot-toolbar{display:flex; justify-content:center; align-items:center; gap:8px; margin:0 0 8px; font-size:.85rem; color:var(--ink-soft)}
 .zh-game .carrot-toolbar button{
   border:2px solid var(--wood); border-radius:999px; background:var(--paper);
@@ -196,20 +205,51 @@
 }
 .zh-game .carrot-toolbar button.is-on{background:var(--carrot); color:#fff}
 .zh-game .carrot-row{
-  display:flex; flex-wrap:wrap; gap:4px; justify-content:center;
-  min-height:34px; margin:0 0 14px; padding:8px; border-radius:12px;
+  display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
+  min-height:40px; margin:0 0 4px; padding:8px 10px; border-radius:12px;
   background:#fffdf6; border:1px dashed var(--border);
 }
 .zh-game .carrot-row.hidden{display:none}
-.zh-game .carrot-row img{width:26px; height:auto; display:inline-block; vertical-align:middle; transition:opacity .25s ease}
-.zh-game .carrot-row img.is-added{
-  animation:zhCarrotPop .3s ease;
-  background:#ffe3b0; border-radius:8px; padding:2px 3px;
+.zh-game .carrot-legend{
+  text-align:center; font-size:.72rem; font-weight:700; color:var(--ink-soft);
+  margin:0 0 14px;
 }
-.zh-game .carrot-row img.is-added:first-of-type{ margin-left:10px }
-.zh-game .carrot-row img.is-removed{opacity:.25; filter:grayscale(1)}
-@keyframes zhCarrotPop{ 0%{transform:scale(.4)} 70%{transform:scale(1.15)} 100%{transform:scale(1)} }
-@media (prefers-reduced-motion:reduce){ .zh-game .carrot-row img.is-added{animation:none} }
+.zh-game .carrot-legend.hidden{display:none}
+.zh-game .carrot-legend .leg-add{color:var(--plus)}
+.zh-game .carrot-legend .leg-remove{color:var(--minus)}
+
+.zh-game .carrot-item{
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:9px;
+  border:2px solid transparent;
+  transition:opacity .3s ease, filter .3s ease, border-color .2s ease;
+}
+.zh-game .carrot-item img{ width:26px; height:auto; display:block; transition:opacity .3s ease, filter .3s ease }
+
+/* "Kommt dazu" (Addition, vor der Auflösung): blass UND gestrichelt
+   UND mit Plus-Abzeichen - drei redundante Signale statt nur Farbe. */
+.zh-game .carrot-item.is-pending-add{ border-style:dashed; border-color:var(--plus) }
+.zh-game .carrot-item.is-pending-add img{ opacity:.4; filter:saturate(.35) }
+
+/* "Geht weg" (Subtraktion, vor der Auflösung): normal sichtbar, aber
+   ebenfalls gestrichelt umrandet UND mit Minus-Abzeichen markiert. */
+.zh-game .carrot-item.is-pending-remove{ border-style:dashed; border-color:var(--minus) }
+
+.zh-game .carrot-badge{
+  position:absolute; top:-7px; right:-7px; width:16px; height:16px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.68rem; font-weight:900; line-height:1; color:#fff;
+  box-shadow:0 1px 2px rgba(60,40,16,.35);
+}
+.zh-game .carrot-item.is-pending-add .carrot-badge{ background:var(--plus) }
+.zh-game .carrot-item.is-pending-remove .carrot-badge{ background:var(--minus) }
+
+/* Auflösung während Tessas Sprung: "Kommt dazu" wird aktiv/orange
+   (voller Karotten-Look, kleiner Pop), "Geht weg" wird ausgegraut. */
+.zh-game .carrot-item.is-resolved-add{ animation:zhCarrotPop .3s ease }
+.zh-game .carrot-item.is-resolved-remove img{ opacity:.25; filter:grayscale(1) }
+@keyframes zhCarrotPop{ 0%{transform:scale(.7)} 60%{transform:scale(1.18)} 100%{transform:scale(1)} }
+@media (prefers-reduced-motion:reduce){ .zh-game .carrot-item.is-resolved-add{animation:none} }
 
 /* Blitz: Zahlen-Antwortblasen statt Zahlenstrahl-Tipp */
 .zh-game .bubbles{display:grid; grid-template-columns:repeat(auto-fit,minmax(70px,1fr)); gap:10px; margin-bottom:10px}

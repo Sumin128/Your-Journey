@@ -502,6 +502,7 @@ function renderRoundShell(){
     '<div class="timerbar hide" id="zh-timer"><i></i></div>'+
     '<div class="carrot-toolbar" id="zh-carrot-toolbar"></div>'+
     '<div class="carrot-row hidden" id="zh-carrots"></div>'+
+    '<p class="carrot-legend hidden" id="zh-carrot-legend"></p>'+
     '<div class="carrot-toolbar hidden" id="zh-line-toolbar">'+
       '<button id="zh-line-toggle-btn">🔢 Zahlenweg zeigen</button>'+
     '</div>'+
@@ -596,28 +597,82 @@ function renderCarrotToolbar(){
   bar.appendChild(btn);
 }
 
-/* Karotten zeigen den RECHENWEG, nicht nur das fertige Ergebnis: die
-   Ausgangsmenge (p.a) steht sofort da, die Veränderung (p.b) wird von
-   runSolutionDemo() Schritt für Schritt ergänzt/entfernt - siehe
-   dort. Diese Funktion rendert nur den Ausgangszustand. */
-function makeCarrotEl(extraCls){
+/* Karotten zeigen den RECHENWEG, nicht nur das fertige Ergebnis: VOR
+   der Antwort steht die vollständige Rechenmenge da, aber klar
+   getrennt in Ausgangsmenge (normal) und Veränderung (blass/
+   gestrichelt + +/--Abzeichen, siehe CSS) - ohne dass sich dabei
+   irgendetwas von selbst bewegt. Erst NACH der Antwort löst
+   resolveNextPendingCarrot() während jedes Hüpfschritts genau ein
+   ausstehendes Element auf (siehe runSolutionDemo()). */
+function makeCarrotEl(pendingCls, badgeChar){
+  const wrap = document.createElement("span");
+  wrap.className = "carrot-item"+(pendingCls ? " "+pendingCls : "");
   const img = document.createElement("img");
   img.src = CARROT_IMG.normal;
   img.alt = "Karotte";
-  if(extraCls) img.className = extraCls;
-  return img;
+  wrap.appendChild(img);
+  if(badgeChar){
+    const badge = document.createElement("span");
+    badge.className = "carrot-badge";
+    badge.textContent = badgeChar;
+    badge.setAttribute("aria-hidden", "true");
+    wrap.appendChild(badge);
+  }
+  return wrap;
 }
+
 function renderCarrots(){
   const row = document.getElementById("zh-carrots");
+  const legend = document.getElementById("zh-carrot-legend");
   if(!G.current || !G.showCarrots){
     row.classList.add("hidden");
     row.innerHTML = "";
+    if(legend){ legend.classList.add("hidden"); legend.innerHTML = ""; }
     return;
   }
   row.classList.remove("hidden");
   row.innerHTML = "";
   const p = G.current;
-  for(let i=0;i<p.a;i+=1) row.appendChild(makeCarrotEl());
+  if(p.op === "-"){
+    // Von p.a Karotten "gehen" die LETZTEN p.b weg (gleiche Reihenfolge
+    // wie die Zielzahl-Berechnung) - der Rest "bleibt" deutlich sichtbar.
+    const staysCount = p.a - p.b;
+    for(let i=0;i<p.a;i+=1){
+      const pending = i >= staysCount;
+      row.appendChild(makeCarrotEl(pending ? "is-pending-remove" : "", pending ? "−" : null));
+    }
+  } else {
+    for(let i=0;i<p.a;i+=1) row.appendChild(makeCarrotEl());
+    for(let i=0;i<p.b;i+=1) row.appendChild(makeCarrotEl("is-pending-add", "+"));
+  }
+  if(legend){
+    legend.classList.remove("hidden");
+    legend.innerHTML = p.op === "-"
+      ? '<span class="leg-remove">Bleibt</span> · <span class="leg-remove">Geht weg</span>'
+      : '<span class="leg-add">Schon da</span> · <span class="leg-add">Kommt dazu</span>';
+  }
+}
+
+/* Löst währenddessen EINES Hüpfschritts genau EIN noch ausstehendes
+   Karotten-Element auf (erstes im DOM = längst wartendes, da
+   resolvierte Elemente aus der ".is-pending-*"-Auswahl herausfallen) -
+   dieselben Elemente bleiben erhalten, nur ihre Zustandsklasse
+   wechselt, kein Neuaufbau der Reihe während der Antwort-Auflösung. */
+function resolveNextPendingCarrot(op){
+  const row = document.getElementById("zh-carrots");
+  if(!row) return;
+  const selector = op === "-" ? ".carrot-item.is-pending-remove" : ".carrot-item.is-pending-add";
+  const item = row.querySelector(selector);
+  if(!item) return;
+  const badge = item.querySelector(".carrot-badge");
+  if(badge) badge.remove();
+  if(op === "-"){
+    item.classList.remove("is-pending-remove");
+    item.classList.add("is-resolved-remove");
+  } else {
+    item.classList.remove("is-pending-add");
+    item.classList.add("is-resolved-add");
+  }
 }
 
 /* ---------- Aufgabenzeile + Zahlenweg ---------- */
@@ -737,22 +792,18 @@ function hopOneStep(value, range){
 }
 
 /* Macht den kompletten Rechenweg einer Aufgabe einmal sichtbar vor:
-   Ausgangsmenge steht sofort da, dann wird je Einzelschritt eine
-   Karotte ergänzt/ausgegraut UND Tessa hüpft ein Feld weiter - erst
-   danach ist das Ergebnis vollständig erklärt. withCarrots steuert,
-   ob die Zählreihe mitläuft (nur wenn sie für die aktuelle Aufgabe/
-   Stufe ohnehin sichtbar ist) - der räumliche Hüpfweg selbst läuft
-   immer, auch als Erklärung nach einer falschen Antwort, unabhängig
-   von der Karotten-Sichtbarkeit der Stufe. */
+   die Karotten-Reihe steht (falls sichtbar) bereits VOLLSTÄNDIG mit
+   Ausgangsmenge + blass/gestrichelt markierter Veränderung da (siehe
+   renderCarrots()) - hier wird pro Hüpfschritt nur noch GENAU EIN
+   ausstehendes Element aufgelöst (aktiv bei Addition, ausgegraut bei
+   Subtraktion), synchron zu Tessas Sprung. withCarrots steuert, ob die
+   Zählreihe mitläuft (nur wenn sie für die aktuelle Aufgabe/Stufe
+   ohnehin sichtbar ist) - der räumliche Hüpfweg selbst läuft immer,
+   auch als Erklärung nach einer falschen Antwort, unabhängig von der
+   Karotten-Sichtbarkeit der Stufe. */
 function runSolutionDemo(p, opts){
   opts = opts || {};
   const withCarrots = !!opts.withCarrots;
-  if(withCarrots){
-    const row = document.getElementById("zh-carrots");
-    row.classList.remove("hidden");
-    row.innerHTML = "";
-    for(let i=0;i<p.a;i+=1) row.appendChild(makeCarrotEl());
-  }
   const dir = p.op === "-" ? -1 : 1;
   let step = 0;
   function doStep(){
@@ -760,20 +811,11 @@ function runSolutionDemo(p, opts){
     if(step >= p.b){ if(opts.onDone) opts.onDone(); return; }
     step += 1;
     const val = p.a + dir*step;
-    if(withCarrots){
-      const row = document.getElementById("zh-carrots");
-      if(p.op === "-"){
-        const remaining = row.querySelectorAll("img:not(.is-removed)");
-        const t = remaining[remaining.length-1];
-        if(t) t.classList.add("is-removed");
-      } else {
-        row.appendChild(makeCarrotEl("is-added"));
-      }
-    }
+    if(withCarrots) resolveNextPendingCarrot(p.op);
     hopOneStep(val, p.range);
     later(doStep, HOP_STEP_MS);
   }
-  later(doStep, withCarrots ? 480 : 60);
+  later(doStep, HOP_STEP_MS);
 }
 
 /* ---------- Blitz: Antwort-Blasen ---------- */
