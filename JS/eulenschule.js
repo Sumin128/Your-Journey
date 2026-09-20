@@ -49,11 +49,13 @@ const haseGameMenu = document.getElementById("hase-game-menu");
 const wordGameSection = document.getElementById("word-game");
 const memoryGameSection = document.getElementById("memory-game");
 const symbolduellGameSection = document.getElementById("symbolduell-game");
+const zahlenhuepferGameSection = document.getElementById("zahlenhuepfer-game");
 
 const haseStartButton = document.getElementById("hase-start-button");
 const startWordgameButton = document.getElementById("start-wordgame-button");
 const startMemoryButton = document.getElementById("start-memory-button");
 const startSymbolduellButton = document.getElementById("start-symbolduell-button");
+const startZahlenhuepferButton = document.getElementById("start-zahlenhuepfer-button");
 const backToTessaButton = document.getElementById("back-to-tessa");
 const backToHaseMenuButton = document.getElementById("back-to-hase-menu");
 const backToHaseMenuFromMemoryButton = document.getElementById("back-to-hase-menu-from-memory");
@@ -88,6 +90,19 @@ if (startSymbolduellButton) {
 
         if (typeof showSymbolduellIntro === "function") {
             showSymbolduellIntro();
+        }
+
+    });
+}
+
+if (startZahlenhuepferButton) {
+    startZahlenhuepferButton.addEventListener("click", function () {
+
+        haseGameMenu.hidden = true;
+        zahlenhuepferGameSection.hidden = false;
+
+        if (typeof showZahlenhuepferIntro === "function") {
+            showZahlenhuepferIntro();
         }
 
     });

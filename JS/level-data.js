@@ -86,6 +86,10 @@ function mirelonXpFor(reason, difficulty) {
             return 10;
         case "symbolduell_gewonnen":
             return 25;
+        case "zahlenhuepfer_uebung":
+            return 20;
+        case "zahlenhuepfer_blitz":
+            return 30;
         default:
             return null;
     }

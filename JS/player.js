@@ -132,6 +132,27 @@ function defaultProgression() {
 
 }
 
+/* Einzige Quelle für den Start-Zustand von "Tessas Zahlenhüpfer"
+   (Rechenspiel, Tessas Hasenschule). Wird von createDefaultPlayer()
+   und der Migration unten benutzt. Reine Fortschrittswerte, kein
+   Guthaben - siehe _preview/tessas-zahlenhuepfer/NOTIZEN.md
+   ("Spielstand & Supabase"): kein protected_keys-Bedarf, die
+   eigentliche Belohnung läuft über earn_coins()/earn_xp() mit den
+   Reasons "zahlenhuepfer_uebung"/"zahlenhuepfer_blitz". */
+function defaultTessaZahlenhuepfer() {
+
+    return {
+        unlockedStage: 1,
+        stageWins: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        bestScore: { uebung: 0, blitzrunde: 0 },
+        blitzrundeUnlocked: false,
+        gardenPlants: 0,
+        gardensCompleted: 0,
+        goldenCarrots: 0
+    };
+
+}
+
 function createDefaultPlayer() {
 
     return {
@@ -228,6 +249,8 @@ function createDefaultPlayer() {
         schloss: defaultSchloss(),
 
         progression: defaultProgression(),
+
+        tessaZahlenhuepfer: defaultTessaZahlenhuepfer(),
 
         /* Rein präsentationsbezogen (z. B. "Faro-Story noch nicht
            gezeigt"), ABSICHTLICH getrennt von progression und NICHT
@@ -778,6 +801,41 @@ if (!player.consumables || typeof player.consumables !== "object") {
     if (!Array.isArray(player.pendingStoryEvents)) {
 
         player.pendingStoryEvents = [];
+
+    }
+
+
+    /* Tessas Zahlenhüpfer: fehlende Felder ausbessern (siehe
+       defaultTessaZahlenhuepfer() oben). Reine Fortschrittswerte,
+       nicht serverseitig geschützt - siehe Kommentar dort. */
+
+    if (!player.tessaZahlenhuepfer) {
+
+        player.tessaZahlenhuepfer = defaultTessaZahlenhuepfer();
+
+    } else {
+
+        const baseZahlenhuepfer = defaultTessaZahlenhuepfer();
+
+        Object.keys(baseZahlenhuepfer).forEach(function (key) {
+            if (typeof player.tessaZahlenhuepfer[key] === "undefined") {
+                player.tessaZahlenhuepfer[key] = baseZahlenhuepfer[key];
+            }
+        });
+
+        if (!player.tessaZahlenhuepfer.stageWins || typeof player.tessaZahlenhuepfer.stageWins !== "object") {
+            player.tessaZahlenhuepfer.stageWins = baseZahlenhuepfer.stageWins;
+        } else {
+            [1, 2, 3, 4, 5].forEach(function (stage) {
+                if (typeof player.tessaZahlenhuepfer.stageWins[stage] === "undefined") {
+                    player.tessaZahlenhuepfer.stageWins[stage] = 0;
+                }
+            });
+        }
+
+        if (!player.tessaZahlenhuepfer.bestScore || typeof player.tessaZahlenhuepfer.bestScore !== "object") {
+            player.tessaZahlenhuepfer.bestScore = baseZahlenhuepfer.bestScore;
+        }
 
     }
 
