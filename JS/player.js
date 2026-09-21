@@ -148,7 +148,8 @@ function defaultTessaZahlenhuepfer() {
         blitzrundeUnlocked: false,
         gardenPlants: 0,
         gardensCompleted: 0,
-        goldenCarrots: 0
+        goldenCarrots: 0,
+        verhuepferHintSeen: false
     };
 
 }

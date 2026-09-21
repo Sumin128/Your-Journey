@@ -334,11 +334,44 @@
 @keyframes zhGoldenPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
 @media (prefers-reduced-motion:reduce){ .zh-game .bonus-line img.is-glow{animation:none} }
 
-/* --- "Verhüpfer"-Twist Hinweis --- */
-.zh-game .verhuepfer-flag{
-  display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px;
-  background:#f0d4b8; color:var(--wood); font-size:.72rem; font-weight:800;
+/* --- "Verhüpfer"-Twist: Markierung + einmalige Erklärung ---
+   Die Mechanik selbst ist gewollt (Tessa landet absichtlich falsch),
+   muss sich aber sichtbar von einem Darstellungsfehler unterscheiden:
+   ein "?" schwebt über Tessa, der falsch behauptete Zahlenstein wird
+   zusätzlich gestrichelt/wackelnd markiert (nicht nur Farbe). */
+.zh-game .nl-bunny-mark{
+  position:absolute; left:50%; top:-16px; transform:translateX(-50%);
+  width:26px; height:26px; border-radius:50%;
+  background:#fff3d6; border:2px solid var(--wood); color:var(--wood);
+  display:none; align-items:center; justify-content:center;
+  font-weight:900; font-size:1rem; line-height:1;
+  box-shadow:0 2px 4px rgba(60,40,16,.3);
+  animation:zhMarkBob 1.4s ease-in-out infinite;
 }
+.zh-game .nl-bunny.has-wrong-claim .nl-bunny-mark{ display:flex }
+@keyframes zhMarkBob{ 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-4px)} }
+@media (prefers-reduced-motion:reduce){ .zh-game .nl-bunny-mark{animation:none} }
+
+.zh-game .nl-dot.is-wrong-claim{
+  border-style:dashed; border-color:var(--bad);
+  animation:zhWrongWobble 1.6s ease-in-out infinite;
+}
+@keyframes zhWrongWobble{
+  0%,100%{ transform:translate(-50%,-50%) rotate(0) }
+  25%{ transform:translate(-50%,-50%) rotate(-6deg) }
+  75%{ transform:translate(-50%,-50%) rotate(6deg) }
+}
+@media (prefers-reduced-motion:reduce){ .zh-game .nl-dot.is-wrong-claim{animation:none} }
+
+/* Einmalige Erklärung (nur beim allerersten Verhüpfer, siehe
+   maybeShowVerhuepferHint() in JS) - deutlich sichtbarer als der
+   normale Fehlertext, damit sie sicher gelesen wird, bevor es weitergeht. */
+.zh-game .verhuepfer-hint{
+  margin:0 0 12px; padding:12px 14px; border-radius:12px;
+  background:#fdf1da; border:2px solid var(--accent);
+  color:var(--ink);
+}
+.zh-game .verhuepfer-hint p{ margin:0 0 10px; font-size:.92rem; line-height:1.45 }
 
 /* --- Stufenauswahl als Hüpf-Pfad ---
    Reihenfolge von oben nach unten, jede Zone mit echtem, positivem

@@ -497,6 +497,7 @@ function renderRoundShell(){
     '</div>'+
     '<div class="bonus-line" id="zh-bonus"></div>'+
     '<div class="tessa-line" id="zh-tessa"></div>'+
+    '<div class="verhuepfer-hint hidden" id="zh-verhuepfer-hint"></div>'+
     '<div class="explain-box hidden" id="zh-explain"></div>'+
     '<div class="problem-line" id="zh-problem"></div>'+
     '<div class="timerbar hide" id="zh-timer"><i></i></div>'+
@@ -512,7 +513,8 @@ function renderRoundShell(){
         '<div class="nl-moss" id="zh-moss-l"></div>'+
         '<div class="nl-moss right" id="zh-moss-r"></div>'+
         '<div class="nl-bunny-shadow" id="zh-bunny-shadow"></div>'+
-        '<div class="nl-bunny" id="zh-bunny"><div class="nl-bunny-arc">'+tessaImgTag("idle")+'</div></div>'+
+        '<div class="nl-bunny" id="zh-bunny"><div class="nl-bunny-arc">'+tessaImgTag("idle")+'</div>'+
+          '<span class="nl-bunny-mark" aria-hidden="true">?</span></div>'+
       '</div>'+
     '</div>'+
     '<div id="zh-answers"></div>'+
@@ -882,9 +884,8 @@ function nextProblem(){
   updateHud();
 
   const tessa = document.getElementById("zh-tessa");
-  const verhuepferFlag = G.current.verhuepfer ? '<span class="verhuepfer-flag">Verhüpfer?</span>' : "";
   const tessaMsg = G.current.verhuepfer
-    ? "Hoppla - ist Tessa hier wirklich richtig gelandet?"+verhuepferFlag
+    ? "Tessa hat sich absichtlich verhüpft und steht auf der falschen Zahl. Rechne die Aufgabe und tippe auf den richtigen Zahlenstein!"
     : "Wo landet Tessa?";
   tessa.innerHTML = '<p>'+tessaMsg+'</p>';
   setBunnyFrame(G.current.verhuepfer ? "oops" : "idle");
@@ -899,12 +900,20 @@ function nextProblem(){
     renderNumberline(G.current, false);
     document.getElementById("zh-answers").innerHTML = "";
     focusIfFocusLost(document.querySelector(".nl-dot"));
+    const bunnyEl = document.getElementById("zh-bunny");
     if(G.current.verhuepfer){
       // Tessa sitzt beim Verhüpfer schon (falsch) auf der Behauptung,
       // nicht auf dem Startwert - genau das soll dem Kind auffallen.
-      // Auch das ohne Gleit-Übergang vom vorherigen Zielfeld.
+      // Auch das ohne Gleit-Übergang vom vorherigen Zielfeld. Ein
+      // sichtbares "?" über ihr sowie der gestrichelt/wackelnd
+      // markierte Zahlenstein (siehe CSS) machen den Twist erkennbar
+      // statt wie ein Darstellungsfehler zu wirken.
       positionBunny(G.current.wrongClaim, G.current.range, true);
+      bunnyEl.classList.add("has-wrong-claim");
+      const wrongDot = document.querySelector('.nl-dot[data-value="'+G.current.wrongClaim+'"]');
+      if(wrongDot) wrongDot.classList.add("is-wrong-claim");
       renderCarrots();
+      maybeShowVerhuepferHint();
     } else {
       // Tessa bleibt auf der Ausgangszahl stehen, bis geantwortet
       // wird - kein automatisches Vorführen mehr beim Erscheinen der
@@ -912,13 +921,48 @@ function nextProblem(){
       // bevor das Kind überhaupt getippt hat). Der Rechenweg wird erst
       // in resolve() nach der Antwort einmal gezeigt (richtig: Bestä-
       // tigung, falsch: Erklärung) - siehe dort.
+      bunnyEl.classList.remove("has-wrong-claim");
       renderCarrots();
     }
   }
 }
 
+/* Beim allerersten Verhüpfer einmalig eine kurze Erklärung mit
+   "Verstanden"-Button zeigen, danach nie wieder - der Merker läuft im
+   ganz normalen Spielerstand mit (DATA().verhuepferHintSeen, siehe
+   defaultTessaZahlenhuepfer() in player.js), keine eigene DB-Tabelle
+   nötig. Während die Erklärung offen ist, blockiert G.hintOpen das
+   Antippen der Zahlensteine, damit das Kind sie erst liest. */
+function maybeShowVerhuepferHint(){
+  const box = document.getElementById("zh-verhuepfer-hint");
+  if(!box || DATA().verhuepferHintSeen) return;
+  G.hintOpen = true;
+  box.classList.remove("hidden");
+  box.innerHTML =
+    '<p><strong>Was ist ein Verhüpfer?</strong><br>'+
+    'Tessa hüpft manchmal absichtlich auf die falsche Zahl - du erkennst '+
+    'das am <strong>?</strong> über ihr und am gestrichelten, wackelnden '+
+    'Zahlenstein. Rechne die Aufgabe und tippe auf den richtigen '+
+    'Zahlenstein, dann hüpft Tessa dorthin.</p>';
+  const btn = el("button","btn btn--wide","Verstanden");
+  box.appendChild(btn);
+  btn.addEventListener("click", function(){
+    box.classList.add("hidden");
+    box.innerHTML = "";
+    if(G) G.hintOpen = false;
+    DATA().verhuepferHintSeen = true;
+    savePlayer();
+    focusIfFocusLost(document.querySelector(".nl-dot"));
+  });
+  // Immer aktiv fokussieren (nicht nur bei verlorenem Fokus wie sonst
+  // üblich): die Erklärung blockiert das Spiel, der zuvor fokussierte
+  // Zahlenstein liegt im DOM VOR diesem Hinweis, ein Tastatur-Tab würde
+  // ihn also nie von selbst erreichen.
+  btn.focus();
+}
+
 function onLineTap(value, dotEl){
-  if(!G || G.answered || !G.current) return;
+  if(!G || G.answered || !G.current || G.hintOpen) return;
   resolve(value === G.current.c, dotEl, null);
 }
 function onBubbleTap(value, bubbleEl){
@@ -998,6 +1042,11 @@ function resolve(ok, dotEl, bubbleEl, forcedMsg){
   if(dotEl){ dotEl.classList.add(ok ? "is-correct" : "is-wrong"); }
   if(bubbleEl){ bubbleEl.classList.add(ok ? "is-correct" : "is-wrong"); }
   document.querySelectorAll(".nl-dot, .bubble").forEach(function(b){ b.disabled = true; });
+  // Verhüpfer-Markierung (Fragezeichen über Tessa, gestrichelter Stein)
+  // gilt nur vor der Antwort - sobald ausgewertet wird, verschwindet sie.
+  const bunnyEl0 = document.getElementById("zh-bunny");
+  if(bunnyEl0) bunnyEl0.classList.remove("has-wrong-claim");
+  document.querySelectorAll(".nl-dot.is-wrong-claim").forEach(function(d){ d.classList.remove("is-wrong-claim"); });
 
   G.results.push(ok);
   if(ok){ G.correctCount += 1; addGardenProgress(1); savePlayer(); }
