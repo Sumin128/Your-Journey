@@ -129,6 +129,11 @@ button { font: inherit; }
    Tischen (siehe bekannte Einschränkung unten) überlappt sich sonst
    sichtbar mit dem noch nicht verschobenen Ablagestapel. */
 .miro-startdice-stage { position:absolute; z-index:4; top:calc(50% + 70px); left:50%; transform:translateX(-50%); width:min(260px,70vw); display:flex; flex-direction:column; align-items:center; gap:10px; pointer-events:auto; transition:opacity .4s ease; }
+/* Bleibt die ganze Würfelphase über unverändert stehen (anders als
+   .miro-startdice-hint, das laufend überschrieben wird, wer gerade
+   dran ist) - erklärt einmalig, WARUM gewürfelt wird und dass die
+   Handkarten erst danach kommen, statt das nur implizit zu lassen. */
+.miro-startdice-intro { margin:0; padding:2px 10px; color:#f8d98a; font:700 .72rem system-ui; text-align:center; text-shadow:0 2px 4px #190e08cc; }
 .miro-startdice-hint { margin:0; padding:3px 14px; color:#fff0b8; font:800 .78rem system-ui; text-align:center; text-shadow:0 2px 4px #190e08cc; }
 #miro-startdice-btn { margin:0 auto; }
 .miro-game.is-coin-leaving .miro-startdice-stage,
